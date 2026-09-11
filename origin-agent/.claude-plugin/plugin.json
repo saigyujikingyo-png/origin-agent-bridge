@@ -1,0 +1,9 @@
+{
+  "name": "origin-agent",
+  "version": "0.1.0",
+  "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "author": {
+    "name": "Origin Agent Bridge contributors"
+  },
+  "license": "MIT"
+}

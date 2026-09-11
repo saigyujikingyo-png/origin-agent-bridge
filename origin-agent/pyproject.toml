@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "origin-agent-bridge"
+version = "0.1.0"
+description = "Local, reproducible Origin workflows for any MCP agent"
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = "MIT"
+authors = [{name = "Origin Agent Bridge contributors"}]
+dependencies = [
+  "mcp==2.2.0",
+  "originpro==1.1.15; sys_platform == 'win32'",
+  "OriginExt==1.2.5; sys_platform == 'win32'",
+  "openpyxl==3.1.5",
+  "pillow==12.3.0",
+  "psutil==7.2.2",
+]
+
+[project.scripts]
+origin-agent = "origin_agent.cli:main"
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "ruff==0.16.6", "pyinstaller==6.22.2; sys_platform == 'win32'"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/origin_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["native: requires licensed Windows Origin (explicit opt-in)"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -1,0 +1,27 @@
+{
+  "manifest_version": "0.3",
+  "name": "origin-agent",
+  "version": "0.1.0",
+  "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "display_name": "Origin Agent Bridge",
+  "author": {
+    "name": "Origin Agent Bridge contributors"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "binary",
+    "entry_point": "server/origin-agent.exe",
+    "mcp_config": {
+      "command": "${__dirname}/server/origin-agent.exe",
+      "args": [
+        "serve"
+      ]
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "win32"
+    ]
+  },
+  "tools_generated": true
+}

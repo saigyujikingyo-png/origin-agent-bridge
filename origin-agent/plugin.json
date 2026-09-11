@@ -1,0 +1,7 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "origin-agent",
+  "version": "0.1.0",
+  "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "license": "MIT"
+}

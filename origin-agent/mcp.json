@@ -1,0 +1,15 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "origin-agent": {
+      "type": "stdio",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "$p=Join-Path $env:USERPROFILE '.origin-agent\\install.json'; $i=Get-Content -Raw -LiteralPath $p|ConvertFrom-Json; & $i.executable serve"
+      ]
+    }
+  }
+}

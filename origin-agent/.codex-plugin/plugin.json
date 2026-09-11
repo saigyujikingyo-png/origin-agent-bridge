@@ -1,0 +1,26 @@
+{
+  "name": "origin-agent",
+  "version": "0.1.0",
+  "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "author": {
+    "name": "Origin Agent Bridge contributors"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Origin Agent Bridge",
+    "shortDescription": "Plot and fit with your licensed Origin.",
+    "longDescription": "Use native Origin for plots, regression and batches. Inspect previews and receive editable projects with verification records.",
+    "developerName": "Origin Agent Bridge contributors",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Inspect my CSV and create an Origin graph.",
+      "Fit my calibration and export an editable project."
+    ]
+  }
+}
