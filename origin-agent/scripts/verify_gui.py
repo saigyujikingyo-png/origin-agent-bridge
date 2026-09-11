@@ -19,6 +19,7 @@ async def main():
     parser.add_argument("--home", type=Path, required=True)
     parser.add_argument("--exe")
     parser.add_argument("--extended", action="store_true")
+    parser.add_argument("--minimized-rollback", action="store_true")
     args = parser.parse_args()
     root = args.home.resolve()
     if root.exists() and any(root.iterdir()):
@@ -326,11 +327,48 @@ async def main():
             await program("read back committed name and data", verify)
             view = await gui("begin", "begin rollback transaction", query="Window")
             dialog = await properties(view, "rollback")
-            await set_name(dialog, "Uncommitted name to discard", "edit before modal rollback")
+            changed = await set_name(dialog, "Uncommitted name to discard", "edit before modal rollback")
+            if args.minimized_rollback:
+                # Fault injection into this test's verified owned process only.
+                from ctypes import wintypes
+
+                from origin_agent.gui_native import NativeGui
+
+                private = json.loads(
+                    (root / "jobs" / changed["job_id"] / "gui-private.json").read_text(encoding="utf-8")
+                )
+                backend = NativeGui(
+                    {
+                        "origin_pid": private["process"]["pid"],
+                        "origin_created": private["process"]["created"],
+                    }
+                )
+                main_window = next(w for w in private["windows"] if not w["popup"])
+                backend.u.IsIconic.argtypes = [wintypes.HWND]
+                backend.u.IsIconic.restype = wintypes.BOOL
+                assert backend.owned(main_window["hwnd"])
+                assert backend.u.PostMessageW(main_window["hwnd"], 0x0112, 0xF020, 0)
+                deadline = time.monotonic() + 5
+                while not backend.u.IsIconic(main_window["hwnd"]) and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                assert backend.u.IsIconic(main_window["hwnd"])
+                hidden = backend.observe()
+                evidence["minimized_fault"] = {
+                    "origin_pid": backend.pid,
+                    "minimized": True,
+                    "blocked_after_minimize": hidden["blocked"],
+                    "windows": hidden["windows"],
+                }
+                record()
             rolled = await gui("rollback", "rollback with modal open", query="Window", screenshot=True)
             assert rolled["verification"]["project_reopened"]
             assert not rolled["gui"]["blocked"]
             await program("read back rollback name and data", verify)
+            if args.minimized_rollback:
+                reopened_gui = await gui("begin", "begin after minimized rollback", query="Window")
+                assert not reopened_gui["gui"]["blocked"]
+                await gui("rollback", "finish resumed GUI transaction")
+                evidence["minimized_owner_rollback_readback"] = True
             evidence.update(
                 gui_commit_readback=True,
                 modal_rollback_readback=True,

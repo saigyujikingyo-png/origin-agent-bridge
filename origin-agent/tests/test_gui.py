@@ -223,3 +223,72 @@ def test_dead_connection_reset_never_discards_a_live_origin(monkeypatch):
     monkeypatch.setattr(psutil, "Process", gone)
     release_terminated_origin(runtime)
     assert wrapper._app is None
+
+
+@pytest.mark.parametrize("dialog_observed", [False, True])
+def test_rollback_discards_hidden_modal_state_before_reopening_checkpoint(
+    store, monkeypatch, dialog_observed
+):
+    from origin_agent.storage import sha256
+
+    identifier, engine = active_gui(store)
+    before = store.root / "before.opju"
+    before.write_bytes(b"committed project")
+    state_path = session_path(store, identifier)
+    state = read_json(state_path)
+    state["gui_transaction"]["sha256"] = sha256(before)
+    write_json(state_path, state)
+    events = []
+
+    class Backend:
+        def __init__(self, runtime):
+            self.pid = runtime["origin_pid"]
+
+        def observe(self, _):
+            value = observation()
+            value["blocked"] = dialog_observed and self.pid == 123
+            return value
+
+        def terminate_owned(self):
+            events.append(("terminate", self.pid))
+
+    def release(runtime):
+        events.append(("release", runtime["origin_pid"]))
+
+    def activate(sid, restored, command):
+        assert sid == identifier
+        assert engine.runtime is None and engine.current is None
+        checkpoint = engine._resolve(restored["checkpoint_path"], restored["checkpoint_sha256"])
+        assert checkpoint.read_bytes() == b"committed project"
+        events.append(("reopen", str(checkpoint)))
+        engine.runtime = {"op": object(), "origin_pid": 456, "origin_created": 2.0, "engine": {}}
+        engine.current = sid
+
+    def save(path):
+        assert engine.runtime["origin_pid"] == 456
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(before.read_bytes())
+        return sha256(path)
+
+    monkeypatch.setattr("origin_agent.gui_session.NativeGui", Backend)
+    monkeypatch.setattr("origin_agent.gui_session.release_terminated_origin", release)
+    monkeypatch.setattr("origin_agent.gui_session.snapshot", lambda _: {"restored": True})
+    monkeypatch.setattr(engine, "_activate", activate)
+    monkeypatch.setattr(engine, "_save", save)
+    request = SessionCommand(
+        action="gui",
+        request_id="rollback hidden dialog",
+        session_id=identifier,
+        expected_revision=3,
+        gui=GuiCommand(action="rollback"),
+    )
+    plan = prepare_session(store, request)
+    job = "b" * 32
+    store.path("jobs", job).mkdir()
+    result = engine.execute(job, plan["plan_id"])
+    assert result["revision"] == 4
+    assert events == [("terminate", 123), ("release", 123), ("reopen", str(before))]
+    final = read_session(store, identifier)
+    assert final["state"] == "ready" and not final["gui_transaction_open"]
+    assert final["origin_pid"] == 456
+    assert (store.path("jobs", job) / "project.opju").read_bytes() == b"committed project"

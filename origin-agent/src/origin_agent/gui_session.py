@@ -104,35 +104,32 @@ def execute_gui(engine, job_id, plan, command, state):
 
             VisualInput(backend, target, capture).execute(request)
         elif action == "rollback":
-            before = engine._resolve(transaction["path"], transaction["sha256"])
-            if current["blocked"]:
-                # Explicit rollback may discard the unfinished dialog, never another Origin process.
-                backend.terminate_owned()
-                release_terminated_origin(engine.runtime)
-                engine.runtime = None
-                engine.current = None
-                engine._activate(
-                    identifier,
-                    {
-                        **state,
-                        "checkpoint_path": transaction["path"],
-                        "checkpoint_sha256": transaction["sha256"],
-                    },
-                    command,
-                )
-                backend = NativeGui(engine.runtime)
-                write_json(
-                    directory / "progress.json",
-                    {
-                        "stage": "gui_rollback",
-                        "origin_pid": engine.runtime["origin_pid"],
-                        "origin_created": engine.runtime["origin_created"],
-                    },
-                )
-            else:
-                engine.runtime["op"].new()
-                if not engine.runtime["op"].open(str(before)):
-                    raise RuntimeError("Origin could not restore the GUI checkpoint")
+            engine._resolve(transaction["path"], transaction["sha256"])
+            # Minimized owners can hide unfinished dialogs from EnumWindows.
+            # Explicit rollback must discard GUI state as well as project edits.
+            # Recreate only this owned process after validating the before-image.
+            backend.terminate_owned()
+            release_terminated_origin(engine.runtime)
+            engine.runtime = None
+            engine.current = None
+            engine._activate(
+                identifier,
+                {
+                    **state,
+                    "checkpoint_path": transaction["path"],
+                    "checkpoint_sha256": transaction["sha256"],
+                },
+                command,
+            )
+            backend = NativeGui(engine.runtime)
+            write_json(
+                directory / "progress.json",
+                {
+                    "stage": "gui_rollback",
+                    "origin_pid": engine.runtime["origin_pid"],
+                    "origin_created": engine.runtime["origin_created"],
+                },
+            )
         if action in INPUT_ACTIONS:
             # Bound settling time; successful dispatch is not semantic success.
             deadline = time.monotonic() + 3
