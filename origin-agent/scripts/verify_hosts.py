@@ -1,5 +1,6 @@
 """Read only our entries from installed hosts and test their actual stdio commands."""
 
+import argparse
 import asyncio
 import json
 import os
@@ -10,10 +11,17 @@ from mcp import Client, StdioServerParameters
 
 async def main():
     home = Path.home()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--codex-plugin",
+        type=Path,
+        default=home / ".codex/plugins/cache/personal/origin-agent/0.1.0",
+    )
+    args = parser.parse_args()
     paths = {
         "claude_desktop": Path(os.environ["APPDATA"]) / "Claude/claude_desktop_config.json",
         "workbuddy": home / ".workbuddy/mcp.json",
-        "codex_plugin": home / ".codex/plugins/cache/personal/origin-agent/0.1.0/.mcp.json",
+        "codex_plugin": args.codex_plugin / ".mcp.json",
     }
     result = {}
     for host, path in paths.items():

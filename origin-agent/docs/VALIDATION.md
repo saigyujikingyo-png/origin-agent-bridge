@@ -11,6 +11,7 @@
 | 验收项 | 结果 |
 |---|---|
 | 自动化测试 | Windows Python 3.12：19 passed，14.54 秒；ruff 检查通过 |
+| 干净 CI 环境 | GitHub Actions Ubuntu / Windows 均通过依赖锁定安装、ruff 和全部 19 项测试；[运行记录](https://github.com/saigyujikingyo-png/origin-agent-bridge/actions/runs/34565734250) |
 | 安装包独立性 | 已安装的冻结 EXE；PATH 仅保留 System32，清除 PYTHONPATH/PYTHONHOME 后执行成功 |
 | 路径适配 | 数据/作业目录包含中文与空格，完整流程通过 |
 | 原生执行 | 3 张图，2 次线性拟合；覆盖自由截距、零截距、误差棒、多 Y、Beer–Lambert 未知样品 |
@@ -36,9 +37,11 @@
 - Codex：`origin-agent@personal` 0.1.0 已安装；新会话才能加载该插件。
 - Claude Desktop：已备份并合并专用 MCP 配置；需要宿主重启并进行模型调用验收。
 - WorkBuddy 5.3.5：已备份并合并用户 `mcp.json`，安装了工作流 skill；原有服务保留。日志证明该配置是连接器刷新来源。仍需宿主模型调用验收。
-- ChatGPT：已经在用户账户创建并关联私有隧道；官方 Windows tunnel-client 已校验 SHA-256 并安装，stdio profile 已创建。运行密钥、健康检查和云端工具调用尚在验收中。
+- ChatGPT：已经创建并关联私有隧道，安装开发者插件，发现全部 8 个工具。官方 Windows tunnel-client 0.0.14 已校验 SHA-256 并安装；受管进程 process_running / healthy / ready 均为 true。仅 Tunnels Read/Use 的密钥由用户创建，关闭全部模型 API 权限，并存于本机加密文件。
+- ChatGPT 自然语言端到端：已经实际执行合成数据导入、计划、Origin OLS、导出、工程重开、项目检查、PNG 附件显示和结果报告。云端发起的作业 ID 为 `22dffe6f92f04e22b4daf7036ee32971`，原生阶段 20.469 秒；斜率 0.2004，截距 0.0992，RSS 0.0002304，OPJU 130,284 字节。
+- 此次云端测试中，模型首次填写了错误字段，验证器拒绝后模型自行修正，未进入错误的原生计算。PNG 附件显示需要一次 ChatGPT 文件实体化许可。本次没有直接验证在云端下载 OPJU，原文件可在 Windows 本机打开。
 - 多电脑：包内无硬编码开发机运行路径，安装器在目标电脑生成路径；尚无第二台实体电脑的实测证据。
 
 安装版作业 ID：`ac399f49e7d44c95908dbf313a510e8c`。完整 acceptance.json 和 OPJU 留在验证电脑本地，不包含在源码仓库中。
 
-实体第二台电脑、其他 Origin 版本、ChatGPT 账号隧道和宿主应用中的最终模型调用必须分别实测，不能从本机协议测试推定通过。
+实体第二台电脑、其他 Origin 版本、Claude/WorkBuddy/Codex 内的最终模型调用仍需分别实测，不能从协议测试或 ChatGPT 的成功推定全部通过。

@@ -3,7 +3,7 @@ param([Parameter(Mandatory=$true)][string]$TunnelId,
 $ErrorActionPreference = 'Stop'
 if ($TunnelId -notmatch '^tunnel_[a-f0-9]+$') { throw 'Provide the tunnel ID from OpenAI Platform tunnel settings.' }
 $stateRoot = Join-Path ([Environment]::GetFolderPath('UserProfile')) '.origin-agent'
-$install = Get-Content -Raw -LiteralPath (Join-Path $stateRoot 'install.json') | ConvertFrom-Json
+$install = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $stateRoot 'install.json') | ConvertFrom-Json
 if (-not (Test-Path -LiteralPath $install.executable)) { throw 'Install the Windows bundle first.' }
 if (-not $env:CONTROL_PLANE_API_KEY) { throw 'Set CONTROL_PLANE_API_KEY locally; do not put it in chat or source files.' }
 # The tunnel client's command parser treats backslashes as escapes, even on Windows.

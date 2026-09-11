@@ -93,7 +93,7 @@ def main():
     bundle = run_root / f"origin-agent-{__version__}-windows-x64"
     bundle.mkdir()
     shutil.copytree(frozen, bundle / "server")
-    for directory in ("skills", "assets", "docs", ".codex-plugin", ".claude-plugin"):
+    for directory in ("skills", "assets", "docs", "examples", ".codex-plugin", ".claude-plugin"):
         if (ROOT / directory).exists():
             shutil.copytree(ROOT / directory, bundle / directory)
     for filename in ("LICENSE", "README.md", "plugin.json", "mcp.json", ".mcp.json", "manifest.json"):

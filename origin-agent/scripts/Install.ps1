@@ -5,7 +5,7 @@ $bundleRoot = [IO.Path]::GetFullPath($PSScriptRoot)
 if (-not (Test-Path -LiteralPath (Join-Path $bundleRoot 'server\origin-agent.exe'))) {
     throw 'Run this installer from the extracted Windows release ZIP.'
 }
-$appManifest = Get-Content -Raw -LiteralPath (Join-Path $bundleRoot 'manifest.json') | ConvertFrom-Json
+$appManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $bundleRoot 'manifest.json') | ConvertFrom-Json
 $version = $appManifest.version
 $stateRoot = Join-Path ([Environment]::GetFolderPath('UserProfile')) '.origin-agent'
 if (-not $Destination) { $Destination = Join-Path $stateRoot ('app\' + $version) }
@@ -14,7 +14,7 @@ if ($Destination -eq $bundleRoot -or $Destination.StartsWith($bundleRoot + [IO.P
     throw 'Choose an installation directory outside the extracted release folder.'
 }
 $checksumFile = Join-Path $bundleRoot 'checksums.json'
-$checksums = Get-Content -Raw -LiteralPath $checksumFile | ConvertFrom-Json
+$checksums = Get-Content -Raw -Encoding UTF8 -LiteralPath $checksumFile | ConvertFrom-Json
 foreach ($entry in $checksums.PSObject.Properties) {
     $source = [IO.Path]::GetFullPath((Join-Path $bundleRoot $entry.Name))
     if (-not $source.StartsWith($bundleRoot + [IO.Path]::DirectorySeparatorChar)) { throw 'Invalid checksum path.' }
@@ -23,8 +23,13 @@ foreach ($entry in $checksums.PSObject.Properties) {
     }
 }
 New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-foreach ($item in Get-ChildItem -Force -LiteralPath $bundleRoot) {
-    Copy-Item -LiteralPath $item.FullName -Destination $Destination -Recurse -Force
+foreach ($item in Get-ChildItem -Force -Recurse -File -LiteralPath $bundleRoot) {
+    $relative = $item.FullName.Substring($bundleRoot.Length + 1)
+    $target = Join-Path $Destination $relative
+    New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+    if ((Test-Path -LiteralPath $target) -and
+        ((Get-FileHash -Algorithm SHA256 -LiteralPath $target).Hash -eq (Get-FileHash -Algorithm SHA256 -LiteralPath $item.FullName).Hash)) { continue }
+    Copy-Item -LiteralPath $item.FullName -Destination $target -Force
 }
 $executable = Join-Path $Destination 'server\origin-agent.exe'
 $env:ORIGIN_AGENT_HOME = $stateRoot
@@ -55,9 +60,13 @@ New-Item -ItemType Directory -Path $stateRoot -Force | Out-Null
 [IO.File]::WriteAllText((Join-Path $stateRoot 'install.json'),(@{version=$version;executable=$executable;root=$Destination}|ConvertTo-Json),$utf8)
 if ($ConfigureClaude) {
     $claudeConfig = Join-Path $env:APPDATA 'Claude\claude_desktop_config.json'
-    $existing = if (Test-Path -LiteralPath $claudeConfig) { Get-Content -Raw -LiteralPath $claudeConfig | ConvertFrom-Json } else { [pscustomobject]@{} }
+    New-Item -ItemType Directory -Path (Split-Path -Parent $claudeConfig) -Force | Out-Null
+    $existing = if (Test-Path -LiteralPath $claudeConfig) { Get-Content -Raw -Encoding UTF8 -LiteralPath $claudeConfig | ConvertFrom-Json } else { [pscustomobject]@{} }
     if (-not $existing.PSObject.Properties['mcpServers']) { $existing | Add-Member mcpServers ([pscustomobject]@{}) }
-    if (Test-Path -LiteralPath $claudeConfig) { Copy-Item -LiteralPath $claudeConfig -Destination ($claudeConfig + '.origin-agent.bak') -Force }
+    if (Test-Path -LiteralPath $claudeConfig) {
+        $backup = $claudeConfig + '.origin-agent.' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.bak'
+        Copy-Item -LiteralPath $claudeConfig -Destination $backup
+    }
     $existing.mcpServers | Add-Member -NotePropertyName 'origin-agent' -NotePropertyValue $hostConfig.mcpServers.'origin-agent' -Force
     [IO.File]::WriteAllText($claudeConfig,($existing|ConvertTo-Json -Depth 50),$utf8)
 }

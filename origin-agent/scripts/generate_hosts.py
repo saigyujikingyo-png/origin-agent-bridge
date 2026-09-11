@@ -56,7 +56,7 @@ def main():
     )
     shim = (
         "$p=Join-Path $env:USERPROFILE '.origin-agent\\install.json'; "
-        "$i=Get-Content -Raw -LiteralPath $p|ConvertFrom-Json; & $i.executable serve"
+        "$i=Get-Content -Raw -Encoding UTF8 -LiteralPath $p|ConvertFrom-Json; & $i.executable serve"
     )
     mcp = {
         "mcpServers": {

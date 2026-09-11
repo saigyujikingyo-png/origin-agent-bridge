@@ -7,3 +7,5 @@ The current core imports CSV/TSV/XLSX values, plots multiple Y series with optio
 Use the installation packages described in [INSTALL.md](docs/INSTALL.md). Developers: `uv sync --locked`, then `uv run origin-agent serve`. A model-provider API key is not required by this bridge. ChatGPT cloud access uses a separately configured secure tunnel or authenticated gateway.
 
 Source layout and performance decisions: [ARCHITECTURE.md](docs/ARCHITECTURE.md). Current measured evidence and limitations: [VALIDATION.md](docs/VALIDATION.md).
+
+Try a complete natural-language workflow using the [synthetic example](examples/README.md).
