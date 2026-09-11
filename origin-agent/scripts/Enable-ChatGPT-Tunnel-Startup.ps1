@@ -11,7 +11,7 @@ $profileDirectory = Join-Path $cloudRoot 'profiles'
 $profileDestination = Join-Path $profileDirectory 'origin-agent.yaml'
 if (-not (Test-Path -LiteralPath $profileDestination)) {
     if (-not $ProfileSource) { $ProfileSource = Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'tunnel-client\origin-agent.yaml' }
-    $profileText = Get-Content -Raw -LiteralPath $ProfileSource
+    $profileText = Get-Content -Raw -Encoding UTF8 -LiteralPath $ProfileSource
     $profile = $profileText | ConvertFrom-Json
     if ($profile.control_plane.tunnel_id -notmatch '^tunnel_[a-f0-9]+$') { throw 'The existing tunnel profile is invalid.' }
     if ($profile.control_plane.api_key -ne 'env:CONTROL_PLANE_API_KEY') { throw 'Use an environment reference for the existing runtime key before enabling startup.' }

@@ -15,12 +15,12 @@ try {
     $retryDelays = @(5, 15, 30)
     while ($true) {
         try {
-            $install = Get-Content -Raw -LiteralPath (Join-Path $stateRoot 'install.json') | ConvertFrom-Json
+            $install = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $stateRoot 'install.json') | ConvertFrom-Json
             if (-not (Test-Path -LiteralPath $install.executable -PathType Leaf)) { throw 'Origin Companion is not installed.' }
             $profileDirectory = Join-Path $cloudRoot 'profiles'
             $profilePath = Join-Path $profileDirectory 'origin-agent.yaml'
             # The official managed connector writes JSON-compatible YAML. Keep the existing identity.
-            $profile = Get-Content -Raw -LiteralPath $profilePath | ConvertFrom-Json
+            $profile = Get-Content -Raw -Encoding UTF8 -LiteralPath $profilePath | ConvertFrom-Json
             $tunnelId = $profile.control_plane.tunnel_id
             if ($tunnelId -notmatch '^tunnel_[a-f0-9]+$') { throw 'No valid existing private tunnel profile was found.' }
             $secretFile = Join-Path $stateRoot 'secrets\tunnel-key.dpapi'
