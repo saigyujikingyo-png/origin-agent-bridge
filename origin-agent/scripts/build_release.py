@@ -121,7 +121,13 @@ def main():
             shutil.copytree(ROOT / directory, bundle / directory)
     for filename in ("LICENSE", "README.md", "plugin.json", "mcp.json", ".mcp.json", "manifest.json"):
         shutil.copy2(ROOT / filename, bundle / filename)
-    for filename in ("Install.ps1", "Install.cmd", "Connect-ChatGPT.ps1"):
+    for filename in (
+        "Install.ps1",
+        "Install.cmd",
+        "Connect-ChatGPT.ps1",
+        "Enable-ChatGPT-Tunnel-Startup.ps1",
+        "Run-ChatGPT-Tunnel.ps1",
+    ):
         shutil.copy2(ROOT / "scripts" / filename, bundle / filename)
     shutil.copytree(ROOT / "hosts/workbuddy", bundle / "workbuddy")
     notices = bundle / "third-party-licenses"

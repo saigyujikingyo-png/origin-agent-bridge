@@ -91,3 +91,29 @@ def test_worker_environment_omits_provider_credentials(store, monkeypatch):
     monkeypatch.setattr(jobs.subprocess, "Popen", lambda *a, **k: captured.update(k))
     jobs.spawn(store, "worker", "a" * 32, "b" * 32)
     assert not set(keys).intersection(captured["env"])
+
+
+def test_project_snapshot_handles_matrix_vendor_contract_without_worksheet_properties():
+    from types import SimpleNamespace
+
+    from origin_agent.program_native import snapshot
+
+    class WBook(list):
+        name, lname = "Book1", "Data"
+
+    class MBook(list):
+        name, lname = "MBook1", "Surface"
+
+    class GPage:
+        name, lname = "Graph1", "3D surface"
+
+    # The pinned vendor MSheet has shape and depth, but no rows/cols properties.
+    pages = [
+        WBook([SimpleNamespace(name="Data", rows=5, cols=2)]),
+        MBook([SimpleNamespace(name="Matrix", shape=(4, 5), depth=2)]),
+        GPage(),
+    ]
+    result = snapshot(SimpleNamespace(pages=lambda: iter(pages)))
+    assert result["pages"][0]["sheets"] == [{"name": "Data", "rows": 5, "columns": 2}]
+    assert result["pages"][1]["sheets"] == [{"name": "Matrix", "rows": 4, "columns": 5, "matrices": 2}]
+    assert result["graphs"] == ["Graph1"]

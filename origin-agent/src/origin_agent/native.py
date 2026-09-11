@@ -68,6 +68,33 @@ def _fit(op, sheet, x_index, y_index, analysis):
     return result, report, curve
 
 
+def _draw_title(layer, text: str, preset: str):
+    """Create real graph text through COM; a graph long name is not an exported title."""
+    title = layer.add_label(text)
+    if title is None:
+        raise RuntimeError("Origin could not create the graph title")
+    title.set_int("attach", 0)
+    title.set_int("clip", 0)
+    title.set_int("link", 0)
+    title.set_float("fsize", 24 if preset == "presentation" else 20)
+    title.set_int("wrap", 1)
+    title.set_float("box", 95)
+    left, right, *_ = layer.xlim
+    bottom, top, *_ = layer.ylim
+    # Reserve page space from Origin's measured wrapped text height. Keep the
+    # bottom axis fixed, so long/Unicode titles remain inside exported pages.
+    layer.set_int("unit", 1)
+    frame_top, frame_height = layer.get_float("top"), layer.get_float("height")
+    title_height = title.get_float("dy") / (top - bottom) * frame_height
+    required_top = title_height + 4.5
+    if required_top > frame_top:
+        layer.set_float("top", required_top)
+        layer.set_float("height", frame_height - (required_top - frame_top))
+    title.set_float("x", (left + right) / 2)
+    title.set_float("y", top + title.get_float("dy") / 2 + (top - bottom) * 0.025)
+    return title.name
+
+
 def run_native(store: Store, identifier: str, plan_id: str):
     import originpro as op
 
@@ -86,6 +113,7 @@ def run_native(store: Store, identifier: str, plan_id: str):
 
     outputs = []
     summaries, references, data_refs, graph_refs = [], [], [], []
+    graph_text_refs = []
     tables = {}
     try:
         checkpoint("starting_origin")
@@ -255,6 +283,17 @@ def run_native(store: Store, identifier: str, plan_id: str):
             # Reserve room for the legend so it does not cover the highest points.
             low, high, *_ = layer.ylim
             layer.ylim = (low, high + (high - low) * min(0.6, 0.2 + 0.035 * len(panel.y)))
+            title_name = _draw_title(layer, panel.title, panel.style.preset)
+            graph_text_refs.append(
+                {
+                    "graph": graph.name,
+                    "labels": {
+                        title_name: panel.title,
+                        "xb": layer.label("xb").text,
+                        "yl": layer.label("yl").text,
+                    },
+                }
+            )
             for extension in workflow.formats:
                 target = directory / f"panel-{panel_index:02d}.{extension}"
                 exported = graph.save_fig(str(target), type=extension, width=panel.style.width)
@@ -283,6 +322,12 @@ def run_native(store: Store, identifier: str, plan_id: str):
         for name in graph_refs:
             if not op.find_graph(name):
                 raise RuntimeError("Saved project is missing a graph")
+        for ref in graph_text_refs:
+            layer = op.find_graph(ref["graph"])[0]
+            for label_name, expected_text in ref["labels"].items():
+                label = layer.label(label_name)
+                if label is None or label.text != expected_text:
+                    raise RuntimeError("Saved project graph text differs from the requested title/axes")
         for ref in references:
             if not op.find_sheet("w", ref["report"]) or not op.find_sheet("w", ref["curve"]):
                 raise RuntimeError("Saved project is missing a native fit report/curve")
@@ -307,6 +352,8 @@ def run_native(store: Store, identifier: str, plan_id: str):
             "project_reopened": True,
             "data_roundtrip": True,
             "graphs_reopened": len(graph_refs),
+            "graph_text_roundtrip": True,
+            "titles_reopened": len(graph_text_refs),
             "native_reports_reopened": len(references),
             "png_decoded": True,
             "visual_review": "preview should be reviewed by the agent/user",
@@ -330,7 +377,12 @@ def run_native(store: Store, identifier: str, plan_id: str):
             "sources": plan["sources"],
             "summary": summaries or [{"panels": len(graph_refs), "analysis": "plot only"}],
             "verification": verification,
-            "project_index": {"data": data_refs, "graphs": graph_refs, "fits": references},
+            "project_index": {
+                "data": data_refs,
+                "graphs": graph_refs,
+                "fits": references,
+                "graph_text": graph_text_refs,
+            },
             "artifacts": artifact_rows,
         }
         write_json(directory / "manifest.json", manifest)

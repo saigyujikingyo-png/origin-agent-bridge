@@ -15,9 +15,20 @@ def snapshot(op):
     pages = []
     for page in op.pages():
         item = {"name": page.name, "long_name": page.lname, "type": type(page).__name__}
-        if item["type"] in ("WBook", "MBook"):
+        if item["type"] == "WBook":
             item["sheets"] = [
                 {"name": sheet.name, "rows": sheet.rows, "columns": sheet.cols} for sheet in page
+            ]
+        elif item["type"] == "MBook":
+            # MSheet exposes shape/depth, not WSheet.rows/cols; do not import NumPy.
+            item["sheets"] = [
+                {
+                    "name": sheet.name,
+                    "rows": sheet.shape[0],
+                    "columns": sheet.shape[1],
+                    "matrices": sheet.depth,
+                }
+                for sheet in page
             ]
         pages.append(item)
     return {"pages": pages, "graphs": [p["name"] for p in pages if p["type"] == "GPage"]}

@@ -71,7 +71,11 @@ async def main():
                 },
                 {
                     **common,
-                    "title": "Multiple series",
+                    "title": (
+                        "Multiple series - 合成数据验收 - Long descriptive title with units and "
+                        "uncertainty, preserving every requested word through PNG PDF SVG "
+                        "and native project reopen"
+                    )[:160],
                     "y": ["Absorbance", "Replicate"],
                     "style": {"plot": "line_symbol", "preset": "presentation"},
                 },
@@ -92,6 +96,8 @@ async def main():
                 flush=True,
             )
         assert job["state"] == "succeeded", job
+        assert job["verification"]["graph_text_roundtrip"]
+        assert job["verification"]["titles_reopened"] == len(workflow["panels"])
         project = await call("origin_inspect_project", {"job_id": job["job_id"]})
         preview = await client.call_tool(
             "origin_get_artifact", {"artifact_id": f"{job['job_id']}/panel-01.png", "mode": "preview"}

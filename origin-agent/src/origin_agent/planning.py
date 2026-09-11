@@ -40,16 +40,18 @@ def plan_workflow(store: Store, workflow: Workflow) -> dict:
     identifier = fingerprint[:32]
     directory = store.path("plans", identifier)
     directory.mkdir(exist_ok=True)
+    assumptions = ["No rows dropped, no smoothing, no baseline subtraction"]
+    if any(panel.y_errors for panel in workflow.panels):
+        assumptions.append("Error bars are displayed for the explicitly mapped Y columns")
+    if any(panel.analysis for panel in workflow.panels):
+        assumptions.append("All requested regressions use explicitly unweighted fitting")
     result = {
         **payload,
         "plan_id": identifier,
         "sha256": fingerprint,
         "summary": summaries,
         "outputs": ["project.opju", "manifest.json", *workflow.formats],
-        "assumptions": [
-            "No rows dropped, no smoothing, no baseline subtraction",
-            "Error bars are displayed; regression weighting is explicitly none",
-        ],
+        "assumptions": assumptions,
         "native_execution": False,
     }
     write_json(directory / "plan.json", result)

@@ -127,6 +127,49 @@ async def main():
                 "graph_formats": [],
             }
         )
+        matrix_job, matrix_result = await execute(
+            {
+                "title": "Matrix and 3D snapshot",
+                "language": "python",
+                "code": (
+                    "op.lt_exec('newbook mat:=1; wks.ncols=5; wks.nrows=4; range rm=1; "
+                    "loop(ii,1,4){loop(jj,1,5){rm[ii,jj]=ii+10*jj;}} "
+                    "oa_first=rm[1,1]; oa_last=rm[4,5]; oa_total=total(rm);')\n"
+                    "ms=op.find_sheet('m')\n"
+                    "g=op.new_graph(template='glCMAP',lname='Synthetic matrix surface')\n"
+                    "g[0].add_mplot(ms,0,type=103)\ng[0].rescale()\n"
+                    "RESULTS['dimensions']=list(ms.shape)\n"
+                ),
+                "readbacks": {
+                    "first": {"expression": "oa_first", "expected": 11},
+                    "last": {"expression": "oa_last", "expected": 54},
+                    "total": {"expression": "oa_total", "expected": 650},
+                },
+                "graph_formats": ["png", "pdf", "svg"],
+            }
+        )
+        matrices = [p for p in matrix_result["after"]["pages"] if p["type"] == "MBook"]
+        assert len(matrices) == 1
+        assert matrices[0]["sheets"][0] == {"name": "MSheet1", "rows": 4, "columns": 5, "matrices": 1}
+        matrix_ref = f"[{matrices[0]['name']}]{matrices[0]['sheets'][0]['name']}!"
+        await execute(
+            {
+                "title": "Read saved matrix values",
+                "language": "python",
+                "project_artifact": matrix_job["job_id"] + "/project.opju",
+                "code": (
+                    f"ms=op.find_sheet('m',{matrix_ref!r})\nms.activate()\n"
+                    "op.lt_exec('range rm=1; oa_first=rm[1,1]; oa_last=rm[4,5]; oa_total=total(rm);')\n"
+                    "RESULTS['dimensions']=list(ms.shape)\n"
+                ),
+                "readbacks": {
+                    "first": {"expression": "oa_first", "expected": 11},
+                    "last": {"expression": "oa_last", "expected": 54},
+                    "total": {"expression": "oa_total", "expected": 650},
+                },
+                "graph_formats": [],
+            }
+        )
         evidence["host_model_invocation_tested"] = False
         (root / "acceptance-programs.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
         print(json.dumps({"acceptance": str(root / "acceptance-programs.json")}), flush=True)

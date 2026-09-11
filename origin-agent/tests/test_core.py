@@ -154,3 +154,37 @@ def test_atomic_write_retries_transient_windows_share_violation(tmp_path, monkey
     write_json(path, {"stage": "verified"})
     assert read_json(path) == {"stage": "verified"}
     assert len(calls) == 3
+
+
+@pytest.mark.parametrize("with_errors", [False, True])
+@pytest.mark.parametrize("with_analysis", [False, True])
+def test_plan_assumptions_describe_only_requested_operations(store, dataset, with_errors, with_analysis):
+    extra = {}
+    if with_errors:
+        extra["y_errors"] = {"Absorbance": "SD"}
+    if with_analysis:
+        extra["analysis"] = {"kind": "linear_fit", "intercept": "free", "weighting": "none"}
+    plan = plan_workflow(store, workflow(dataset, **extra))
+    assertions = " ".join(plan["assumptions"]).lower()
+    assert ("error bars" in assertions) is with_errors
+    assert ("regression" in assertions) is with_analysis
+    if with_analysis:
+        assert "unweighted" in assertions
+
+
+def test_xlsx_exact_unicode_sheet_name_and_actionable_error(store, tmp_path):
+    import openpyxl
+
+    book = openpyxl.Workbook()
+    book.active.title = "Data 数据"
+    book.active.append(["x", "y"])
+    book.active.append([1, 2])
+    source = tmp_path / "unicode.xlsx"
+    book.save(source)
+    with pytest.raises(ValueError, match="Choose sheet_name from") as exc:
+        inspect_dataset(store, str(source), "Data")
+    assert "Data 数据" in str(exc.value)
+    meta = inspect_dataset(store, str(source), "Data 数据")
+    assert meta["sheet_name"] == "Data 数据"
+    assert meta["row_count"] == 1
+    assert dataset_table(store, meta["dataset_id"])[2] == [["1", "2"]]

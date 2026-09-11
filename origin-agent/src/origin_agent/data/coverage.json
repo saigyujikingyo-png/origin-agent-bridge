@@ -1,22 +1,116 @@
 {
   "baseline": "Origin 2026b SR2 10.350243, Windows x64, Origin edition, non-Demo",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "full_functionality_verified": false,
   "meaning": "Representative evidence, not a percentage of all Origin functions. Discover specific installed APIs, execute the authorized task, and verify its result.",
-  "routes": ["Python/originpro/COM", "LabTalk/X-Functions", "Origin C", "Win32/UIA", "screenshot-bound mouse and keyboard"],
-  "categories": [
-    {"name": "Import", "verified_examples": ["CSV/TSV/XLSX inspection", "CSV multi-series native workflow"], "remaining": "All import connectors and formats"},
-    {"name": "Worksheets and matrices", "verified_examples": ["Worksheet creation, column operations, name and data readback"], "remaining": "Matrix operations and every worksheet transformation"},
-    {"name": "2D/3D/statistical plots", "verified_examples": ["2D scatter, line, multi-Y, error bars, fitted curve"], "remaining": "3D and all statistical graph types"},
-    {"name": "Axes, legends and layout", "verified_examples": ["Axis text edit and OPJU continuation", "Plot previews"], "remaining": "All custom graphic editors, legends and layout variations"},
-    {"name": "Fitting", "verified_examples": ["Linear free/zero intercept", "Beer-Lambert calibration", "ExpDec1 numerical parameter recovery"], "remaining": "All models, weighting options and fit dialogs"},
-    {"name": "Statistics", "verified_examples": ["Native column total and regression diagnostics"], "remaining": "Hypothesis tests, ANOVA and multivariate procedures"},
-    {"name": "Signal and peaks", "verified_examples": [], "remaining": "Per-function native validation; edition availability varies"},
-    {"name": "Templates", "verified_examples": ["Default graph template used in native plotting"], "remaining": "User templates and analysis-template reuse"},
-    {"name": "Apps", "verified_examples": [], "remaining": "Each installed App and its license/UI must be verified separately"},
-    {"name": "Projects and export", "verified_examples": ["Editable OPJU save/reopen", "PNG/PDF/SVG", "Persistent session checkpoints, failure recovery and multi-project switching"], "remaining": "Every export format and project variant"},
-    {"name": "GUI mechanisms", "verified_examples": ["Menu/Button/Edit", "UIA toggle/select/expand/collapse/Value", "Click, drag, scroll, shortcuts and Unicode", "Commit and modal rollback with native readback"], "remaining": "Provider-specific custom controls; locked/disconnected desktops"}
+  "routes": [
+    "Python/originpro/COM",
+    "LabTalk/X-Functions",
+    "Origin C",
+    "Win32/UIA",
+    "screenshot-bound mouse and keyboard"
   ],
-  "evidence_scripts": ["scripts/verify_native.py", "scripts/verify_programs.py", "scripts/verify_sessions.py", "scripts/verify_session_switching.py", "scripts/verify_gui.py --extended"],
-  "limits": ["Only this licensed Origin edition, not OriginPro-only or separately licensed features", "No second physical computer certification", "MCP protocol verification does not certify every host model", "Scientific assumptions require task-specific verification"]
+  "categories": [
+    {
+      "name": "Import",
+      "verified_examples": [
+        "CSV/TSV/XLSX inspection",
+        "CSV multi-series native workflow"
+      ],
+      "remaining": "All import connectors and formats"
+    },
+    {
+      "name": "Worksheets and matrices",
+      "verified_examples": [
+        "Worksheet creation, column operations, name and data readback",
+        "4x5 matrix creation, native numeric values and saved OPJU readback"
+      ],
+      "remaining": "All matrix transformations and every worksheet transformation"
+    },
+    {
+      "name": "2D/3D/statistical plots",
+      "verified_examples": [
+        "2D scatter, line, multi-Y, error bars, fitted curve",
+        "Native matrix color-map 3D surface"
+      ],
+      "remaining": "All remaining 3D and statistical graph types"
+    },
+    {
+      "name": "Axes, legends and layout",
+      "verified_examples": [
+        "Axis text edit and OPJU continuation",
+        "Visible exported titles, long Unicode title wrapping and reopened text checks",
+        "Plot previews"
+      ],
+      "remaining": "All custom graphic editors, legends and layout variations"
+    },
+    {
+      "name": "Fitting",
+      "verified_examples": [
+        "Linear free/zero intercept",
+        "Beer-Lambert calibration",
+        "ExpDec1 numerical parameter recovery"
+      ],
+      "remaining": "All models, weighting options and fit dialogs"
+    },
+    {
+      "name": "Statistics",
+      "verified_examples": [
+        "Native column total and regression diagnostics",
+        "Native count, mean and sample standard deviation"
+      ],
+      "remaining": "Hypothesis tests, ANOVA and multivariate procedures"
+    },
+    {
+      "name": "Signal and peaks",
+      "verified_examples": [
+        "Native FFT: 32-point synthetic sine, 3 Hz peak and amplitude 1"
+      ],
+      "remaining": "Other signal and peak functions; edition availability varies"
+    },
+    {
+      "name": "Templates",
+      "verified_examples": [
+        "Default graph template used in native plotting"
+      ],
+      "remaining": "User templates and analysis-template reuse"
+    },
+    {
+      "name": "Apps",
+      "verified_examples": [],
+      "remaining": "Each installed App and its license/UI must be verified separately"
+    },
+    {
+      "name": "Projects and export",
+      "verified_examples": [
+        "Editable OPJU save/reopen",
+        "PNG/PDF/SVG",
+        "Persistent session checkpoints, failure recovery and multi-project switching"
+      ],
+      "remaining": "Every export format and project variant"
+    },
+    {
+      "name": "GUI mechanisms",
+      "verified_examples": [
+        "Menu/Button/Edit",
+        "UIA toggle/select/expand/collapse/Value",
+        "Click, drag, scroll, shortcuts and Unicode",
+        "Commit and modal rollback with native readback"
+      ],
+      "remaining": "Provider-specific custom controls; locked/disconnected desktops"
+    }
+  ],
+  "evidence_scripts": [
+    "scripts/verify_native.py",
+    "scripts/verify_programs.py",
+    "scripts/verify_sessions.py",
+    "scripts/verify_session_switching.py",
+    "scripts/verify_gui.py --extended"
+  ],
+  "limits": [
+    "Only this licensed Origin edition, not OriginPro-only or separately licensed features",
+    "No second physical computer certification",
+    "MCP protocol verification does not certify every host model",
+    "Scientific assumptions require task-specific verification"
+  ]
 }

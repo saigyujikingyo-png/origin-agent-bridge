@@ -26,4 +26,6 @@ Try a complete natural-language workflow using the [synthetic example](examples/
 
 [多模型配置](docs/MODELS.md)支持 DeepSeek、GPT Terra、Gemini、GLM、Kimi 与 ELM 宿主预设。5 工具经济接口按需加载全部操作参数，常见配方使用短参数，文本输出可分页；完整 13 工具接口仍可选择。[ELM 提供的模型与额度边界](docs/ELM.md)。预设适配不是实际模型成功率认证，插件不额外调用模型 API。
 
+0.2.4 增加独立于 Codex 的私有隧道登录任务，修复导出图标题和长标题换行，修复矩阵工程快照兼容性，并让工作表错误及拟合说明准确反映请求。Windows 任务使用当前用户权限和已有隧道，不共享连接密钥；驻留程序在连接进程意外退出后以 5/15/30 秒间隔作有限重连，连续稳定运行 5 分钟后重置次数。云端验收范围及现场恢复见 [Work 排障](docs/WORK_TROUBLESHOOTING.md)。
+
 0.2.2 修复从完整模式切换到经济模式后，旧宿主会话缓存工具名导致的 `Unknown tool`。经济模式仍只展示 5 个入口，旧名称在服务端兼容转发并沿用完整参数、视觉能力和会话校验。见 [Work 排障](docs/WORK_TROUBLESHOOTING.md)。

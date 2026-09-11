@@ -30,7 +30,11 @@ def _rows(path: Path, sheet_name: str | None):
         try:
             if sheet_name is None and len(book.sheetnames) != 1:
                 raise ValueError(f"Choose sheet_name from: {book.sheetnames[:20]}")
-            sheet = book[sheet_name or book.sheetnames[0]]
+            if sheet_name is not None and sheet_name not in book.sheetnames:
+                raise ValueError(
+                    f"Worksheet {sheet_name!r} not found. Choose sheet_name from: {book.sheetnames[:20]}"
+                )
+            sheet = book[sheet_name if sheet_name is not None else book.sheetnames[0]]
             for row in sheet.iter_rows():
                 if any(c.data_type == "f" for c in row):
                     raise ValueError(

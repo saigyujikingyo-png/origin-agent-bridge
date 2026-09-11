@@ -25,3 +25,11 @@
 OpenAI 的说明也区分服务端代码更新与 ChatGPT 已登记的工具快照：[Developer mode and MCP apps](https://help.openai.com/en/articles/12584461)。本次具体界面和旧任务缓存行为来自现场观察。
 
 完整云端合成验收见 [cloud-work-0.2.2.json](../verification/cloud-work-0.2.2.json)。一次 PDF 信息读取连接中断后只读重试成功；不要把自动重试应用到未确认是否已经提交的写操作，先按 job ID 查询状态。
+
+## 重启 Codex 后云端离线
+
+2026-09-11 的后续 Work 详尽测试发现 `Tunnel-client has not been seen for 300 seconds`。本机 MCP 可以正常使用，但原隧道进程已经结束。首次建立 Windows 登录任务时又复现配置不可见：Codex 内看到的 `AppData/Roaming/tunnel-client/origin-agent.yaml` 实际位于其 MSIX 包的 `LocalCache/Roaming`，普通 Windows 计划任务不共享这层重定向。
+
+连接和登录脚本改用 `.origin-agent/cloud/profiles`，保留原隧道身份；Windows 当前用户后台任务从 `.origin-agent/install.json` 读取当前引擎，维持连接进程，具有退出后的有限重启。安装及停用方式见 [INSTALL.md](INSTALL.md)。当前验收过程中应分别记录连接中断、恢复后的只读成功、实际原生作业成功及进程独立性；不能把一次 ready 状态视为长期无中断证据。
+
+0.2.3 的后续故障注入中，计划任务设置了重试但一次进程退出未自动恢复；当时刚重新注册过运行中的任务，未确认 Windows 内部原因。因此 0.2.4 驻留程序直接监测连接进程及创建时间，退出后以 5/15/30 秒间隔最多重试三次，稳定运行五分钟后重置计数；Windows 任务继续负责登录启动。此机制处理连接进程退出，不把 ready 状态解释为所有云端网络请求必定成功。主动断开时先停用并停止后台任务，再停止受管隧道，避免主动断开被当成故障重连。
