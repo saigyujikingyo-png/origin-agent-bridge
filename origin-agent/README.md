@@ -4,6 +4,10 @@
 
 Your agent, your Origin. Independent personal project; not an official OriginLab or university product.
 
+**Built and maintained with Codex; used in general agent work environments.** The primary product scenarios are cloud Work, local Work, Claude Desktop, WorkBuddy and other supported agent hosts. End users install the packaged plugin, connect their own host, and request scientific work in natural language. A source checkout, Git repository, development terminal and separately installed Python are not runtime prerequisites.
+
+Cloud Work has recorded real-model acceptance. Local Work and other hosts need their own end-to-end acceptance; a successful Codex CLI or standalone MCP client test does not certify those user flows. See the [current Work acceptance report](../WORK_ACCEPTANCE_2026-09-11.md).
+
 The target is a smooth Origin plugin for licensed University of Edinburgh staff and students. See the [Edinburgh product definition and reuse assessment](docs/EDINBURGH_PRODUCT.md). Version 0.2 includes native programming, live projects, GUI input and a self-contained Windows installer. Coverage is recorded by verified example, not by assuming that every function works.
 
 Agent-neutral, local Origin workflows over MCP. The personal sharing build targets the user's Edinburgh-licensed **Origin 2026b SR2 (10.350243), Windows x64, Origin edition**. Native workers check this exact baseline. This project does not distribute Origin or a licence.
@@ -14,9 +18,16 @@ The fixed workflow route remains available for CSV/TSV/XLSX import, multi-Y plot
 
 The product target is access to the complete functionality of the user's licensed Origin edition. **Full GUI coverage and universal function validation are not complete.** See [FULL_ORIGIN.md](docs/FULL_ORIGIN.md) for the implementation contract and remaining work.
 
-Use the installation packages described in [INSTALL.md](docs/INSTALL.md). Developers: `uv sync --locked`, then `uv run origin-agent serve`. A model-provider API key is not required by this bridge. ChatGPT cloud access uses a separately configured secure tunnel or authenticated gateway.
+Use the installation packages described in [INSTALL.md](docs/INSTALL.md). The Windows package includes its execution runtime. Cloud access uses the user's supported authenticated connection to that Windows installation; the model remains in the selected agent host. First-time cloud connection setup still requires account-specific steps and is a remaining usability improvement.
 
 Source layout and performance decisions: [ARCHITECTURE.md](docs/ARCHITECTURE.md). Current measured evidence and limitations: [VALIDATION.md](docs/VALIDATION.md).
+
+<details>
+<summary>Developer setup — for modifying this project</summary>
+
+Use Codex or another development environment with a source checkout. Run `uv sync --locked`, then `uv run origin-agent serve` from the `origin-agent` package directory. This source workflow is separate from the packaged end-user installation. Codex and Claude Code integrations remain available for development and compatibility testing.
+
+</details>
 
 The phases and acceptance gates are in [ROADMAP.md](docs/ROADMAP.md), with module design in [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md). Persistent sessions and [GUI transactions](docs/GUI.md), including UIA, mouse, keyboard and Unicode input, have passed recorded native cases. Query `origin_capabilities("coverage")` for the [coverage matrix](docs/COVERAGE.md). The stable internal ID `origin-agent` preserves existing MCP connections; the display name and blue open-circle icon are Origin Companion.
 

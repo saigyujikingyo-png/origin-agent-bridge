@@ -2,10 +2,22 @@
 
 本版本只面向 **Origin 2026b SR2 10.350243、Windows x64、普通 Origin、非 Demo**。每台电脑先自行安装并激活这个 Origin 版本。插件不分发主程序或学校许可证，也不解除 OriginPro/第三方 App 的许可限制。
 
+## 从你的 Agent 工作环境开始
+
+Codex 用于本项目的开发与维护。师生使用下载的安装包，在云端 Work、本地 Work、Claude Desktop、WorkBuddy 等工作环境里连接 Origin Companion；无需克隆源码、安装 Git、创建代码项目或另装 Python。若宿主需要资料目录，使用研究文件夹即可。
+
+| 使用场景 | 连接入口与当前状态 |
+|---|---|
+| 云端 Work | 在安装 Origin 的 Windows 电脑安装执行端，再配置自己的安全连接；已有真实云端验收。首次账号/隧道接入仍有下文所列设置步骤，尚未成为全程图形向导 |
+| 本地 Work | 通过该宿主支持的插件或本机连接入口使用；本地 Work 用户流程待独立验收。不要把 `codex` 安装选项或 Codex CLI 自检当成本地 Work 已验证 |
+| Claude Desktop / WorkBuddy | 使用下列安装器对应选项；本机配置和协议已验证，实际宿主模型验收单独记录 |
+
+连接后，在 Agent 中提出分析、绘图或工程编辑目标，并查看返回的图像及可编辑工程。完整流程的目标是让用户在工作环境内完成任务；下面的维护命令用于排障或高级设置，不是每次使用的步骤。
+
 ## 一键安装
 
 1. 下载 `origin-agent-0.2.5-windows-x64.zip`，核对随发行提供的 SHA-256，解压到普通本地目录。
-2. 双击 `Install.cmd`，输入希望配置的宿主名称，例如 `claude,workbuddy`。选择 `codex` 时需要本机有 Codex CLI；安装器通过其官方 `mcp add` 接口注册，并安装工作流 skill。直接回车只安装引擎和生成配置。
+2. 双击 `Install.cmd`，输入希望配置的宿主名称，例如 `claude,workbuddy`。直接回车只安装引擎和生成配置；云端 Work 用户随后完成下文的本人安全连接设置。本地 Work 的专用安装与用户入口尚需独立验收。
 3. 安装器校验完整文件集合、复制独立运行时，再使用合成数据启动 Origin、检查指定版本和数值回读。通过后才合并宿主配置、切换活动版本。重新打开所选 Agent。
 4. 让 Agent 先检查 Origin Companion 状态，再提交你的实际绘图、分析或编辑任务。
 
@@ -35,8 +47,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractiv
 
 - **Claude Desktop**：选择 `claude` 自动合并配置。也可直接导入 `.mcpb`；它自带运行时，使用默认本机数据目录。是否自动加载 skill 取决于宿主，服务器同时提供紧凑工具说明。
 - **WorkBuddy**：选择 `workbuddy` 自动合并 `~/.workbuddy/mcp.json` 并安装工作流 skill。包内 `workbuddy` 目录保留连接器元数据和蓝色圆环图标。
-- **Codex**：选择 `codex` 自动配置 MCP 与全局 skill；这是无需手改 TOML 的安装路线。已用 personal marketplace 安装同名插件时，更新该插件而不要再添加一份 MCP；开发机采用此刷新方式，保留插件卡片和图标。
-- **Claude Code 或其他 MCP Agent**：可用包内 `.claude-plugin`、`plugin.json` 和 `skills` 安装；通用配置在 `.origin-agent/host-configs/0.2.5/generic-mcp.json`。各宿主插件格式不同，运行引擎和工作流契约共用。
+- **本地 Work**：作为独立用户工作入口验收；当前不把 Codex 的开发配置步骤等同于本地 Work 安装说明。
+- **其他 MCP Agent**：通用配置在 `.origin-agent/host-configs/0.2.5/generic-mcp.json`。各宿主连接入口和插件格式不同，运行引擎和工作流契约共用，实际使用仍需宿主验收。
+
+<details>
+<summary>开发与可选兼容入口：Codex / Claude Code</summary>
+
+- **Codex**：选择 `codex` 需要本机有 Codex CLI；安装器通过其 `mcp add` 接口配置 MCP 与全局 skill。已用 personal marketplace 安装同名插件时，更新该插件而不要再添加一份 MCP。此开发机配置保留插件卡片和图标，不是通用用户安装前提。
+- **Claude Code**：可用包内 `.claude-plugin`、`plugin.json` 和 `skills` 安装，作为开发、调试或可选兼容入口。
+
+</details>
 
 完整模式有 13 个工具，经济模式只显示 5 个工具，其余操作按需查询参数后调用。两种模式共用同一 Origin 内核；工具数量不是功能数量。实际支持边界与未验证功能见 [COVERAGE.md](COVERAGE.md)。
 

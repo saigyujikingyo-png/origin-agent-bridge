@@ -1,14 +1,18 @@
-# Origin Agent Bridge
+# Origin Companion
 
-把本机正版 Origin 变成通用 Agent 可调用的科研工作流插件。
+让师生在云端 Work、本地 Work、Claude、WorkBuddy 等通用 Agent 工作环境中，用自然语言完成本机 Origin 分析、绘图和工程编辑。
 
-当前目标是面向爱大已获 Origin 授权的教授、研究人员和学生，形成统一、顺畅的完整功能版本。优先复用现有开源底座，具体范围、候选核验和完成标准见[爱大统一版产品定义](origin-agent/docs/EDINBURGH_PRODUCT.md)。0.2 通用执行原型仍在开发分支，已发布安装版仍为 0.1.0。
+**Codex 用于本项目的开发、调试和维护。使用插件不要求进入代码开发环境、克隆源码仓库、安装 Git 或自行配置 Python。** 面向用户的流程是：安装插件 → 连接自己的 Agent → 提供研究数据和目标 → 查看图形、分析结果和可编辑工程。宿主需要资料目录时，使用研究文件夹即可，插件不要求它是 Git 仓库。
 
-- [代码与入口](origin-agent/README.md)
-- [具体实现架构](origin-agent/docs/ARCHITECTURE.md)
-- [多电脑安装与各 Agent 接入](origin-agent/docs/INSTALL.md)
-- [验证结果和支持边界](origin-agent/docs/VALIDATION.md)
+目标是供使用指定爱大授权 Origin 版本的同学、教授和研究人员个人分享使用。Origin 计算由 Windows 上的独立执行端完成；云端 Agent 经本人配置的安全连接调用，本地 Agent 经受支持的本机连接调用。常规任务优先批量原生操作，GUI 用于需要它的交互补充。
 
-Windows 执行器 + 标准 MCP + 宿主插件清单。支持数据检查、多曲线与误差棒、原生线性拟合/Beer–Lambert、批处理、可编辑 OPJU 和 PNG/PDF/SVG。
+当前发行是 **[0.2.5 预览版](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.5)**。真实云端 Work 已有验收案例；本地 Work、其他宿主内的模型调用及第二台电脑仍需独立验收。列为目标使用场景，不等于已经全部验证。
 
-本项目不分发 Origin 或学校许可证。新桥接代码采用 MIT 许可；第三方库保持各自许可。
+- [下载后的安装与连接](origin-agent/docs/INSTALL.md)
+- [自然语言试用示例](origin-agent/examples/README.md)
+- [产品定位与交付标准](origin-agent/docs/EDINBURGH_PRODUCT.md)
+- [本轮真实 Work 验收](WORK_ACCEPTANCE_2026-09-11.md)
+- [后续开发路线](origin-agent/docs/ROADMAP.md)
+- [开发者实现说明](origin-agent/README.md)
+
+目标基线：Origin 2026b SR2 10.350243、Windows x64、普通 Origin。项目不分发 Origin 或学校许可证。插件代码采用 MIT 许可；第三方库保持各自许可。

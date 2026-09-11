@@ -2,10 +2,12 @@
 
 目标：个人可分享给同学和教授；运行端固定 Origin 2026b SR2 10.350243、Windows x64 普通版。用户表达实验/编辑目标，Agent 查找能力、执行并核验；不要求用户学习脚本或手改连接配置。
 
+Codex 用于本项目的开发、调试和维护。发行后的调用方是云端 Work、本地 Work、Claude Desktop、WorkBuddy 等通用 Agent 工作环境；其支持状态按真实宿主验收分别记录。插件运行不依赖源码目录、开发终端或代码项目，Windows 执行端与开发会话生命周期分离。
+
 ## 进程与模块
 
 ```text
-Claude / ChatGPT / WorkBuddy / Codex
+云端 Work / 本地 Work / Claude Desktop / WorkBuddy / 其他 Agent
                  │ MCP（已有本地 stdio / 可选云端 tunnel）
                  ▼
 server.py ── capabilities.py（按需能力与文档检索）
