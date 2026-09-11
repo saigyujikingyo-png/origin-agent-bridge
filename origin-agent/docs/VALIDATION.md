@@ -166,3 +166,12 @@
 - 冻结 Windows 版本在经济模式下通过旧名称完成 inspect → plan → run → get_job → inspect_project。3 个合成图、2 个原生拟合报告和 OPJU 重新打开验证通过；PNG/PDF/SVG 导出，3 张 PNG 已检查标签与裁切。该数据只用于程序验收，不是用户的作业结果。
 - 列表保持 5 个工具，JSON 字符数 4743；本次冷启动 0.984 秒，合成工作流端到端 28.219 秒。属于单次本机测量，不是模型推理或 token 计费指标。
 - 项目同步的 Windows 共享锁已单独解除；不是修改 Origin 引擎的结果。具体诊断与复发处理见 [Work 排障](WORK_TROUBLESHOOTING.md)。ChatGPT Work 用户界面重新发送及模型完整任务仍需独立确认，不能用协议检查代替。
+
+
+## 0.2.2：真实 ChatGPT 云端 Work 验收
+
+2026-09-11，在原来报告 `Unknown tool` 的云端任务中，真实模型通过现有私有隧道调用已安装 0.2.2，以四点合成 CSV 完成数据检查、规划、执行、结果等待、OPJU 检查与 PNG 预览。斜率 0.2、截距 0.1、R²=1；1 张图和 1 个原生拟合报告重新打开通过，数据回读通过，原生阶段 11.172 秒。OPJU、PNG、PDF、SVG 的实际文件大小与 SHA-256 均独立核验。云端与本机均查看了 PNG。没有访问 Drive 或生成用户真实作业结果。
+
+PDF 信息读取曾返回 `UNAVAILABLE / Connection failed`，在后续只读重试中成功取得匹配的路径、大小和哈希。该结果证实恢复，不证明隧道长期无中断。网页版可见模型选择器为 GPT-5.6 Sol 轻度；`gpt-terra` 是插件接口预设，这次不计为 Terra、多模型或第二台电脑验收。
+
+云端应用的工具目录已从早期 8 项刷新为 5 个经济入口，显示名称同步为 Origin Companion，未改变原应用、隧道或权限。原任务在刷新和重新 @ 插件后仍只有旧工具。取得授权后创建独立云端任务，`origin_status`、`origin_help(query="")` 与 `origin_call` 分发到 `origin_capabilities` 三项均成功：实际加载 5 个经济入口，列出 13 项操作，返回 11 个能力类别。新任务未提交作业或执行 GUI/通用程序；这些入口可见不等于全部功能均已在云端运行。证据：[cloud-work-0.2.2.json](../verification/cloud-work-0.2.2.json)。该补充不改写发行时的本机验收收据，也不声称全部 Origin 功能已验证。

@@ -15,3 +15,13 @@
 升级后重启相关 MCP 连接；ChatGPT 云端需要重连自己的既有隧道。若宿主在发送前就拒绝旧名称，刷新工具列表或新开 Work 任务。不要为此更换模型或填写新的模型 API 密钥。
 
 使用合成数据确认 `origin_inspect_dataset`、`origin_plan_workflow` 可用，再运行获授权的真实工作。启动命令和协议测试通过不等于宿主模型已完成自然语言验收。
+
+## 云端工具目录与旧任务的区别
+
+2026-09-11 的真实云端验收中，后端 `origin_status` 已返回 0.2.2，但 ChatGPT 云端应用仍登记 8 个早期工具。仅重连隧道不会保证 ChatGPT 重新读取工具目录。在本次网页版界面中，从设置 → 插件 → 选中 Origin 应用 → 刷新，确认列表包含 `origin_help`、`origin_call`、`origin_recipe` 等 5 个经济入口。早期安装可能显示旧名称 Origin Agent Bridge，可在同一应用中修改显示名称，无须重新创建应用或密钥。界面文案与位置可能随客户端版本改变。
+
+已开始的云端任务在刷新后继续运行、重新 @ 插件，实际工具注册表仍保持旧 8 项。兼容转发已允许该旧任务完成导入、线性拟合、OPJU 重开和 PNG/PDF/SVG 导出，但无法让宿主向模型暴露此前未登记的名称。用户授权创建新任务后，实际执行 `origin_status`、`origin_help` 和通过 `origin_call` 读取 `origin_capabilities` 三项均成功：新任务显示 5 个经济入口，帮助列出 13 项操作，包括通用程序、持续会话和 GUI。该新任务只做读取，没有提交作业或执行全部功能。后续增加能力时，刷新云端应用目录，并新开 Work 任务加载新增接口；不要把原任务未显示新增名称误判为服务端仍不可用。
+
+OpenAI 的说明也区分服务端代码更新与 ChatGPT 已登记的工具快照：[Developer mode and MCP apps](https://help.openai.com/en/articles/12584461)。本次具体界面和旧任务缓存行为来自现场观察。
+
+完整云端合成验收见 [cloud-work-0.2.2.json](../verification/cloud-work-0.2.2.json)。一次 PDF 信息读取连接中断后只读重试成功；不要把自动重试应用到未确认是否已经提交的写操作，先按 job ID 查询状态。

@@ -1,0 +1,191 @@
+{
+  "version": "0.2.2",
+  "date": "2026-09-11",
+  "recorded_at_utc": "2026-09-11T14:54:49.605631+00:00",
+  "status": "cloud_legacy_workflow_and_fresh_economy_interface_passed",
+  "host": "ChatGPT cloud Work",
+  "visible_model_selector": "GPT-5.6 Sol / light",
+  "model_evidence_scope": "UI selector only; not an independently verified provider model identifier",
+  "plugin_preset": "gpt-terra",
+  "preset_changes_host_model": false,
+  "fixture": {
+    "synthetic_only": true,
+    "x": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "y": [
+      0.1,
+      0.3,
+      0.5,
+      0.7
+    ],
+    "source_sha256": "8ffdc48bc9ec3a42a6844ef580fc4f15bc2274ff1c22ae83b81bb912d3c327d8"
+  },
+  "cloud_legacy_workflow_verified": true,
+  "successful_cloud_operations": [
+    "origin_status",
+    "origin_inspect_dataset",
+    "origin_plan_workflow",
+    "origin_run_workflow",
+    "origin_get_job",
+    "origin_inspect_project",
+    "origin_get_artifact"
+  ],
+  "fit_summary": {
+    "coefficient_rss_crosscheck": true,
+    "intercept": 0.09999999999999998,
+    "intercept_mode": "free",
+    "n": 4,
+    "panel": 1,
+    "r_squared_origin": 1.0,
+    "residual_sum_squares": 1.3096323621833204e-32,
+    "series": "Absorbance",
+    "slope": 0.2,
+    "slope_se": 3.61888430622384e-17,
+    "weighting": "none"
+  },
+  "native_verification": {
+    "data_roundtrip": true,
+    "graphs_reopened": 1,
+    "native_reports_reopened": 1,
+    "png_decoded": true,
+    "project_reopened": true,
+    "seconds": 11.172,
+    "vendor_native": true,
+    "visual_review": "preview should be reviewed by the agent/user"
+  },
+  "png_visual_review": {
+    "cloud_agent": true,
+    "local_agent": true
+  },
+  "artifacts": [
+    {
+      "bytes": 1320,
+      "mime_type": "application/json",
+      "name": "panel-01-fit-01.json",
+      "sha256": "92dbf09377481b0975e2acc2b7992541019d416a3e50f27233b8d0bea0178d27",
+      "local_sha256_verified": true
+    },
+    {
+      "bytes": 170,
+      "mime_type": "application/vnd.ms-excel",
+      "name": "panel-01-fit-01-residuals.csv",
+      "sha256": "6308fd876c9d514eab6827e3e242bc9631174bf5188d1f526fc2b8c548abfb8d",
+      "local_sha256_verified": true
+    },
+    {
+      "bytes": 17130,
+      "mime_type": "image/png",
+      "name": "panel-01.png",
+      "sha256": "c7a1a497246897e469cff4ff908038c0799b8389b1f63cdf0e546a900eb1c670",
+      "local_sha256_verified": true
+    },
+    {
+      "bytes": 2919,
+      "mime_type": "application/pdf",
+      "name": "panel-01.pdf",
+      "sha256": "b35294450af45e8cc44a7516041a8e583aab30f1ccdabf9b17f774db27fa400a",
+      "local_sha256_verified": true
+    },
+    {
+      "bytes": 21056,
+      "mime_type": "image/svg+xml",
+      "name": "panel-01.svg",
+      "sha256": "420e3d9b633ee8e892357bd38aede99ca880bd174c9f55277344dc676ee26e7e",
+      "local_sha256_verified": true
+    },
+    {
+      "bytes": 128733,
+      "mime_type": "application/octet-stream",
+      "name": "project.opju",
+      "sha256": "cbd32fba08af89f291a3d86d133a60756ba12691603e8c4051bbaa47341829ea",
+      "local_sha256_verified": true
+    }
+  ],
+  "pdf_info": {
+    "initial_result": "UNAVAILABLE / Connection failed",
+    "later_read_only_retry_succeeded": true,
+    "path_bytes_sha256_matched": true
+  },
+  "cloud_catalog": {
+    "refreshed_via": "ChatGPT website / Settings / Plugins / selected app / Refresh",
+    "display_name_before": "Origin Agent Bridge",
+    "display_name_after": "Origin Companion",
+    "tools_before": [
+      "origin_status",
+      "origin_get_artifact",
+      "origin_get_job",
+      "origin_inspect_dataset",
+      "origin_inspect_project",
+      "origin_plan_workflow",
+      "origin_run_workflow",
+      "origin_cancel_job"
+    ],
+    "tools_after": [
+      "origin_call",
+      "origin_get_artifact",
+      "origin_help",
+      "origin_recipe",
+      "origin_status"
+    ],
+    "same_app_and_tunnel": true,
+    "permissions_changed": false
+  },
+  "existing_task_registry": {
+    "new_turn_still_had_8_legacy_tools": true,
+    "explicit_plugin_remention_still_had_8_legacy_tools": true,
+    "origin_help_exposed": false,
+    "origin_call_exposed": false
+  },
+  "cloud_new_interface_invocation_verified": true,
+  "fresh_cloud_task_created": true,
+  "remaining_check": null,
+  "real_assignment_generated": false,
+  "google_drive_accessed_by_probe": false,
+  "all_origin_features_verified": false,
+  "long_term_tunnel_reliability_verified": false,
+  "second_physical_machine_tested": false,
+  "fresh_task": {
+    "created_with_user_authorization": true,
+    "read_only": true,
+    "origin_status": {
+      "result": "success",
+      "version": "0.2.2",
+      "mode": "economy",
+      "preset": "gpt-terra",
+      "vision": "auto"
+    },
+    "origin_help": {
+      "result": "success",
+      "query": "",
+      "operation_count": 13,
+      "required_operations_present": [
+        "origin_run_program",
+        "origin_session",
+        "origin_gui"
+      ]
+    },
+    "origin_call": {
+      "result": "success",
+      "operation": "origin_capabilities",
+      "arguments": {
+        "query": "coverage",
+        "limit": 1
+      },
+      "returned_capability_categories": 11
+    },
+    "visible_tools": [
+      "origin_status",
+      "origin_help",
+      "origin_call",
+      "origin_recipe",
+      "origin_get_artifact"
+    ],
+    "new_jobs_submitted": false,
+    "real_assignment_accessed": false,
+    "gui_or_program_execution_tested_in_this_task": false
+  }
+}
