@@ -39,7 +39,14 @@ def write_json(path: Path, value):
 
 
 def read_json(path: Path):
-    return json.loads(path.read_text(encoding="utf-8"))
+    for attempt in range(9):
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except PermissionError:
+            # Replaced files can briefly deny reads too, especially under OneDrive/AV scanning.
+            if attempt == 8:
+                raise
+            time.sleep(min(0.01 * 2**attempt, 0.15))
 
 
 def sha256(path: Path) -> str:

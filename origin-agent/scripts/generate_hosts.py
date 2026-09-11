@@ -19,9 +19,9 @@ def main():
     identity = {
         "name": "origin-agent",
         "version": __version__,
-        "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
+        "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
     }
-    author = {"name": "Origin Agent Bridge contributors"}
+    author = {"name": "Origin Companion contributors"}
     write(
         "plugin.json",
         {
@@ -40,10 +40,15 @@ def main():
             "skills": "./skills/",
             "mcpServers": "./.mcp.json",
             "interface": {
-                "displayName": "Origin Agent Bridge",
+                "displayName": "Origin Companion",
+                "brandColor": "#183C69",
+                "composerIcon": "./assets/icon.svg",
+                "logo": "./assets/icon.svg",
+                "logoDark": "./assets/icon.svg",
                 "shortDescription": "Use your licensed Origin through an agent.",
                 "longDescription": "Discover installed functions, use Python/LabTalk/Origin C, "
-                "or run scientific workflows. Inspect outputs and continue editing project copies.",
+                "or run scientific workflows. Continue editing managed projects and use native GUI controls. "
+                "Independent personal project for the specified licensed Origin version.",
                 "developerName": author["name"],
                 "category": "Productivity",
                 "capabilities": ["Read", "Write"],
@@ -74,7 +79,8 @@ def main():
         {
             "manifest_version": "0.3",
             **identity,
-            "display_name": "Origin Agent Bridge",
+            "display_name": "Origin Companion",
+            "icon": "assets/icon.svg",
             "author": author,
             "license": "MIT",
             "server": {
@@ -92,9 +98,9 @@ def main():
         {
             "source": "origin-agent",
             "type": "mcp",
-            "name": "Origin Agent Bridge",
-            "name_zh": "Origin 科学分析助手",
-            "name_en": "Origin Agent Bridge",
+            "name": "Origin Companion",
+            "name_zh": "Origin Companion · Origin 工作助手",
+            "name_en": "Origin Companion",
             "version": __version__,
             "description": identity["description"],
             "description_zh": "用自然语言调用本机正版 Origin，完成导入、作图、拟合、批处理和可编辑工程导出。",

@@ -8,6 +8,23 @@ from .native import origin_processes
 from .target import require_target
 
 
+def release_terminated_origin(runtime):
+    """Drop the pinned originpro wrapper's connection only after its owned process exited."""
+    import psutil
+
+    with contextlib.suppress(psutil.NoSuchProcess):
+        process = psutil.Process(runtime["origin_pid"])
+        if abs(process.create_time() - runtime["origin_created"]) < 0.01:
+            raise RuntimeError("Cannot reset an Origin connection while its process is alive")
+    op = runtime["op"]
+    try:
+        op.detach()
+    except Exception:
+        # originpro 1.1.15 APP.Exit does not clear _app when dead-server Exit raises.
+        # The process is already gone; reset that local reference for lazy reconnection.
+        op.po._app = None
+
+
 def connect_origin(visible=False):
     import originpro as op
 

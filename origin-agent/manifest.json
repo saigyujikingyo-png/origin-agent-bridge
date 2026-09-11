@@ -2,10 +2,11 @@
   "manifest_version": "0.3",
   "name": "origin-agent",
   "version": "0.2.0",
-  "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
-  "display_name": "Origin Agent Bridge",
+  "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
+  "display_name": "Origin Companion",
+  "icon": "assets/icon.svg",
   "author": {
-    "name": "Origin Agent Bridge contributors"
+    "name": "Origin Companion contributors"
   },
   "license": "MIT",
   "server": {

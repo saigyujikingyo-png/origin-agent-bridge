@@ -48,6 +48,8 @@ class SessionEngine:
         if state.get("worker_token") != self.token:
             self.current = None
             return
+        if state.get("gui_transaction"):
+            raise ValueError("Finish the active GUI transaction before switching projects")
         resume = path.parent / "recovery" / (uuid.uuid4().hex + ".opju")
         digest = self._save(resume)
         # Leave the active GUI file mutable; exported job files remain immutable.
@@ -63,6 +65,12 @@ class SessionEngine:
 
     def shutdown(self):
         if self.runtime is None:
+            return
+        if self.current and read_json(session_path(self.store, self.current)).get("gui_transaction"):
+            # Parent loss must not enter a blocking COM save while a dialog is open.
+            # The durable before-image is recovered by a later explicit rollback.
+            self.runtime = None
+            self.current = None
             return
         try:
             self.suspend()
@@ -129,6 +137,12 @@ class SessionEngine:
         original_state = dict(state)
         if not self.parent_alive():
             raise RuntimeError("Session supervisor stopped")
+        if command.action == "gui":
+            from .gui_session import execute_gui
+
+            return execute_gui(self, job_id, plan, command, state)
+        if state.get("gui_transaction"):
+            raise ValueError("Commit or rollback the active GUI transaction before running Origin code")
         before = None
         before_hash = None
         try:

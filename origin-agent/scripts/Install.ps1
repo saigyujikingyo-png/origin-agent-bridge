@@ -70,7 +70,7 @@ if ($ConfigureClaude) {
     $existing.mcpServers | Add-Member -NotePropertyName 'origin-agent' -NotePropertyValue $hostConfig.mcpServers.'origin-agent' -Force
     [IO.File]::WriteAllText($claudeConfig,($existing|ConvertTo-Json -Depth 50),$utf8)
 }
-Write-Output ('Installed Origin Agent ' + $version + ' at ' + $Destination)
+Write-Output ('Installed Origin Companion ' + $version + ' at ' + $Destination)
 Write-Output ('Host configuration: ' + $hostDirectory)
 Write-Output ('Origin detected: ' + $status.native_ready_to_probe)
 Write-Output 'Each computer needs its own installed and activated Origin. Restart the host to load new MCP tools.'

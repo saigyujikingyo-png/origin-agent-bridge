@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Plotwise icon concept">
+  <rect width="128" height="128" rx="30" fill="#075e55"/>
+  <path d="M30 29V99H102" fill="none" stroke="#e7f3d9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M43 84C53 82 57 51 70 51S84 68 99 32" fill="none" stroke="#b8e477" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="52" cy="69" r="5" fill="#fff8df"/><circle cx="78" cy="55" r="5" fill="#fff8df"/><circle cx="98" cy="32" r="5" fill="#fff8df"/>
+</svg>

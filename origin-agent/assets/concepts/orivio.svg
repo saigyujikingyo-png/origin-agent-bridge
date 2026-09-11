@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Orivio icon concept">
+  <rect width="128" height="128" rx="30" fill="#30274d"/>
+  <circle cx="64" cy="64" r="34" fill="none" stroke="#f5eedd" stroke-width="12"/>
+  <path d="M27 88C48 88 48 42 70 42S89 62 104 42" fill="none" stroke="#bca6ff" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="48" cy="69" r="6" fill="#f5eedd"/><circle cx="84" cy="49" r="6" fill="#f5eedd"/>
+</svg>

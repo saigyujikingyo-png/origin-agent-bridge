@@ -19,7 +19,8 @@ jobs.py：单一 SQLite 队列、设备锁、超时、取消、幂等
                  ▼
 session_native.py：单线程常驻工作进程 → 一个受管 Origin 实例
    ├─ program_native.py：Python / LabTalk / X-Functions / Origin C
-   ├─ gui.py（计划）：绑定受管 Origin PID 的窗口观察与控件动作
+   ├─ gui.py / gui_session.py：观察契约、GUI 事务与提交/撤回
+   ├─ gui_native.py / gui_accessibility.py：受管 PID 的 Win32/UIA 控件适配
    └─ 检查点、回读、图像预览、失败恢复
 ```
 
@@ -59,4 +60,4 @@ GUI 适配独立于科学算法，只服务受管 Origin 进程：观察窗口/�
 
 ## 本轮落地状态
 
-第一阶段的持续会话已经实现并进行真实 Origin 测试，接口和代码说明见 [SESSIONS.md](SESSIONS.md)。后续三个阶段尚未完成。现有安装版仍为 0.1.0；本轮源代码属于未发布的 0.2 开发版。
+持续会话已实现并进行真实 Origin 测试，见 [SESSIONS.md](SESSIONS.md)。本轮增加原生 GUI 事务、MFC 菜单可访问性和标准控件操作，架构与边界见 [GUI.md](GUI.md)，逐项证据见 [VALIDATION.md](VALIDATION.md)。复杂图形编辑、分享安装升级和完整功能矩阵仍需后续验收。现有安装版仍为 0.1.0；本轮源代码属于未发布的 0.2 开发版。显示名称与蓝色开放圆环已选定为 Origin Companion。

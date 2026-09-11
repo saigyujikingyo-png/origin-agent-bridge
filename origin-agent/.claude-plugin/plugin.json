@@ -1,9 +1,9 @@
 {
   "name": "origin-agent",
   "version": "0.2.0",
-  "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
+  "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
   "author": {
-    "name": "Origin Agent Bridge contributors"
+    "name": "Origin Companion contributors"
   },
   "license": "MIT"
 }

@@ -24,6 +24,7 @@ class SessionWorker:
             stdout=self.log,
         )
         self.active = False
+        self.session_id = None
         self.keep_open = False
 
     def submit(self, job_id, plan_id):
@@ -35,6 +36,7 @@ class SessionWorker:
             return None
         result = read_json(path)
         self.active = bool(result.get("active_session"))
+        self.session_id = result.get("active_session")
         self.keep_open = bool(result.get("keep_open"))
         return result
 
@@ -46,4 +48,5 @@ class SessionWorker:
 
     def discard(self):
         self.active = False
+        self.session_id = None
         self.log.close()

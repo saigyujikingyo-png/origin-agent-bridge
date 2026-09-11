@@ -144,6 +144,8 @@ def get_job(store: Store, identifier: str, *, kick=True) -> dict:
         result["verification"] = manifest["verification"]
         if "session" in manifest:
             result["session"] = manifest["session"]
+        if "gui" in manifest:
+            result["gui"] = manifest["gui"]
         result["artifacts"] = [
             dict(artifact_id=f"{identifier}/{a['name']}", **a) for a in manifest["artifacts"]
         ]
@@ -258,6 +260,12 @@ def supervise(store: Store):
                         worker = persistent.process
                     else:
                         if persistent is not None:
+                            from .sessions import session_path
+
+                            if persistent.active and read_json(
+                                session_path(store, persistent.session_id)
+                            ).get("gui_transaction"):
+                                raise ValueError("Finish the active GUI transaction before starting a batch")
                             persistent.stop()
                             persistent = None
                         worker = spawn(store, "worker", identifier, row["plan_id"], stdout=log)

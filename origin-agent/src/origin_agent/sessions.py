@@ -6,13 +6,14 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from . import __version__
+from .gui import GuiCommand
 from .programs import load_program
 from .storage import Store, file_lock, json_bytes, read_json, valid_id, write_json
 
 
 class SessionCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    action: Literal["open", "execute", "checkpoint", "restore", "close"]
+    action: Literal["open", "execute", "checkpoint", "restore", "close", "gui"]
     request_id: str = Field(min_length=1, max_length=160)
     session_id: str | None = None
     expected_revision: int = Field(ge=0)
@@ -20,9 +21,12 @@ class SessionCommand(BaseModel):
     visible: bool = False
     program_plan_id: str | None = None
     checkpoint_id: str | None = None
+    gui: GuiCommand | None = None
 
     @model_validator(mode="after")
     def contract(self):
+        if (self.action == "gui") != (self.gui is not None):
+            raise ValueError("GUI commands require the gui payload only")
         if self.action == "open":
             if self.session_id or self.expected_revision != 0:
                 raise ValueError("Open requires a new session and expected_revision=0")
@@ -105,7 +109,7 @@ def read_session(store: Store, identifier: str) -> dict:
     public = {
         key: value
         for key, value in state.items()
-        if key not in ("checkpoint_path", "recovery_path", "worker_token")
+        if key not in ("checkpoint_path", "recovery_path", "worker_token", "gui_transaction")
     }
     index = public.get("project_index")
     if index:
@@ -123,6 +127,7 @@ def read_session(store: Store, identifier: str) -> dict:
             or len(graphs) > 40
             or any(len(p.get("sheets", [])) > 20 for p in pages),
         }
+    public["gui_transaction_open"] = bool(state.get("gui_transaction"))
     return public
 
 
@@ -139,5 +144,7 @@ def interrupted_session(store: Store, plan: dict, job_id: str):
             checkpoint_sha256=state["recovery_sha256"],
             active_job=None,
             worker_token=None,
+            gui_transaction=None,
+            gui_observation_id=None,
         )
         write_json(path, state)

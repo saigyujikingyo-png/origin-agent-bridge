@@ -12,6 +12,24 @@ from origin_agent.planning import load_plan, plan_workflow
 from origin_agent.storage import BusyError, file_lock, read_json, write_json
 
 
+def test_json_read_retries_transient_windows_sharing_error(tmp_path, monkeypatch):
+    path = tmp_path / "mailbox.json"
+    path.write_text('{"job":"one"}', encoding="utf-8")
+    original = type(path).read_text
+    calls = 0
+
+    def transient(self, *args, **kwargs):
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise PermissionError("transient mailbox sharing conflict")
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(type(path), "read_text", transient)
+    assert read_json(path) == {"job": "one"}
+    assert calls == 3
+
+
 def workflow(dataset, **extra):
     return Workflow.model_validate(
         {

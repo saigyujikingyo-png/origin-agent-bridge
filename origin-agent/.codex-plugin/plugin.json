@@ -1,18 +1,22 @@
 {
   "name": "origin-agent",
   "version": "0.2.0",
-  "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
+  "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
   "author": {
-    "name": "Origin Agent Bridge contributors"
+    "name": "Origin Companion contributors"
   },
   "license": "MIT",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Origin Agent Bridge",
+    "displayName": "Origin Companion",
+    "brandColor": "#183C69",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg",
+    "logoDark": "./assets/icon.svg",
     "shortDescription": "Use your licensed Origin through an agent.",
-    "longDescription": "Discover installed functions, use Python/LabTalk/Origin C, or run scientific workflows. Inspect outputs and continue editing project copies.",
-    "developerName": "Origin Agent Bridge contributors",
+    "longDescription": "Discover installed functions, use Python/LabTalk/Origin C, or run scientific workflows. Continue editing managed projects and use native GUI controls. Independent personal project for the specified licensed Origin version.",
+    "developerName": "Origin Companion contributors",
     "category": "Productivity",
     "capabilities": [
       "Read",

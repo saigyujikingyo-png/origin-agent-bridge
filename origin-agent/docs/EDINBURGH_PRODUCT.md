@@ -1,4 +1,4 @@
-# 爱大统一 Origin Agent 插件：产品目标与复用决策
+# Origin Companion：个人分享目标与复用决策
 
 更新日期：2026-09-11。这是用户个人开发、可分享给同学和教授的插件。目标是在爱大提供的指定 Origin 版本上，让已获授权的学生、教授和研究人员通过 Claude、ChatGPT、Codex、WorkBuddy 等通用 Agent 使用该版本的全部功能，并保持安装简单、连续编辑顺畅。
 
@@ -27,7 +27,7 @@
 
 **优先选择性复用 Ge-Shun/origin-mcp 的知识、通过验收的对象适配和持续会话设计**。实测不支持直接把其发行重新包装成完整版本。现有 Origin Agent Bridge 的便携运行环境、多宿主包装、输入快照和结果校验可以保留；已经通过同一版本数值断言的原生非线性拟合实现用于补上已发现缺口。
 
-实现路线及模块契约见 [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)。持续会话及检查点已进入实现并通过原生场景测试；之后补齐 GUI 操作、分享安装和完整功能分类验收。每项以实际结果和人工修正次数决定是否可交付。模块复用保留 MIT 许可/署名；目前候选源码只存在忽略的测试目录，没有并入本插件发行。
+实现路线及模块契约见 [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)。持续会话及检查点已通过原生场景测试；GUI 基础通道已实现，见 [GUI.md](GUI.md)。之后补齐复杂控件、分享安装和完整功能分类验收。每项以实际结果和人工修正次数决定是否可交付。模块复用保留 MIT 许可/署名；目前候选源码只存在忽略的测试目录，没有并入本插件发行。
 
 ## “顺畅全功能版”的验收定义
 
@@ -53,6 +53,6 @@
 
 ## 当前状态
 
-0.1.0 是已发布且本机验证的有限工作流版本。0.2 在开发分支中扩展通用官方编程接口，实际执行前核对指定版本；状态接口明确报告 `full_functionality_verified: false`。0.2 尚未替换本机已安装版。完整覆盖、GUI 会话、多宿主全流程和跨电脑验证仍是未完成工作，当前不宣称完整分享版已经完成。
+0.1.0 是已发布且本机验证的有限工作流版本。0.2 在开发分支中扩展通用编程、持续会话和 GUI 事务，实际执行前核对指定版本；状态接口明确报告 `full_functionality_verified: false`。0.2 尚未替换本机已安装引擎。复杂 GUI、完整覆盖、多宿主全流程和跨电脑验证仍是未完成工作，当前不宣称完整分享版已经完成。
 
 来源：[学校化学学院软件页面](https://chem.ed.ac.uk/cto/student-support/computing-software)、[Ge-Shun 项目](https://github.com/Ge-Shun/origin-mcp)、[v0.1.4 发行](https://github.com/Ge-Shun/origin-mcp/releases/tag/v0.1.4)、[工具模式](https://github.com/Ge-Shun/origin-mcp/blob/main/docs/tools.md)、[原生工作流](https://github.com/Ge-Shun/origin-mcp/blob/main/.github/workflows/real-origin.yml)、[garethbeaumo](https://github.com/garethbeaumo/originlab-mcp)、[youngminsw](https://github.com/youngminsw/Origin-Pro-MCP)、[Yike-Ye](https://github.com/Yike-Ye/OriginLab-MCP)。

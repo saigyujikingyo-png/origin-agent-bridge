@@ -2,6 +2,6 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "origin-agent",
   "version": "0.2.0",
-  "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
+  "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
   "license": "MIT"
 }
