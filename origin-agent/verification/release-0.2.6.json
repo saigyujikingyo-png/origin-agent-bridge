@@ -1,0 +1,117 @@
+{
+  "version": "0.2.6",
+  "date": "2026-09-11",
+  "release_level": "preview",
+  "automated_tests": 125,
+  "lint_and_format_passed": true,
+  "plugin_manifest_validation_passed": true,
+  "mcpb_manifest_validation_passed": true,
+  "archive_and_installed_sha256_passed": true,
+  "archive_files_verified": 303,
+  "runtime_third_party_dependencies_unchanged": true,
+  "frozen_runtime": {
+    "workflow_seconds": 13.657,
+    "verification": {
+      "data_roundtrip": true,
+      "graph_text_roundtrip": true,
+      "graphs_reopened": 1,
+      "native_reports_reopened": 1,
+      "png_decoded": true,
+      "project_reopened": true,
+      "seconds": 11.063,
+      "titles_reopened": 1,
+      "vendor_native": true,
+      "visual_review": "preview should be reviewed by the agent/user"
+    },
+    "independent_numeric_crosscheck": true,
+    "preview_reviewed": true,
+    "table_and_job_replay_reused": true,
+    "missing_dependency_terminal": true,
+    "failure_seconds": 16.42,
+    "development_runtime_removed_from_path": true
+  },
+  "cloud_work": {
+    "actual_model": "GPT-5.6 Sol",
+    "effort_ui_label": "轻度",
+    "synthetic_only": true,
+    "tool_catalog_refreshed": true,
+    "import_and_native_recipe_succeeded": true,
+    "generated_python": false,
+    "gui_actions": false,
+    "user_to_final_seconds": 111.831,
+    "job_seconds": 39.371,
+    "verification": {
+      "data_roundtrip": true,
+      "graph_text_roundtrip": true,
+      "graphs_reopened": 1,
+      "native_reports_reopened": 1,
+      "png_decoded": true,
+      "project_reopened": true,
+      "seconds": 34.313,
+      "titles_reopened": 1,
+      "vendor_native": true,
+      "visual_review": "preview should be reviewed by the agent/user"
+    },
+    "summary": [
+      {
+        "coefficient_rss_crosscheck": true,
+        "extrapolation": false,
+        "intercept": 0.01973424657534234,
+        "intercept_mode": "free",
+        "molar_absorptivity_L_mol_cm": 4800.95890410959,
+        "n": 6,
+        "panel": 1,
+        "r_squared_origin": 0.9999022836181513,
+        "residual_sum_squares": 5.4810958904109435e-05,
+        "series": "Absorbance",
+        "slope": 4800.95890410959,
+        "slope_se": 23.730282132977546,
+        "unknown_concentration_in_x_units": 7.212429023882217e-05,
+        "unknown_uncertainty": "not calculated: measurement uncertainty not provided",
+        "weighting": "none"
+      }
+    ],
+    "artifact_hashes_verified": 6,
+    "preview_reviewed": true,
+    "cloud_download_ui_verified": false,
+    "drive_retrieval_retested": false,
+    "terminal_failure_read_once_verified": true,
+    "terminal_failure_turn_seconds": 24.699
+  },
+  "installation": {
+    "version": "0.2.6",
+    "receipt_id": "a5c770c4fe1a448a90a0c36edf873108",
+    "managed_tunnel_version": "0.2.6",
+    "background_ready": true,
+    "cloud_original_app_reconnected": true
+  },
+  "limitations": [
+    "Original deleted Work trace unavailable; full 13m40s cause not established",
+    "No current Drive retrieval regression",
+    "Other provider models and second physical machine not tested",
+    "Complete Origin function coverage not certified"
+  ],
+  "installed_host_commands": {
+    "claude_desktop": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.6",
+      "host_model_invocation_tested": false
+    },
+    "workbuddy": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.6",
+      "host_model_invocation_tested": false
+    },
+    "codex_plugin": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.6",
+      "host_model_invocation_tested": false
+    }
+  }
+}

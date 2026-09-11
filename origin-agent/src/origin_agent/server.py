@@ -18,7 +18,7 @@ from .agent_profiles import (
     resolve_profile,
 )
 from .capabilities import capabilities
-from .datasets import inspect_dataset
+from .datasets import import_table, inspect_dataset
 from .discovery import discover
 from .gui import GuiCommand
 from .jobs import TERMINAL, cancel, get_job, submit
@@ -76,7 +76,11 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
     ) -> dict[str, Any]:
         """Execute trusted Python/COM, LabTalk/X-Functions, or Origin C with Windows user permissions.
 
+        Prefer origin_import_table + origin_recipe for cloud tables, linear fits and Beer-Lambert.
         Python receives op, INPUTS (alias: copied Path), OUTPUT_DIR (Path), RESULTS (JSON dict).
+        The packaged runtime excludes NumPy/pandas/SciPy. Use standard library or verified native APIs;
+        origin_capabilities provides installed signatures. GLayer labels use layer.label("xb").text,
+        not set_label. Do not embed full retrieved tables repeatedly in generated programs.
         LabTalk receives oa_output$ and oa_input_<alias>$; Origin C requires an entrypoint LabTalk script.
         project_path or project_artifact loads a copy of an existing OPJ/OPJU. Outputs always include
         a reopened OPJU, project structure, script, result.json and requested graph formats/files.
@@ -208,7 +212,14 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
             "data_directories": [str(p) for p in store.allowed_roots],
             "inbox": str(store.root / "inbox"),
             "compute": "local Windows",
+            "program_environment": {
+                "python": "bundled standard library plus installed native Origin API",
+                "excluded_from_release": ["numpy", "pandas", "scipy"],
+                "preferred_table_route": "origin_import_table -> origin_recipe",
+                "api_discovery": "origin_capabilities before unfamiliar methods",
+            },
             "capabilities": [
+                "cloud_table_import",
                 "csv",
                 "tsv",
                 "xlsx_values",
@@ -232,6 +243,18 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
         }
 
     @mcp.tool(annotations=write)
+    async def origin_import_table(content: str, format: Literal["csv", "tsv"] = "csv") -> dict[str, Any]:
+        """Import already retrieved CSV/TSV text; return dataset_id, column quality and four rows.
+
+        Use for cloud/Drive data without a Windows path. Send the table once, then reuse dataset_id
+        with origin_recipe or origin_plan_workflow. No generated Python or Origin launch is needed.
+        Include a header row and preserve the retrieved values; no invented units or missing rows.
+        Limit 25 MiB; identical content and format reuse the same immutable dataset. This does not
+        fetch URLs or cloud attachment IDs; retrieve the source with its connected file tool first.
+        """
+        return await asyncio.to_thread(import_table, store, content, format)
+
+    @mcp.tool(annotations=write)
     async def origin_inspect_dataset(path: str, sheet_name: str | None = None) -> dict[str, Any]:
         """Snapshot a local CSV/TSV/XLSX; return column quality and four preview rows. No Origin launch."""
         return await asyncio.to_thread(inspect_dataset, store, path, sheet_name)
@@ -248,7 +271,11 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
 
     @mcp.tool(annotations=read)
     async def origin_get_job(job_id: str, wait_seconds: int = 0) -> dict[str, Any]:
-        """Get progress/artifacts; wait up to 25 seconds. Terminal results are cached."""
+        """Get progress/artifacts; wait up to 25 seconds. Stop polling when terminal is true.
+
+        Failed/cancelled/interrupted jobs will not finish later. Report the failure, follow recovery
+        guidance, and only submit a corrected plan deliberately. Do not keep waiting on a failed job.
+        """
         if not 0 <= wait_seconds <= 25:
             raise ValueError("wait_seconds must be between 0 and 25")
         deadline = time.monotonic() + wait_seconds

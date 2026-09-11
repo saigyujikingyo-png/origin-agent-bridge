@@ -141,6 +141,10 @@ def get_job(store: Store, identifier: str, *, kick=True) -> dict:
         "state": row["state"],
         "error": row["error"],
         "cancel_requested": bool(row["cancel"]),
+        "terminal": row["state"] in TERMINAL,
+        "elapsed_seconds": round(
+            max(0, (row["updated"] if row["state"] in TERMINAL else time.time()) - row["created"]), 3
+        ),
     }
     directory = store.path("jobs", identifier)
     progress = directory / "progress.json"
@@ -159,7 +163,15 @@ def get_job(store: Store, identifier: str, *, kick=True) -> dict:
             dict(artifact_id=f"{identifier}/{a['name']}", **a) for a in manifest["artifacts"]
         ]
     else:
-        result["poll_after_seconds"] = 3
+        if row["state"] not in TERMINAL:
+            result["poll_after_seconds"] = 3
+        else:
+            result["next_action"] = (
+                "Stop polling. Report the terminal outcome; waiting cannot complete this job."
+            )
+            if "progress" in result:
+                result["progress"]["last_stage"] = result["progress"].get("stage")
+                result["progress"]["stage"] = row["state"]
         error_path = directory / "error.json"
         if row["state"] in TERMINAL and error_path.exists():
             diagnostic = read_json(error_path)
@@ -167,6 +179,21 @@ def get_job(store: Store, identifier: str, *, kick=True) -> dict:
                 "type": diagnostic.get("type"),
                 "labtalk_output": diagnostic.get("labtalk_output", "")[-4000:],
             }
+            if diagnostic.get("type") == "ModuleNotFoundError":
+                result["recovery"] = {
+                    "kind": "missing_python_dependency",
+                    "instruction": "Use origin_import_table plus origin_recipe for standard analyses. "
+                    "The release excludes NumPy/pandas/SciPy; use standard library or native Origin APIs. "
+                    "Correct the program before a deliberate new submission; "
+                    "do not ask the user to debug it.",
+                }
+            elif diagnostic.get("type") == "AttributeError":
+                result["recovery"] = {
+                    "kind": "unknown_native_api",
+                    "instruction": "Use origin_capabilities to check the actual API before correcting code. "
+                    "For GLayer labels use layer.label('xb').text or layer.label('yl').text. "
+                    "Standard plots/fits should use origin_recipe or origin_plan_workflow.",
+                }
     return result
 
 

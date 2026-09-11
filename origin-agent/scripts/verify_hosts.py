@@ -45,7 +45,7 @@ async def main():
             assert not status.is_error
             assert status.structured_content["plugin_version"] == __version__
             mode = status.structured_content["agent_profile"]["mode"]
-            assert len(tools.tools) == (5 if mode == "economy" else 13)
+            assert len(tools.tools) == (5 if mode == "economy" else 14)
             result[host] = {
                 "configured_command_passed": True,
                 "tool_count": len(tools.tools),

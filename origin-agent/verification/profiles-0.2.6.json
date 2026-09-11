@@ -1,0 +1,15 @@
+{
+  "version": "0.2.6",
+  "metric": "UTF-8 bytes of compact JSON MCP tool definitions",
+  "full": {
+    "tools": 14,
+    "bytes": 21837
+  },
+  "economy": {
+    "tools": 5,
+    "bytes": 4908
+  },
+  "tool_definition_reduction_percent": 77.52,
+  "billing_tokens_measured": false,
+  "model_success_rate_measured": false
+}

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "origin-agent-bridge"
-version = "0.2.5"
+version = "0.2.6"
 description = "Origin Companion: reproducible workflows and GUI automation for MCP agents"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"

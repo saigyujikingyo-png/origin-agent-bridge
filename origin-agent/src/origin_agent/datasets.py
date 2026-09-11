@@ -10,7 +10,7 @@ import uuid
 import zipfile
 from pathlib import Path
 
-from .storage import Store, json_bytes, read_json, sha256, write_json
+from .storage import Store, file_lock, json_bytes, read_json, sha256, write_json
 
 MAX_BYTES = 25 * 1024 * 1024
 MAX_ROWS = 250_000
@@ -137,6 +137,40 @@ def inspect_dataset(store: Store, path: str, sheet_name: str | None = None) -> d
         return metadata | {"snapshot": "local immutable snapshot"}
     finally:
         temp.unlink(missing_ok=True)
+
+
+def import_table(store: Store, content: str, format: str = "csv") -> dict:
+    """Stage retrieved text once; replaying the same bytes reuses an immutable dataset."""
+    if format not in ("csv", "tsv"):
+        raise ValueError("format must be csv or tsv")
+    raw = content.encode("utf-8")
+    if not raw or len(raw) > MAX_BYTES:
+        raise ValueError("Table content must be nonempty and <=25 MiB")
+    fingerprint = hashlib.sha256(format.encode() + b"\0" + raw).hexdigest()
+    staging = store.root / "inbox" / "tables"
+    staging.mkdir(exist_ok=True)
+    if staging.is_symlink() or not staging.resolve().is_relative_to(store.root):
+        raise ValueError("Table staging directory must remain inside the local store")
+    source = staging / f"{fingerprint}.{format}"
+    receipt = staging / f"{fingerprint}.json"
+    with file_lock(staging / "import.lock"):
+        if receipt.exists():
+            meta, _, _ = dataset_table(store, read_json(receipt)["dataset_id"])
+            if meta["sha256"] != hashlib.sha256(raw).hexdigest():
+                raise ValueError("Imported table receipt integrity mismatch")
+            return meta | {"snapshot": "local immutable snapshot"}
+        # Never follow or replace an existing source. It may belong to a failed import.
+        if source.is_symlink():
+            raise ValueError("Table source must not be a link")
+        if source.exists():
+            if sha256(source) != hashlib.sha256(raw).hexdigest():
+                raise ValueError("Staged table integrity mismatch")
+        else:
+            with source.open("xb") as stream:
+                stream.write(raw)
+        result = inspect_dataset(store, str(source))
+        write_json(receipt, {"dataset_id": result["dataset_id"]})
+        return result
 
 
 def dataset_table(store: Store, identifier: str):

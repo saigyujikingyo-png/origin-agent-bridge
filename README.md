@@ -6,12 +6,13 @@
 
 目标是供使用指定爱大授权 Origin 版本的同学、教授和研究人员个人分享使用。Origin 计算由 Windows 上的独立执行端完成；云端 Agent 经本人配置的安全连接调用，本地 Agent 经受支持的本机连接调用。常规任务优先批量原生操作，GUI 用于需要它的交互补充。
 
-当前发行是 **[0.2.5 预览版](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.5)**。真实云端 Work 已有验收案例；本地 Work、其他宿主内的模型调用及第二台电脑仍需独立验收。列为目标使用场景，不等于已经全部验证。
+当前发行是 **[0.2.6 预览版](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.6)**。真实云端 Work 已有验收案例；本地 Work、其他宿主内的模型调用及第二台电脑仍需独立验收。列为目标使用场景，不等于已经全部验证。
 
 - [下载后的安装与连接](origin-agent/docs/INSTALL.md)
 - [自然语言试用示例](origin-agent/examples/README.md)
 - [产品定位与交付标准](origin-agent/docs/EDINBURGH_PRODUCT.md)
-- [本轮真实 Work 验收](WORK_ACCEPTANCE_2026-09-11.md)
+- [云端卡住问题修复与复测](WORK_RECOVERY_0.2.6.md)
+- [此前详尽 Work 验收](WORK_ACCEPTANCE_2026-09-11.md)
 - [后续开发路线](origin-agent/docs/ROADMAP.md)
 - [开发者实现说明](origin-agent/README.md)
 

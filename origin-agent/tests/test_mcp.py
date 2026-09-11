@@ -13,7 +13,7 @@ from origin_agent.server import make_server
 async def test_protocol_tools_and_schema_guard(store):
     async with Client(make_server(store), raise_exceptions=True) as client:
         tools = (await client.list_tools()).tools
-        assert len(tools) == 13
+        assert len(tools) == 14
         serialized = json.dumps([tool.model_dump(mode="json") for tool in tools])
         assert len(serialized) < 38000
         status = await client.call_tool("origin_status", {})
@@ -39,7 +39,7 @@ async def test_real_stdio_transport(store, mode, profile):
         ),
         mode=mode,
     ) as client:
-        assert len((await client.list_tools()).tools) == (5 if profile == "economy" else 13)
+        assert len((await client.list_tools()).tools) == (5 if profile == "economy" else 14)
         answer = await client.call_tool("origin_status", {})
         assert not answer.is_error
         source = store.root / "inbox" / "cached-tools.csv"

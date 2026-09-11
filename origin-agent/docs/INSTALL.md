@@ -16,12 +16,12 @@ Codex 用于本项目的开发与维护。师生使用下载的安装包，在�
 
 ## 一键安装
 
-1. 下载 `origin-agent-0.2.5-windows-x64.zip`，核对随发行提供的 SHA-256，解压到普通本地目录。
+1. 下载 `origin-agent-0.2.6-windows-x64.zip`，核对随发行提供的 SHA-256，解压到普通本地目录。
 2. 双击 `Install.cmd`，输入希望配置的宿主名称，例如 `claude,workbuddy`。直接回车只安装引擎和生成配置；云端 Work 用户随后完成下文的本人安全连接设置。本地 Work 的专用安装与用户入口尚需独立验收。
 3. 安装器校验完整文件集合、复制独立运行时，再使用合成数据启动 Origin、检查指定版本和数值回读。通过后才合并宿主配置、切换活动版本。重新打开所选 Agent。
 4. 让 Agent 先检查 Origin Companion 状态，再提交你的实际绘图、分析或编辑任务。
 
-无需另装 Python、Node、uv 或编译器。默认程序在 `%USERPROFILE%\.origin-agent\app\0.2.5`，研究产物和会话在 `%USERPROFILE%\.origin-agent`。不改动 Origin 安装及许可；默认引擎安装不注册自启，云端用户可另外启用下方的私有隧道登录任务。包没有商业代码签名；哈希证明传输完整性，不能替代发布者签名。
+无需另装 Python、Node、uv 或编译器。默认程序在 `%USERPROFILE%\.origin-agent\app\0.2.6`，研究产物和会话在 `%USERPROFILE%\.origin-agent`。不改动 Origin 安装及许可；默认引擎安装不注册自启，云端用户可另外启用下方的私有隧道登录任务。包没有商业代码签名；哈希证明传输完整性，不能替代发布者签名。
 
 已有用户可无交互升级：
 
@@ -32,13 +32,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractiv
 安装器保留其他 MCP 和宿主设置。旧版程序保留，默认不删除研究数据。每次安装输出 `receipt_id`，备份保存在 `.origin-agent\installations\<receipt_id>`。升级失败自动恢复已修改的配置；如果文件随后被用户修改，回滚会报告冲突而保留该修改。主动回滚：
 
 ```powershell
-& "$env:USERPROFILE\.origin-agent\app\0.2.5\server\origin-agent.exe" rollback-install <receipt_id>
+& "$env:USERPROFILE\.origin-agent\app\0.2.6\server\origin-agent.exe" rollback-install <receipt_id>
 ```
 
 自检与诊断：
 
 ```powershell
-& "$env:USERPROFILE\.origin-agent\app\0.2.5\server\origin-agent.exe" doctor --native
+& "$env:USERPROFILE\.origin-agent\app\0.2.6\server\origin-agent.exe" doctor --native
 ```
 
 `doctor` 本身只检查发现；加 `--native` 才会创建合成工程并验证原生回读。若有未结束的 GUI 事务，先完成或回滚事务再安装。GUI 操作需要可交互、未锁屏的 Windows 桌面；休眠、合盖或断电会中断本机任务，恢复后先读取作业/会话状态再继续。
@@ -48,7 +48,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractiv
 - **Claude Desktop**：选择 `claude` 自动合并配置。也可直接导入 `.mcpb`；它自带运行时，使用默认本机数据目录。是否自动加载 skill 取决于宿主，服务器同时提供紧凑工具说明。
 - **WorkBuddy**：选择 `workbuddy` 自动合并 `~/.workbuddy/mcp.json` 并安装工作流 skill。包内 `workbuddy` 目录保留连接器元数据和蓝色圆环图标。
 - **本地 Work**：作为独立用户工作入口验收；当前不把 Codex 的开发配置步骤等同于本地 Work 安装说明。
-- **其他 MCP Agent**：通用配置在 `.origin-agent/host-configs/0.2.5/generic-mcp.json`。各宿主连接入口和插件格式不同，运行引擎和工作流契约共用，实际使用仍需宿主验收。
+- **其他 MCP Agent**：通用配置在 `.origin-agent/host-configs/0.2.6/generic-mcp.json`。各宿主连接入口和插件格式不同，运行引擎和工作流契约共用，实际使用仍需宿主验收。
 
 <details>
 <summary>开发与可选兼容入口：Codex / Claude Code</summary>
@@ -58,7 +58,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractiv
 
 </details>
 
-完整模式有 13 个工具，经济模式只显示 5 个工具，其余操作按需查询参数后调用。两种模式共用同一 Origin 内核；工具数量不是功能数量。实际支持边界与未验证功能见 [COVERAGE.md](COVERAGE.md)。
+完整模式有 14 个工具，经济模式只显示 5 个工具，其余操作按需查询参数后调用。两种模式共用同一 Origin 内核；工具数量不是功能数量。实际支持边界与未验证功能见 [COVERAGE.md](COVERAGE.md)。
 
 ## ChatGPT 云端
 
