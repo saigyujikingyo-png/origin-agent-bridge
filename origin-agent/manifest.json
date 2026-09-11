@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.3",
   "name": "origin-agent",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
   "display_name": "Origin Companion",
   "icon": "assets/icon.png",

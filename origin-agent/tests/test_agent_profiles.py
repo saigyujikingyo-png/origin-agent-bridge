@@ -223,3 +223,19 @@ async def test_economy_accepts_cached_full_names_with_same_validation(store, dat
         )
         assert gui.is_error and "Vision is off" in str(gui.content)
         assert {t.name for t in (await client.list_tools()).tools} == names
+
+
+@pytest.mark.anyio
+async def test_file_receiver_is_discovered_only_when_requested(store):
+    from pathlib import Path
+
+    async with Client(make_server(store, profile="economy")) as client:
+        normal = await client.call_tool("origin_help", {"operation": "origin_get_artifact"})
+        assert "receiver" not in normal.structured_content
+        receiver = await client.call_tool(
+            "origin_help", {"operation": "origin_get_artifact", "query": "receiver"}
+        )
+        assert not receiver.is_error
+        source = Path(__file__).resolve().parents[1] / "src/origin_agent/data/receive_artifact.js"
+        assert receiver.structured_content["receiver"]["javascript"] == source.read_text(encoding="utf-8")
+        assert "saveOriginDownload" in receiver.structured_content["receiver"]["javascript"]

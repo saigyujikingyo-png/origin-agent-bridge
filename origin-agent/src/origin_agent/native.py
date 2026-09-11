@@ -1,6 +1,7 @@
 """Only this short-lived worker imports originpro. All operations are fixed and audited."""
 
 import csv
+import hashlib
 import math
 import mimetypes
 import time
@@ -10,6 +11,7 @@ import psutil
 
 from . import __version__
 from .datasets import column_digest, dataset_table, numeric_columns
+from .graph_text import origin_text
 from .models import Workflow
 from .planning import load_plan
 from .storage import Store, read_json, sha256, write_json
@@ -70,7 +72,7 @@ def _fit(op, sheet, x_index, y_index, analysis):
 
 def _draw_title(layer, text: str, preset: str):
     """Create real graph text through COM; a graph long name is not an exported title."""
-    title = layer.add_label(text)
+    title = layer.add_label(origin_text(text))
     if title is None:
         raise RuntimeError("Origin could not create the graph title")
     title.set_int("attach", 0)
@@ -258,8 +260,10 @@ def run_native(store: Store, identifier: str, plan_id: str):
             graph_refs.append(graph.name)
             layer = graph[0]
             # Direct COM text assignment avoids interpolating user strings into LabTalk.
-            layer.label("xb").text = panel.style.x_label or panel.x
-            layer.label("yl").text = panel.style.y_label or (panel.y[0] if len(panel.y) == 1 else "Value")
+            layer.label("xb").text = origin_text(panel.style.x_label or panel.x)
+            layer.label("yl").text = origin_text(
+                panel.style.y_label or (panel.y[0] if len(panel.y) == 1 else "Value")
+            )
             for label_name in ("xb", "yl"):
                 layer.label(label_name).set_float("fsize", 18 if panel.style.preset == "presentation" else 14)
             plot_type = {"scatter": "s", "line": "l", "line_symbol": "y"}[panel.style.plot]
@@ -288,7 +292,7 @@ def run_native(store: Store, identifier: str, plan_id: str):
                 {
                     "graph": graph.name,
                     "labels": {
-                        title_name: panel.title,
+                        title_name: origin_text(panel.title),
                         "xb": layer.label("xb").text,
                         "yl": layer.label("yl").text,
                     },
@@ -402,7 +406,11 @@ def artifact_path(store: Store, artifact_id: str):
 
     if get_job(store, identifier, kick=False)["state"] != "succeeded":
         raise ValueError("Artifacts are available only after successful native verification")
-    manifest = read_json(directory / "manifest.json")
+    path = directory / name
+    manifest_path = directory / "manifest.json"
+    if any(p.is_symlink() or p.is_junction() for p in (directory, path, manifest_path)):
+        raise ValueError("Artifact links are not permitted")
+    manifest = read_json(manifest_path)
     if name == "manifest.json":
         return directory / name, "application/json"
     entry = next((entry for entry in manifest["artifacts"] if entry["name"] == name), None)
@@ -412,3 +420,24 @@ def artifact_path(store: Store, artifact_id: str):
     if sha256(path) != entry["sha256"]:
         raise ValueError("Artifact has changed since verification")
     return path, entry["mime_type"]
+
+
+def artifact_bytes(store: Store, artifact_id: str):
+    """Read bounded bytes and compare the payload against the completed manifest."""
+    path, mime = artifact_path(store, artifact_id)
+    manifest = read_json(path.parent / "manifest.json")
+    expected = (
+        None
+        if path.name == "manifest.json"
+        else next(entry["sha256"] for entry in manifest["artifacts"] if entry["name"] == path.name)
+    )
+    limit = 32 * 1024 * 1024
+    if path.stat().st_size > limit:
+        raise ValueError("MCP binary transfer limit is 32 MiB; use the local artifact path")
+    with path.open("rb") as stream:
+        payload = stream.read(limit + 1)
+    if len(payload) > limit:
+        raise ValueError("MCP binary transfer limit is 32 MiB; use the local artifact path")
+    if expected is not None and hashlib.sha256(payload).hexdigest() != expected:
+        raise ValueError("Artifact changed during transfer; refusing unverified bytes")
+    return path, mime, payload

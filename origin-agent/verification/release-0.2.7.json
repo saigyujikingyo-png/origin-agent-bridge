@@ -1,0 +1,102 @@
+{
+  "version": "0.2.7",
+  "date": "2026-09-11",
+  "release_level": "preview",
+  "target": {
+    "origin_version": "2026b SR2",
+    "build": 10.350243,
+    "edition": "Origin",
+    "platform": "Windows x64"
+  },
+  "local_tests": {
+    "passed": 132,
+    "skipped": 1,
+    "skip_reason": "Windows symlink creation unavailable",
+    "lint": true,
+    "format": true
+  },
+  "frozen_runtime": {
+    "development_runtime_removed_from_path": true,
+    "workflow_seconds": 14.594,
+    "independent_numeric_crosscheck": true,
+    "project_reopened": true,
+    "graph_text_roundtrip": true,
+    "binary_downloads_verified": 4,
+    "missing_dependency_terminal": true,
+    "missing_dependency_seconds": 8.54,
+    "total_seconds": 23.531
+  },
+  "cloud_work": {
+    "actual_model": "GPT-5.6 Sol",
+    "effort_ui_label": "轻度",
+    "drive_retrieval_retested": true,
+    "private_source_data_published": false,
+    "source_independently_checked": true,
+    "native_recipe_succeeded": true,
+    "job_seconds": 12.386,
+    "native_execution_and_verification_seconds": 10.672,
+    "delivery_turn_seconds": 188.888,
+    "delivery_turn_includes_drive_retrieval": false,
+    "download_ui_verified": [
+      "png",
+      "pdf",
+      "svg",
+      "opju"
+    ],
+    "download_hashes_and_bytes_verified": 4,
+    "preview_reviewed": true,
+    "pdf_opened_in_work": true,
+    "project_reopened": true,
+    "built_in_receiver_retrieval_and_opju_delivery_passed": true,
+    "catalog_refreshed": true
+  },
+  "installation": {
+    "version": "0.2.7",
+    "managed_tunnel_version": "0.2.7",
+    "ready": true,
+    "archive_and_installed_files_verified": 306,
+    "documentation_only_repackage_runtime_identical": true,
+    "official_mcpb_manifest_validation": true
+  },
+  "host_commands": {
+    "claude_desktop": {
+      "passed": true,
+      "host_model_tested": false
+    },
+    "workbuddy": {
+      "passed": true,
+      "host_model_tested": false
+    },
+    "codex": {
+      "passed": true,
+      "host_model_tested": false
+    }
+  },
+  "economy": {
+    "tools": 5,
+    "full_tools": 14,
+    "schema_utf8_json_bytes": 5125,
+    "full_schema_utf8_json_bytes": 22327,
+    "reduction_percent": 77.05,
+    "billing_tokens_measured": false,
+    "model_success_rate_measured": false,
+    "new_runtime_dependencies": false
+  },
+  "distributions": {
+    "zip": {
+      "bytes": 33083132,
+      "sha256": "ddb943a801237ff4d0f64ad8e715ceb5c344b84912fc8682319324f3e5cdac00"
+    },
+    "mcpb": {
+      "bytes": 33083132,
+      "sha256": "ddb943a801237ff4d0f64ad8e715ceb5c344b84912fc8682319324f3e5cdac00"
+    }
+  },
+  "limitations": [
+    "32 MiB per binary artifact",
+    "Host file capability required for attachments",
+    "Other models, other host model flows and second physical machine not certified",
+    "Full Origin functionality and long-running reliability not certified",
+    "Deleted original Work trace remains unavailable"
+  ]
+}

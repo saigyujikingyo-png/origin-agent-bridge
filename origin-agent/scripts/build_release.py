@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def frozen_sources():
-    sources = [p for p in (ROOT / "src").rglob("*") if p.suffix in (".py", ".json")]
+    sources = [p for p in (ROOT / "src").rglob("*") if p.suffix in (".py", ".json", ".js")]
     sources += [
         ROOT / name
         for name in ("pyproject.toml", "uv.lock", "scripts/build_release.py", "scripts/frozen_entry.py")
@@ -55,6 +55,9 @@ def main():
         api_data = run_root / "data/api-index.json"
         write(api_data, api_index(vendor_source))
         shutil.copy2(ROOT / "src/origin_agent/data/coverage.json", api_data.parent / "coverage.json")
+        shutil.copy2(
+            ROOT / "src/origin_agent/data/receive_artifact.js", api_data.parent / "receive_artifact.js"
+        )
         subprocess.run(
             [
                 sys.executable,

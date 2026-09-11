@@ -42,3 +42,6 @@ Try a complete natural-language workflow using the [synthetic example](examples/
 0.2.2 修复从完整模式切换到经济模式后，旧宿主会话缓存工具名导致的 `Unknown tool`。经济模式仍只展示 5 个入口，旧名称在服务端兼容转发并沿用完整参数、视觉能力和会话校验。见 [Work 排障](docs/WORK_TROUBLESHOOTING.md)。
 
 0.2.6 增加云端 CSV/TSV 文本直接导入和 Beer–Lambert 简化配方；失败作业明确停止轮询并提供恢复提示。常规拟合复用已验证的 Origin 原生流程，无需临时 Python 或 NumPy。经济模式仍显示 5 个入口，完整操作增至 14 个。
+
+
+0.2.7 adds verified binary downloads over the existing private MCP connection. Cloud hosts that expose an embedded resource without creating a file can request the built-in receiver on demand; it saves bytes in the host output directory and verifies SHA256 without browser globals or a persistent terminal. Numeric Unicode superscripts/subscripts in graph titles and axes use Origin rich text, avoiding missing-glyph boxes. The core still advertises five economy tools, with no added runtime dependency or model API. See [file delivery](skills/origin-workflow/references/FILE_DELIVERY.md).

@@ -2,6 +2,8 @@
 
 import argparse
 import asyncio
+import base64
+import hashlib
 import json
 import math
 import os
@@ -53,6 +55,11 @@ async def main():
 
         assert len((await client.list_tools()).tools) == 5
         evidence["status"] = await direct("origin_status", {})
+        receiver = await direct("origin_help", {"operation": "origin_get_artifact", "query": "receiver"})
+        receiver_source = receiver["receiver"]["javascript"]
+        expected_receiver = Path(__file__).resolve().parents[1] / "src/origin_agent/data/receive_artifact.js"
+        assert receiver_source == expected_receiver.read_text(encoding="utf-8")
+        evidence["receiver_sha256"] = hashlib.sha256(receiver_source.encode("utf-8")).hexdigest()
         await direct("origin_help", {"operation": "origin_import_table"})
         dataset = await call("origin_import_table", {"content": CSV})
         replay = await call("origin_import_table", {"content": CSV})
@@ -70,8 +77,8 @@ async def main():
             "unknown_absorbance": 0.366,
             "path_length_cm": 1,
             "concentration_scale_molar": 1,
-            "title": "Synthetic cloud-table Beer-Lambert regression",
-            "x_label": "Concentration, c / mol dm\\+(-3)",
+            "title": "Synthetic K₂CrO₄ cloud-table Beer-Lambert regression",
+            "x_label": "Concentration, c / mol dm⁻³",
             "y_label": "Absorbance, A",
             "formats": ["png", "pdf", "svg"],
         }
@@ -104,6 +111,21 @@ async def main():
         assert not preview.is_error and any(c.type == "image" for c in preview.content)
         evidence["independent_numeric_crosscheck"] = True
         evidence["preview_returned"] = True
+        evidence["binary_downloads"] = []
+        for entry in job["artifacts"]:
+            if entry["name"] not in {"project.opju", "panel-01.png", "panel-01.pdf", "panel-01.svg"}:
+                continue
+            download = await client.call_tool(
+                "origin_get_artifact",
+                {"artifact_id": job["job_id"] + "/" + entry["name"], "mode": "download"},
+            )
+            assert not download.is_error, download
+            resource = next(c.resource for c in download.content if c.type == "resource")
+            binary = base64.b64decode(resource.blob, validate=True)
+            assert len(binary) == entry["bytes"] and hashlib.sha256(binary).hexdigest() == entry["sha256"]
+            evidence["binary_downloads"].append(
+                {"name": entry["name"], "sha256": entry["sha256"], "bytes": len(binary)}
+            )
         failure = await call(
             "origin_run_program",
             {

@@ -350,7 +350,7 @@ wheels = [
 
 [[package]]
 name = "origin-agent-bridge"
-version = "0.2.6"
+version = "0.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "comtypes", marker = "sys_platform == 'win32'" },

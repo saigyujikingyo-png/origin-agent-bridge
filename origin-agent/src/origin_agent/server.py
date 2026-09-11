@@ -7,7 +7,15 @@ import json
 import time
 from typing import Any, Literal
 
-from mcp_types import CallToolResult, ImageContent, ResourceLink, TextContent, ToolAnnotations
+from mcp_types import (
+    BlobResourceContents,
+    CallToolResult,
+    EmbeddedResource,
+    ImageContent,
+    ResourceLink,
+    TextContent,
+    ToolAnnotations,
+)
 
 from . import __version__
 from .agent_profiles import (
@@ -23,7 +31,7 @@ from .discovery import discover
 from .gui import GuiCommand
 from .jobs import TERMINAL, cancel, get_job, submit
 from .models import Workflow
-from .native import artifact_path
+from .native import artifact_bytes, artifact_path
 from .planning import plan_workflow
 from .programs import OriginProgram, prepare_program
 from .sessions import SessionCommand, prepare_session, read_session
@@ -299,22 +307,35 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
     @mcp.tool(annotations=read, structured_output=False)
     async def origin_get_artifact(
         artifact_id: str,
-        mode: Literal["info", "preview", "text"] = "info",
+        mode: Literal["info", "preview", "text", "download"] = "info",
         offset: int = 0,
         max_chars: int = 8000,
     ) -> CallToolResult:
-        """Get a verified artifact link, PNG preview, or text page; follow next_offset for more text."""
+        """Get artifact info, PNG preview, text page, or download bytes as an MCP embedded resource.
+
+        download transfers one completed, hash-verified file <=32 MiB; no public URL or extra server.
+        Save the returned binary through the host file API and verify bytes/SHA256 before offering a
+        download. In economy mode help(origin_get_artifact, query=receiver) supplies a tested adapter.
+        A local path or origin:// link alone does not prove cloud delivery. Never paste blob
+        data into chat. Follow next_offset for text pages only.
+        """
         if offset < 0 or not 256 <= max_chars <= 32768:
             raise ValueError("offset must be >=0 and max_chars between 256 and 32768")
         if mode != "text" and offset:
             raise ValueError("offset applies only to text")
         guard_vision(selected, "origin_get_artifact", {"mode": mode})
-        path, mime = await asyncio.to_thread(artifact_path, store, artifact_id)
+        payload = None
+        if mode == "download":
+            path, mime, payload = await asyncio.to_thread(artifact_bytes, store, artifact_id)
+        else:
+            path, mime = await asyncio.to_thread(artifact_path, store, artifact_id)
         details = {
             "artifact_id": artifact_id,
             "local_path": str(path),
-            "bytes": path.stat().st_size,
-            "sha256": await asyncio.to_thread(sha256, path),
+            "bytes": len(payload) if payload is not None else path.stat().st_size,
+            "sha256": hashlib.sha256(payload).hexdigest()
+            if payload is not None
+            else await asyncio.to_thread(sha256, path),
             "mime_type": mime,
         }
         content = [
@@ -324,10 +345,21 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
                 uri=f"origin://artifacts/{artifact_id}",
                 name=path.name,
                 mime_type=mime,
-                size=path.stat().st_size,
+                size=details["bytes"],
             ),
         ]
-        if mode == "preview":
+        if mode == "download":
+            content.append(
+                EmbeddedResource(
+                    type="resource",
+                    resource=BlobResourceContents(
+                        uri=f"origin://artifacts/{artifact_id}",
+                        mime_type=mime,
+                        blob=base64.b64encode(payload).decode("ascii"),
+                    ),
+                )
+            )
+        elif mode == "preview":
             if path.suffix != ".png" or path.stat().st_size > 8 * 1024 * 1024:
                 raise ValueError("Preview requires a PNG <=8 MiB")
             content.append(
@@ -372,10 +404,8 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
 
     @mcp.resource("origin://artifacts/{job_id}/{name}")
     async def artifact(job_id: str, name: str) -> bytes:
-        path, _ = await asyncio.to_thread(artifact_path, store, f"{job_id}/{name}")
-        if path.stat().st_size > 32 * 1024 * 1024:
-            raise ValueError("MCP binary transfer limit is 32 MiB; use the local artifact path")
-        return await asyncio.to_thread(path.read_bytes)
+        _, _, payload = await asyncio.to_thread(artifact_bytes, store, f"{job_id}/{name}")
+        return payload
 
     register_recipe(mcp, store, write)
     return make_economy_server(mcp, store, selected) if selected.mode == "economy" else mcp

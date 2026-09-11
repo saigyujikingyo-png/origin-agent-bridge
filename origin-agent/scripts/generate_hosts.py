@@ -16,6 +16,9 @@ def write(name, payload):
 
 
 def main():
+    receiver = ROOT / "skills/origin-workflow/scripts/receive_artifact.js"
+    receiver.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "src/origin_agent/data/receive_artifact.js", receiver)
     identity = {
         "name": "origin-agent",
         "version": __version__,
