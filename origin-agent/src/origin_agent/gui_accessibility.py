@@ -13,7 +13,12 @@ class Accessibility:
         sys.coinit_flags = 0
         from comtypes.client import CreateObject, GetModule
 
-        self.types = GetModule(str(Path(os.environ["SystemRoot"]) / "System32/UIAutomationCore.dll"))
+        if getattr(sys, "frozen", False):
+            from comtypes.gen import UIAutomationClient
+
+            self.types = UIAutomationClient
+        else:
+            self.types = GetModule(str(Path(os.environ["SystemRoot"]) / "System32/UIAutomationCore.dll"))
         self.client = CreateObject(self.types.CUIAutomation8, interface=self.types.IUIAutomation2)
         self.client.ConnectionTimeout = 1000
         self.client.TransactionTimeout = 1500
@@ -21,6 +26,24 @@ class Accessibility:
         self.elements = {}
         self.cache = self.client.CreateCacheRequest()
         for prop in (30001, 30002, 30003, 30005, 30010, 30011, 30012, 30019, 30020, 30022):
+            self.cache.AddProperty(prop)
+        self.pattern_properties = {
+            action: getattr(self.types, "UIA_Is" + name + "PatternAvailablePropertyId")
+            for action, name in {
+                "set_text": "Value",
+                "select": "SelectionItem",
+                "toggle": "Toggle",
+                "expand": "ExpandCollapse",
+                "invoke": "Invoke",
+            }.items()
+        }
+        self.state_properties = {
+            "value": self.types.UIA_ValueValuePropertyId,
+            "selected": self.types.UIA_SelectionItemIsSelectedPropertyId,
+            "toggle_state": self.types.UIA_ToggleToggleStatePropertyId,
+            "expanded_state": self.types.UIA_ExpandCollapseExpandCollapseStatePropertyId,
+        }
+        for prop in [*self.pattern_properties.values(), *self.state_properties.values()]:
             self.cache.AddProperty(prop)
 
     def observe(self, windows, query):
@@ -74,20 +97,35 @@ class Accessibility:
                 ]
                 key = "a:" + hashlib.sha256(str(identity).encode()).hexdigest()[:24]
                 self.elements[key] = element
-                nodes.append(
-                    {
-                        "id": key,
-                        "kind": "accessible",
-                        "text": name[:512],
-                        "class": element.CachedClassName,
-                        "role": kind,
-                        "automation_id": element.CachedAutomationId,
-                        "hwnd": window["hwnd"],
-                        "window_id": window["id"],
-                        "enabled": bool(element.CachedIsEnabled and window["enabled"]),
-                        "rect": [rect.left, rect.top, rect.right, rect.bottom],
-                    }
-                )
+                node = {
+                    "id": key,
+                    "kind": "accessible",
+                    "text": name[:512],
+                    "class": element.CachedClassName,
+                    "role": kind,
+                    "automation_id": element.CachedAutomationId,
+                    "hwnd": window["hwnd"],
+                    "window_id": window["id"],
+                    "enabled": bool(element.CachedIsEnabled and window["enabled"]),
+                    "rect": [rect.left, rect.top, rect.right, rect.bottom],
+                }
+                actions = [
+                    a
+                    for a, prop in self.pattern_properties.items()
+                    if element.GetCachedPropertyValue(prop) is True
+                ]
+                node["actions"] = actions
+                for field, action in {
+                    "value": "set_text",
+                    "selected": "select",
+                    "toggle_state": "toggle",
+                    "expanded_state": "expand",
+                }.items():
+                    if action in actions:
+                        value = element.GetCachedPropertyValue(self.state_properties[field])
+                        if isinstance(value, (str, bool, int, float)):
+                            node[field] = value[:512] if isinstance(value, str) else value
+                nodes.append(node)
             truncated = truncated or values.Length > 2000
         return nodes, truncated
 
@@ -106,3 +144,27 @@ class Accessibility:
                 getattr(pointer.QueryInterface(getattr(self.types, interface)), method)()
                 return
         raise ValueError("Accessible target has no supported invoke or expand pattern")
+
+    def action(self, node, action, value=None):
+        element = self.elements.get(node["id"])
+        if element is None or element.CurrentProcessId != self.pid or not element.CurrentIsEnabled:
+            raise ValueError("Accessible target is stale or not owned")
+        identifier, interface, method = {
+            "select": (10010, "IUIAutomationSelectionItemPattern", "Select"),
+            "toggle": (10015, "IUIAutomationTogglePattern", "Toggle"),
+            "expand": (10005, "IUIAutomationExpandCollapsePattern", "Expand"),
+            "collapse": (10005, "IUIAutomationExpandCollapsePattern", "Collapse"),
+            "set_text": (10002, "IUIAutomationValuePattern", "SetValue"),
+        }[action]
+        pointer = element.GetCurrentPattern(identifier)
+        if not pointer:
+            raise ValueError(f"Target does not support {action}; observe its available actions")
+        pattern = pointer.QueryInterface(getattr(self.types, interface))
+        if action == "set_text":
+            if pattern.CurrentIsReadOnly:
+                raise ValueError("Accessible value is read-only")
+            pattern.SetValue(value)
+            if pattern.CurrentValue != value:
+                raise RuntimeError("Accessible value readback differs")
+        else:
+            getattr(pattern, method)()

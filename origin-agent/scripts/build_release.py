@@ -19,6 +19,15 @@ from origin_agent.storage import sha256
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def frozen_sources():
+    sources = [p for p in (ROOT / "src").rglob("*") if p.suffix in (".py", ".json")]
+    sources += [
+        ROOT / name
+        for name in ("pyproject.toml", "uv.lock", "scripts/build_release.py", "scripts/frozen_entry.py")
+    ]
+    return {str(p.relative_to(ROOT)): sha256(p) for p in sorted(sources)}
+
+
 def write(path: Path, payload):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -34,11 +43,18 @@ def main():
     run_root = build_base / uuid.uuid4().hex
     run_root.mkdir(parents=True)
     record = ROOT / "build/freeze-location.json"
-    source_hashes = {str(p.relative_to(ROOT)): sha256(p) for p in sorted((ROOT / "src").rglob("*.py"))}
+    source_hashes = frozen_sources()
     if not args.skip_freeze:
+        # Freeze the generated Windows UIA interfaces; end users need no writable code cache.
+        import os
+
+        from comtypes.client import GetModule
+
+        GetModule(str(Path(os.environ["SystemRoot"]) / "System32/UIAutomationCore.dll"))
         vendor_source = Path(importlib.util.find_spec("originpro").origin).parent
         api_data = run_root / "data/api-index.json"
         write(api_data, api_index(vendor_source))
+        shutil.copy2(ROOT / "src/origin_agent/data/coverage.json", api_data.parent / "coverage.json")
         subprocess.run(
             [
                 sys.executable,
@@ -65,6 +81,8 @@ def main():
                 "originpro",
                 "--collect-submodules",
                 "OriginExt",
+                "--hidden-import",
+                "comtypes.gen.UIAutomationClient",
                 "--collect-data",
                 "jsonschema_specifications",
                 "--add-data",
@@ -87,9 +105,7 @@ def main():
             check=True,
         )
         frozen = run_root / "frozen/origin-agent"
-        if source_hashes != {
-            str(p.relative_to(ROOT)): sha256(p) for p in sorted((ROOT / "src").rglob("*.py"))
-        }:
+        if source_hashes != frozen_sources():
             raise RuntimeError("Source changed during freezing; build again from a stable tree")
         write(record, {"frozen": str(frozen), "source_hashes": source_hashes})
     else:

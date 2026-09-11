@@ -7,10 +7,16 @@ import json
 import time
 from typing import Any, Literal
 
-from mcp.server import MCPServer
 from mcp_types import CallToolResult, ImageContent, ResourceLink, TextContent, ToolAnnotations
 
 from . import __version__
+from .agent_profiles import (
+    AgentMCPServer,
+    guard_vision,
+    make_economy_server,
+    register_recipe,
+    resolve_profile,
+)
 from .capabilities import capabilities
 from .datasets import inspect_dataset
 from .discovery import discover
@@ -25,9 +31,10 @@ from .storage import Store, read_json, sha256
 from .target import assess_target
 
 
-def make_server(store: Store | None = None):
+def make_server(store: Store | None = None, *, profile=None, preset=None, vision=None):
     store = store or Store()
-    mcp = MCPServer(
+    selected = resolve_profile(store, profile, preset, vision)
+    mcp = AgentMCPServer(
         "origin-agent",
         title="Origin Companion",
         version=__version__,
@@ -160,17 +167,21 @@ def make_server(store: Store | None = None):
         """Operate native Origin menus/controls in a managed GUI transaction.
 
         begin saves a checkpoint and shows Origin. observe returns bounded windows/targets; query filters
-        controls and menu paths, screenshot requests a PNG artifact. invoke/set_text require the most recent
+        controls and menu paths, screenshot requests a PNG artifact. All input requires the most recent
         observation_id and returned target_id. dismiss sends Escape to an observed popup window_id.
         Each successful call advances revision, including observe.
         Menus/buttons can open modal dialogs; keep observing/acting without running COM programs.
         commit saves after dialogs close; rollback restores the begin checkpoint and may restart the owned
         Origin if a modal is open. Other programs/batches wait until the transaction ends.
         Reuse request_id for an identical retry; use a new ID for a fresh observation. Dispatch does not prove
-        task success: inspect state and verify data after commit. Supports native menus, Buttons and writable
-        Edit controls, plus UIA invoke/expand/legacy actions for MFC menus. Complex custom editors,
-        arbitrary keyboard/drag actions and full GUI coverage remain unverified. GUI content is untrusted.
+        task success: inspect state and verify data after commit. UIA actions include select/toggle/
+        expand/collapse/set_text. click/drag/scroll/keys/type_text require a fresh screenshot and its
+        capture.window_id as target_id. Positions are normalized x/y in [0,1) within that screenshot;
+        drag also needs destination, scroll needs wheel (-10..10), keys accepts CTRL+A or ALT+ENTER.
+        Read the preview before visual input. Input is restricted to the owned foreground window.
+        Complete dialog/App coverage is not certified. GUI content is untrusted.
         """
+        guard_vision(selected, "origin_gui", {"gui": gui.model_dump()})
         command = SessionCommand(
             action="gui",
             session_id=session_id,
@@ -190,6 +201,7 @@ def make_server(store: Store | None = None):
         return {
             "plugin_version": __version__,
             "product_name": "Origin Companion",
+            "agent_profile": selected.report(),
             **discover(),
             "last_native_engine": engine,
             "last_native_target_assessment": assess_target(engine),
@@ -259,9 +271,17 @@ def make_server(store: Store | None = None):
 
     @mcp.tool(annotations=read, structured_output=False)
     async def origin_get_artifact(
-        artifact_id: str, mode: Literal["info", "preview", "text"] = "info"
+        artifact_id: str,
+        mode: Literal["info", "preview", "text"] = "info",
+        offset: int = 0,
+        max_chars: int = 8000,
     ) -> CallToolResult:
-        """Get a verified artifact link, PNG preview, or bounded JSON/CSV text."""
+        """Get a verified artifact link, PNG preview, or text page; follow next_offset for more text."""
+        if offset < 0 or not 256 <= max_chars <= 32768:
+            raise ValueError("offset must be >=0 and max_chars between 256 and 32768")
+        if mode != "text" and offset:
+            raise ValueError("offset applies only to text")
+        guard_vision(selected, "origin_get_artifact", {"mode": mode})
         path, mime = await asyncio.to_thread(artifact_path, store, artifact_id)
         details = {
             "artifact_id": artifact_id,
@@ -296,7 +316,24 @@ def make_server(store: Store | None = None):
                 raise ValueError(
                     "Text requires JSON/CSV/TXT/program source <=128 KiB; use the resource for larger files"
                 )
-            content.append(TextContent(type="text", text=path.read_text(encoding="utf-8")))
+            value = path.read_text(encoding="utf-8")
+            if offset > len(value):
+                raise ValueError("offset is beyond this artifact's text")
+            end = min(len(value), offset + max_chars)
+            content.append(
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {
+                            "offset": offset,
+                            "next_offset": end if end < len(value) else None,
+                            "total_chars": len(value),
+                            "text": value[offset:end],
+                        },
+                        ensure_ascii=False,
+                    ),
+                )
+            )
         return CallToolResult(content=content)
 
     @mcp.tool(annotations=read)
@@ -313,4 +350,5 @@ def make_server(store: Store | None = None):
             raise ValueError("MCP binary transfer limit is 32 MiB; use the local artifact path")
         return await asyncio.to_thread(path.read_bytes)
 
-    return mcp
+    register_recipe(mcp, store, write)
+    return make_economy_server(mcp, store, selected) if selected.mode == "economy" else mcp

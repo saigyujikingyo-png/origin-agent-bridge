@@ -5,7 +5,7 @@ import time
 import psutil
 
 from . import __version__
-from .gui import public_observation, resolve_target
+from .gui import INPUT_ACTIONS, VISUAL_ACTIONS, public_observation, resolve_target
 from .gui_native import NativeGui
 from .origin_runtime import release_terminated_origin
 from .program_native import snapshot
@@ -37,13 +37,17 @@ def execute_gui(engine, job_id, plan, command, state):
     backend = NativeGui(engine.runtime)
     current = backend.observe(request.query)
     target = None
-    if action in ("invoke", "set_text", "dismiss"):
+    if action in INPUT_ACTIONS:
         if state.get("gui_observation_id") != request.observation_id:
             raise ValueError("GUI observation is no longer current; observe again")
         previous = read_json(store.path("jobs", request.observation_id) / "gui-private.json")
         # Re-run the original filter: never accept a guessed handle or a newly discovered target.
         current = backend.observe(previous["query"])
         target = resolve_target(previous, current, request.target_id)
+        if action in VISUAL_ACTIONS:
+            from .gui_input import capture_target
+
+            capture = capture_target(previous, current, target)
     if action in ("begin", "commit") and current["blocked"]:
         raise ValueError("Close the Origin dialog before beginning or committing a GUI transaction")
     started = time.monotonic()
@@ -93,6 +97,12 @@ def execute_gui(engine, job_id, plan, command, state):
             backend.set_text(target, request.text)
         elif action == "dismiss":
             backend.dismiss(target)
+        elif action in ("select", "toggle", "expand", "collapse"):
+            backend.accessibility.action(target, action)
+        elif action in VISUAL_ACTIONS:
+            from .gui_input import VisualInput
+
+            VisualInput(backend, target, capture).execute(request)
         elif action == "rollback":
             before = engine._resolve(transaction["path"], transaction["sha256"])
             if current["blocked"]:
@@ -123,15 +133,22 @@ def execute_gui(engine, job_id, plan, command, state):
                 engine.runtime["op"].new()
                 if not engine.runtime["op"].open(str(before)):
                     raise RuntimeError("Origin could not restore the GUI checkpoint")
-        if action in ("invoke", "set_text", "dismiss"):
+        if action in INPUT_ACTIONS:
             # Bound settling time; successful dispatch is not semantic success.
             deadline = time.monotonic() + 3
             initial = (current["windows"], current["targets"])
+            stable_since = None
             while True:
+                time.sleep(0.1)
                 current = backend.observe(previous["query"])
-                if (current["windows"], current["targets"]) != initial or time.monotonic() >= deadline:
+                latest = (current["windows"], current["targets"])
+                if latest == initial:
+                    stable_since = stable_since or time.monotonic()
+                else:
+                    stable_since = None
+                if (stable_since and time.monotonic() - stable_since >= 0.15) or time.monotonic() >= deadline:
                     break
-                time.sleep(0.05)
+                initial = latest
             current = backend.observe(request.query)
         else:
             current = backend.observe(request.query)
@@ -153,7 +170,9 @@ def execute_gui(engine, job_id, plan, command, state):
         view["observation_id"] = job_id
         if request.screenshot:
             try:
-                view["screenshot_window_id"] = backend.capture(current, directory / "gui.png")
+                current["capture"] = backend.capture(current, directory / "gui.png")
+                view["capture"] = current["capture"]
+                view["screenshot_window_id"] = current["capture"]["window_id"]
                 view["screenshot_artifact_id"] = f"{job_id}/gui.png"
             except OSError as exc:
                 # Preview availability is separate from a committed project or delivered input.

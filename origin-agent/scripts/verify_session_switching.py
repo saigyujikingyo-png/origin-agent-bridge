@@ -13,13 +13,22 @@ from mcp import Client, StdioServerParameters
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--home", required=True, type=Path)
+    parser.add_argument("--exe")
     args = parser.parse_args()
     root = args.home.resolve()
     root.mkdir(parents=True, exist_ok=True)
     if (root / "sessions").exists() and any((root / "sessions").iterdir()):
         raise ValueError("Use a new test directory")
     env = {**os.environ, "ORIGIN_AGENT_HOME": str(root), "ORIGIN_AGENT_SESSION_IDLE_SECONDS": "3"}
-    params = StdioServerParameters(command=sys.executable, args=["-m", "origin_agent", "serve"], env=env)
+    if args.exe:
+        env["PATH"] = str(Path(os.environ["SystemRoot"]) / "System32")
+        env.pop("PYTHONPATH", None)
+        env.pop("PYTHONHOME", None)
+    params = StdioServerParameters(
+        command=args.exe or sys.executable,
+        args=["serve"] if args.exe else ["-m", "origin_agent", "serve"],
+        env=env,
+    )
     evidence = {"cases": [], "ok": False, "host_model_invocation_tested": False}
     async with Client(params) as client:
 

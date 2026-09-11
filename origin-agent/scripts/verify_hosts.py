@@ -8,6 +8,8 @@ from pathlib import Path
 
 from mcp import Client, StdioServerParameters
 
+from origin_agent import __version__
+
 
 async def main():
     home = Path.home()
@@ -15,9 +17,18 @@ async def main():
     parser.add_argument(
         "--codex-plugin",
         type=Path,
-        default=home / ".codex/plugins/cache/personal/origin-agent/0.2.0",
     )
     args = parser.parse_args()
+    if args.codex_plugin is None:
+        candidates = []
+        root = home / ".codex/plugins/cache/personal/origin-agent"
+        for manifest in root.glob("*/.codex-plugin/plugin.json"):
+            version = json.loads(manifest.read_text(encoding="utf-8-sig")).get("version", "")
+            if version.split("+")[0] == __version__:
+                candidates.append(manifest.parent.parent)
+        if len(candidates) != 1:
+            raise ValueError("Provide --codex-plugin with the installed cache directory for this version")
+        args.codex_plugin = candidates[0]
     paths = {
         "claude_desktop": Path(os.environ["APPDATA"]) / "Claude/claude_desktop_config.json",
         "workbuddy": home / ".workbuddy/mcp.json",
@@ -32,14 +43,19 @@ async def main():
             tools = await client.list_tools()
             status = await client.call_tool("origin_status", {})
             assert not status.is_error
-            assert len(tools.tools) == 11
+            assert status.structured_content["plugin_version"] == __version__
+            mode = status.structured_content["agent_profile"]["mode"]
+            assert len(tools.tools) == (5 if mode == "economy" else 13)
             result[host] = {
                 "configured_command_passed": True,
                 "tool_count": len(tools.tools),
+                "profile": mode,
+                "version": status.structured_content["plugin_version"],
                 "inbox": status.structured_content["inbox"],
                 "host_model_invocation_tested": False,
             }
     output = home / ".origin-agent/verification/host-commands.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))
 

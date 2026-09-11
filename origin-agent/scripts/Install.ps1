@@ -1,76 +1,80 @@
-param([string]$Destination = '', [switch]$ConfigureClaude)
+param([string]$Destination = '', [string]$Hosts = '', [switch]$NonInteractive,
+      [switch]$ConfigureClaude, [string]$StateRoot = '', [string]$UserHome = '',
+      [string]$AppDataDirectory = '')
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 if (-not [Environment]::Is64BitOperatingSystem) { throw 'Windows x64 is required.' }
-$bundleRoot = [IO.Path]::GetFullPath($PSScriptRoot)
-if (-not (Test-Path -LiteralPath (Join-Path $bundleRoot 'server\origin-agent.exe'))) {
-    throw 'Run this installer from the extracted Windows release ZIP.'
+$bundleRoot = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\')
+if (-not $UserHome) { $UserHome = [Environment]::GetFolderPath('UserProfile') }
+if (-not $AppDataDirectory) { $AppDataDirectory = Join-Path $UserHome 'AppData\Roaming' }
+if (-not $StateRoot) { $StateRoot = Join-Path $UserHome '.origin-agent' }
+$StateRoot = [IO.Path]::GetFullPath($StateRoot)
+if ($ConfigureClaude -and -not $Hosts) { $Hosts = 'claude' }
+if (-not $NonInteractive -and -not $Hosts) {
+    Write-Host 'Origin Companion - choose local agents (comma-separated):'
+    Write-Host 'claude, workbuddy, codex  (Enter installs the engine and generated configurations only)'
+    $Hosts = Read-Host 'Agents'
 }
+if ($Hosts -and ($Hosts.Split(',').Trim() | Where-Object { $_ -notin @('claude','workbuddy','codex') })) {
+    throw 'Supported local hosts: claude, workbuddy, codex. ChatGPT uses Connect-ChatGPT.ps1.'
+}
+$checksums = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $bundleRoot 'checksums.json') | ConvertFrom-Json
+function Test-Bundle([string]$Root) {
+    $expected = @{}
+    foreach ($entry in $checksums.PSObject.Properties) {
+        if ($entry.Name -match '(^[/\\]|:|(^|[/\\])\.\.([/\\]|$))') { throw 'Invalid checksum path.' }
+        $source = [IO.Path]::GetFullPath((Join-Path $Root $entry.Name))
+        if (-not $source.StartsWith($Root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid checksum path.' }
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
+            (Get-Item -LiteralPath $source).Attributes.HasFlag([IO.FileAttributes]::ReparsePoint) -or
+            (Get-FileHash -Algorithm SHA256 -LiteralPath $source).Hash.ToLowerInvariant() -ne $entry.Value) {
+            throw ('Integrity check failed: ' + $entry.Name)
+        }
+        $expected[$source] = $true
+    }
+    foreach ($item in Get-ChildItem -Force -Recurse -LiteralPath $Root) {
+        if ($item.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint)) { throw 'Links are not permitted in the release bundle.' }
+        if (-not $item.PSIsContainer -and $item.FullName -ne (Join-Path $Root 'checksums.json') -and -not $expected.ContainsKey($item.FullName)) {
+            throw ('Unexpected release file: ' + $item.Name)
+        }
+    }
+}
+Test-Bundle $bundleRoot
 $appManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $bundleRoot 'manifest.json') | ConvertFrom-Json
 $version = $appManifest.version
-$stateRoot = Join-Path ([Environment]::GetFolderPath('UserProfile')) '.origin-agent'
-if (-not $Destination) { $Destination = Join-Path $stateRoot ('app\' + $version) }
-$Destination = [IO.Path]::GetFullPath($Destination)
-if ($Destination -eq $bundleRoot -or $Destination.StartsWith($bundleRoot + [IO.Path]::DirectorySeparatorChar)) {
+if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid release version.' }
+if (-not $Destination) { $Destination = Join-Path $StateRoot ('app\' + $version) }
+$Destination = [IO.Path]::GetFullPath($Destination).TrimEnd('\')
+if ($Destination -eq $bundleRoot -or $Destination.StartsWith($bundleRoot + '\', [StringComparison]::OrdinalIgnoreCase)) {
     throw 'Choose an installation directory outside the extracted release folder.'
 }
-$checksumFile = Join-Path $bundleRoot 'checksums.json'
-$checksums = Get-Content -Raw -Encoding UTF8 -LiteralPath $checksumFile | ConvertFrom-Json
-foreach ($entry in $checksums.PSObject.Properties) {
-    $source = [IO.Path]::GetFullPath((Join-Path $bundleRoot $entry.Name))
-    if (-not $source.StartsWith($bundleRoot + [IO.Path]::DirectorySeparatorChar)) { throw 'Invalid checksum path.' }
-    if ((Get-FileHash -Algorithm SHA256 -LiteralPath $source).Hash.ToLowerInvariant() -ne $entry.Value) {
-        throw ('Integrity check failed: ' + $entry.Name)
+if (Test-Path -LiteralPath $Destination) {
+    Test-Bundle $Destination
+} else {
+    $stage = $Destination + '.staging-' + [guid]::NewGuid().ToString('N')
+    New-Item -ItemType Directory -Path $stage -Force | Out-Null
+    foreach ($item in Get-ChildItem -Force -LiteralPath $bundleRoot) {
+        Copy-Item -LiteralPath $item.FullName -Destination $stage -Recurse -Force
     }
-}
-New-Item -ItemType Directory -Path $Destination -Force | Out-Null
-foreach ($item in Get-ChildItem -Force -Recurse -File -LiteralPath $bundleRoot) {
-    $relative = $item.FullName.Substring($bundleRoot.Length + 1)
-    $target = Join-Path $Destination $relative
-    New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
-    if ((Test-Path -LiteralPath $target) -and
-        ((Get-FileHash -Algorithm SHA256 -LiteralPath $target).Hash -eq (Get-FileHash -Algorithm SHA256 -LiteralPath $item.FullName).Hash)) { continue }
-    Copy-Item -LiteralPath $item.FullName -Destination $target -Force
+    Test-Bundle $stage
+    Move-Item -LiteralPath $stage -Destination $Destination
 }
 $executable = Join-Path $Destination 'server\origin-agent.exe'
-$env:ORIGIN_AGENT_HOME = $stateRoot
-$statusText = & $executable status
-if ($LASTEXITCODE -ne 0) { throw 'Installed executable failed its self-check.' }
-$status = $statusText | ConvertFrom-Json
-$hostConfig = @{mcpServers=@{'origin-agent'=@{type='stdio';command=$executable;args=@('serve');env=@{ORIGIN_AGENT_HOME=$stateRoot}}}}
-$hostDirectory = Join-Path $Destination 'host-configs'
-New-Item -ItemType Directory -Path $hostDirectory -Force | Out-Null
-$utf8 = New-Object System.Text.UTF8Encoding($false)
-$json = $hostConfig | ConvertTo-Json -Depth 10
-foreach ($name in @('claude-desktop.json','workbuddy.json','generic-mcp.json')) {
-    [IO.File]::WriteAllText((Join-Path $hostDirectory $name),$json,$utf8)
+$previousHome = $env:ORIGIN_AGENT_HOME
+try {
+    $env:ORIGIN_AGENT_HOME = $StateRoot
+    Write-Host 'Checking the licensed Origin installation with a synthetic project...'
+    $check = & $executable doctor --native
+    if ($LASTEXITCODE -ne 0) { throw 'Origin self-check failed. The active installation and host settings were not changed.' }
+    $checkResult = $check | ConvertFrom-Json
+    if (-not $checkResult.native_readback) { throw 'Origin self-check did not return verified data.' }
+    $arguments = @('integrate', $Destination, '--user-home', $UserHome, '--appdata', $AppDataDirectory)
+    if ($Hosts) { $arguments += @('--hosts', $Hosts) }
+    $result = & $executable @arguments
+    if ($LASTEXITCODE -ne 0) { throw 'Host configuration failed; see the installation receipt for rollback status.' }
+    $result
+    Write-Host ('Installed Origin Companion ' + $version + '. Restart selected agents to load the new tools.')
+    Write-Host 'ChatGPT: reconnect the existing tunnel, or run Connect-ChatGPT.ps1 with your own account.'
+} finally {
+    $env:ORIGIN_AGENT_HOME = $previousHome
 }
-# Local manifests get absolute paths generated on this computer, never a developer's home path.
-foreach ($name in @('.mcp.json','mcp.json')) {
-    $content = $json
-    if ($name -eq 'mcp.json') {
-        $portableConfig = @{'$schema'='https://agent-plugins.org/schemas/1.0.0/mcp.schema.json';mcpServers=$hostConfig.mcpServers}
-        $content = $portableConfig | ConvertTo-Json -Depth 10
-    }
-    [IO.File]::WriteAllText((Join-Path $Destination $name),$content,$utf8)
-}
-[IO.File]::WriteAllText((Join-Path $Destination 'workbuddy\mcp.json'),$json,$utf8)
-Copy-Item -LiteralPath (Join-Path $Destination 'skills') -Destination (Join-Path $Destination 'workbuddy') -Recurse -Force
-Compress-Archive -Path (Join-Path $Destination 'workbuddy\*') -DestinationPath (Join-Path $hostDirectory 'workbuddy-connector.zip') -Force
-New-Item -ItemType Directory -Path $stateRoot -Force | Out-Null
-[IO.File]::WriteAllText((Join-Path $stateRoot 'install.json'),(@{version=$version;executable=$executable;root=$Destination}|ConvertTo-Json),$utf8)
-if ($ConfigureClaude) {
-    $claudeConfig = Join-Path $env:APPDATA 'Claude\claude_desktop_config.json'
-    New-Item -ItemType Directory -Path (Split-Path -Parent $claudeConfig) -Force | Out-Null
-    $existing = if (Test-Path -LiteralPath $claudeConfig) { Get-Content -Raw -Encoding UTF8 -LiteralPath $claudeConfig | ConvertFrom-Json } else { [pscustomobject]@{} }
-    if (-not $existing.PSObject.Properties['mcpServers']) { $existing | Add-Member mcpServers ([pscustomobject]@{}) }
-    if (Test-Path -LiteralPath $claudeConfig) {
-        $backup = $claudeConfig + '.origin-agent.' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.bak'
-        Copy-Item -LiteralPath $claudeConfig -Destination $backup
-    }
-    $existing.mcpServers | Add-Member -NotePropertyName 'origin-agent' -NotePropertyValue $hostConfig.mcpServers.'origin-agent' -Force
-    [IO.File]::WriteAllText($claudeConfig,($existing|ConvertTo-Json -Depth 50),$utf8)
-}
-Write-Output ('Installed Origin Companion ' + $version + ' at ' + $Destination)
-Write-Output ('Host configuration: ' + $hostDirectory)
-Write-Output ('Origin detected: ' + $status.native_ready_to_probe)
-Write-Output 'Each computer needs its own installed and activated Origin. Restart the host to load new MCP tools.'

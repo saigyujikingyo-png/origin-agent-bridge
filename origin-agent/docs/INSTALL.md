@@ -1,55 +1,61 @@
-# 安装与使用
+# 安装 Origin Companion 0.2
 
-以下安装说明对应已发布的 0.1.0。开发分支的 0.2 通用执行原型尚未替换安装版。爱大统一全功能版的验收要求见 [EDINBURGH_PRODUCT.md](EDINBURGH_PRODUCT.md)。
+本版本只面向 **Origin 2026b SR2 10.350243、Windows x64、普通 Origin、非 Demo**。每台电脑先自行安装并激活这个 Origin 版本。插件不分发主程序或学校许可证，也不解除 OriginPro/第三方 App 的许可限制。
 
-已发布 0.1.0 原本接受 Windows x64 和 Origin 2021 或更新版本；实际验收版本为 Origin 2026b SR2 10.350243 普通版。后续个人分享开发版已经收窄到这一指定基线，并在实际执行前检查。插件不包含 Origin 主程序或学校许可证。
+## 一键安装
 
-## Windows 安装包
+1. 下载 `origin-agent-0.2.1-windows-x64.zip`，核对随发行提供的 SHA-256，解压到普通本地目录。
+2. 双击 `Install.cmd`，输入希望配置的宿主名称，例如 `claude,workbuddy`。选择 `codex` 时需要本机有 Codex CLI；安装器通过其官方 `mcp add` 接口注册，并安装工作流 skill。直接回车只安装引擎和生成配置。
+3. 安装器校验完整文件集合、复制独立运行时，再使用合成数据启动 Origin、检查指定版本和数值回读。通过后才合并宿主配置、切换活动版本。重新打开所选 Agent。
+4. 让 Agent 先检查 Origin Companion 状态，再提交你的实际绘图、分析或编辑任务。
 
-1. 下载并解压 `origin-agent-0.1.0-windows-x64.zip`，核对发行页的 SHA-256。
-2. 双击 `Install.cmd`，或在解压目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1`。安装器检查包内文件哈希，复制到用户目录并运行安装诊断。
-3. 安装目录中的 `host-configs` 提供 Claude、WorkBuddy 和通用 MCP 配置；路径是本机生成的，不包含开发者电脑路径。
-4. 每台电脑独立安装一次。需要迁移研究数据时，复制自己的数据和已生成 OPJU；不复制学校许可文件。默认作业数据位于 `%USERPROFILE%\.origin-agent`。
+无需另装 Python、Node、uv 或编译器。默认程序在 `%USERPROFILE%\.origin-agent\app\0.2.1`，研究产物和会话在 `%USERPROFILE%\.origin-agent`。不改动 Origin 安装及许可，不注册开机自启。包没有商业代码签名；哈希证明传输完整性，不能替代发布者签名。
 
-ZIP 已包含 Python 及运行依赖，不需要另外安装 Python、Node、uv 或编译器。当前产物未做商业代码签名；校验和用于下载/复制完整性核对，不能代替发布者签名。安装不注册开机自启，不更改 Origin 的安装或许可。
+已有用户可无交互升级：
 
-## Claude Desktop
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractive -Hosts claude,workbuddy
+```
 
-直接导入 `.mcpb`。它包含自足的服务器，不必先运行 Windows 安装器。
+安装器保留其他 MCP 和宿主设置。旧版程序保留，默认不删除研究数据。每次安装输出 `receipt_id`，备份保存在 `.origin-agent\installations\<receipt_id>`。升级失败自动恢复已修改的配置；如果文件随后被用户修改，回滚会报告冲突而保留该修改。主动回滚：
 
-另一种方法是先运行 Windows 安装器，再把 `host-configs/claude-desktop.json` 中 `origin-agent` 这一项合并到 Claude 的 MCP 配置。安装器支持 `-ConfigureClaude`，合并时会先备份已有配置。重启 Claude 后验证工具发现。MCPB 中包含 skill 文件，但是否自动加载 skill 取决于宿主；服务器本身也提供工作流使用说明。
+```powershell
+& "$env:USERPROFILE\.origin-agent\app\0.2.1\server\origin-agent.exe" rollback-install <receipt_id>
+```
 
-## Codex / Claude Code
+自检与诊断：
 
-安装运行时后，插件目录提供根 `plugin.json`、`mcp.json`、`.codex-plugin`、`.claude-plugin` 和 `skills`。通过各宿主本地插件机制安装该目录；本次 Codex 的安装结果记录在验收文档。
+```powershell
+& "$env:USERPROFILE\.origin-agent\app\0.2.1\server\origin-agent.exe" doctor --native
+```
 
-从源码开发使用 `uv sync --locked` 和 `uv run origin-agent serve`。源码清单默认读取安装器写入的 `%USERPROFILE%\.origin-agent/install.json`；若尚未安装二进制包，应把开发宿主命令明确配置为 `uv --directory <项目目录> run origin-agent serve`。
+`doctor` 本身只检查发现；加 `--native` 才会创建合成工程并验证原生回读。若有未结束的 GUI 事务，先完成或回滚事务再安装。GUI 操作需要可交互、未锁屏的 Windows 桌面；休眠、合盖或断电会中断本机任务，恢复后先读取作业/会话状态再继续。
 
-## WorkBuddy
+## 各宿主
 
-安装运行时后，导入 `host-configs/workbuddy-connector.zip`，或在 MCP 设置中合并 `host-configs/workbuddy.json`。连接器带有中文/英文说明、图标和 skill。需要 WorkBuddy 4.24.0 以上支持此清单字段。
+- **Claude Desktop**：选择 `claude` 自动合并配置。也可直接导入 `.mcpb`；它自带运行时，使用默认本机数据目录。是否自动加载 skill 取决于宿主，服务器同时提供紧凑工具说明。
+- **WorkBuddy**：选择 `workbuddy` 自动合并 `~/.workbuddy/mcp.json` 并安装工作流 skill。包内 `workbuddy` 目录保留连接器元数据和蓝色圆环图标。
+- **Codex**：选择 `codex` 自动配置 MCP 与全局 skill；这是无需手改 TOML 的安装路线。已用 personal marketplace 安装同名插件时，更新该插件而不要再添加一份 MCP；开发机采用此刷新方式，保留插件卡片和图标。
+- **Claude Code 或其他 MCP Agent**：可用包内 `.claude-plugin`、`plugin.json` 和 `skills` 安装；通用配置在 `.origin-agent/host-configs/0.2.1/generic-mcp.json`。各宿主插件格式不同，运行引擎和工作流契约共用。
 
-不要把电脑 A 生成的绝对路径配置直接复制到电脑 B；在电脑 B 运行同一安装器，会生成正确路径。发布用源清单也提供通过用户目录查找已安装运行时的入口。
+完整模式有 13 个工具，经济模式只显示 5 个工具，其余操作按需查询参数后调用。两种模式共用同一 Origin 内核；工具数量不是功能数量。实际支持边界与未验证功能见 [COVERAGE.md](COVERAGE.md)。
 
 ## ChatGPT 云端
 
-需要账号有开发者模式、Tunnel 的 Read/Use 权限，以及已经与目标 ChatGPT 工作区关联的 `tunnel_id`。这些账号条件无法写进插件包。
+本机已有的隧道、账户关联和密钥不会被安装器重置。升级后需要重新连接隧道来启动新引擎。首次使用按 [OpenAI 官方说明](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)创建账号支持的安全 MCP 隧道，使用自己的工作区、Tunnel ID 和本机密钥：
 
-1. 按 [OpenAI 官方说明](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)创建隧道并下载官方 `tunnel-client`。
-2. 在本机环境中设置 `CONTROL_PLANE_API_KEY`；不要把密钥发送到聊天或提交到 Git。
-3. 运行安装目录的 `Connect-ChatGPT.ps1 -TunnelId <实际ID> -TunnelClient <实际程序路径> -Run`。脚本建立 stdio 配置并运行 doctor，再连接隧道。
-4. 在 ChatGPT Plugins 的开发者连接界面选择 Tunnel，完成工具发现和调用测试。
+```powershell
+.\Connect-ChatGPT.ps1 -TunnelId <自己的TunnelID> -TunnelClient <官方客户端路径> -Run
+```
 
-本机必须开机，隧道客户端需要运行。云端 Agent 可以返回摘要和 PNG 预览；OPJU 主要通过本机路径或 MCP 二进制资源获取，具体下载展示取决于客户端。当前版本不自动把聊天附件同步到 Windows；文件须先放入受支持的数据目录。该机制用于私有使用，不等同于公开市场上架。
+密钥只在本机设置，不写入源码或聊天。现有用户用自己的启动器重新连接；不要复制开发者的隧道配置、账户或密钥给同学。本机必须开机且隧道客户端在线。聊天附件不自动同步到 Windows，Agent 使用前需要本地副本或宿主支持的文件传输。
 
-隧道运行密钥可设为 Restricted，仅开启 Tunnels Read/Use，并关闭模型 API 权限。选择有限有效期后，应在到期前更新本机密钥。专用密钥不需要模型调用权限；不要给长驻客户端管理员密钥。
+桥接代码为 MIT，插件本身没有模型中间层收费；Origin、Agent 及云端服务按各自许可/套餐使用。账号或服务价格需以提供商当前说明为准。
 
-桥接程序采用 MIT 许可且不收服务费；Origin 和 Agent 的原有许可/套餐另算。[ChatGPT 与 API 独立计费](https://help.openai.com/en/articles/9039756-managing-billing-settings-on-the-chatgpt-web-and-api-platform)。截至核查日期，官方隧道文档没有列出独立价格，本次创建隧道未要求付款；这不能当作永久免费承诺。
+## 多电脑与卸载
 
-## 数据、诊断和卸载
+同一个 ZIP 可在每台符合目标版本的 Windows 电脑单独安装，生成本机绝对路径。不要直接复制另一台机器生成的宿主 JSON。每位同学/教授使用自己的 Origin 授权和 Agent 账号。此处是可移植安装机制；第二台实体电脑的实测状态见 [VALIDATION.md](VALIDATION.md)。
 
-默认允许用户 Documents、Desktop、Downloads 的实际系统路径及插件 inbox。`ORIGIN_AGENT_DATA_ROOTS` 可设置为 JSON 路径数组。服务器仅导入 CSV/TSV/XLSX；不开放通用文件读取或任意脚本执行。XLSX 多工作表要指定表名，含公式时要求用户提供值导出。
+卸载时先从宿主移除插件/MCP 连接或回滚安装配置，再删除程序版本目录。自己的 OPJU、数据与会话可以保留。通用 Python/LabTalk/Origin C 程序按当前 Windows 用户权限执行；按授权任务使用，不能把隔离工作进程当作脚本安全沙箱。
 
-用 `server/origin-agent.exe status` 查看安装发现。运行失败请保留 job ID，检查作业目录的 `error.json` 和 `worker.log`；不要用未验证的半成品代替结果。修复环境后可在原工作流设置新的 `revision` 来明确重试。
-
-卸载时从宿主移除插件/MCP 配置，再删除安装目录即可。研究结果保留在 `.origin-agent/jobs` 和 `.origin-agent/datasets` 中；只有确定不需要时才自行删除。安装器不会代替用户清理这些数据。
+多模型/经济模式配置和实测边界见 [MODELS.md](MODELS.md)，学校模型服务说明见 [ELM.md](ELM.md)。

@@ -13,9 +13,9 @@ from origin_agent.server import make_server
 async def test_protocol_tools_and_schema_guard(store):
     async with Client(make_server(store), raise_exceptions=True) as client:
         tools = (await client.list_tools()).tools
-        assert len(tools) == 12
+        assert len(tools) == 13
         serialized = json.dumps([tool.model_dump(mode="json") for tool in tools])
-        assert len(serialized) < 32000
+        assert len(serialized) < 38000
         status = await client.call_tool("origin_status", {})
         assert not status.is_error
         assert status.structured_content["plugin_version"] == __version__
@@ -28,12 +28,17 @@ async def test_protocol_tools_and_schema_guard(store):
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("mode", ["auto", "legacy"])
-async def test_real_stdio_transport(store, mode):
+@pytest.mark.parametrize("profile", ["full", "economy"])
+async def test_real_stdio_transport(store, mode, profile):
     environment = {**os.environ, "ORIGIN_AGENT_HOME": str(store.root)}
     async with Client(
-        StdioServerParameters(command=sys.executable, args=["-m", "origin_agent", "serve"], env=environment),
+        StdioServerParameters(
+            command=sys.executable,
+            args=["-m", "origin_agent", "serve", "--profile", profile],
+            env=environment,
+        ),
         mode=mode,
     ) as client:
-        assert len((await client.list_tools()).tools) == 12
+        assert len((await client.list_tools()).tools) == (5 if profile == "economy" else 13)
         answer = await client.call_tool("origin_status", {})
         assert not answer.is_error

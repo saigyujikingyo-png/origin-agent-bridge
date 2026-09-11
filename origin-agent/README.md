@@ -4,7 +4,7 @@
 
 Your agent, your Origin. Independent personal project; not an official OriginLab or university product.
 
-The current development target is a smooth, complete Origin plugin for licensed University of Edinburgh staff and students. See the [Edinburgh product definition and reuse assessment](docs/EDINBURGH_PRODUCT.md). Version 0.2 is an unreleased engineering prototype; the installed/released 0.1 version has narrower capabilities.
+The target is a smooth Origin plugin for licensed University of Edinburgh staff and students. See the [Edinburgh product definition and reuse assessment](docs/EDINBURGH_PRODUCT.md). Version 0.2 includes native programming, live projects, GUI input and a self-contained Windows installer. Coverage is recorded by verified example, not by assuming that every function works.
 
 Agent-neutral, local Origin workflows over MCP. The personal sharing build targets the user's Edinburgh-licensed **Origin 2026b SR2 (10.350243), Windows x64, Origin edition**. Native workers check this exact baseline. This project does not distribute Origin or a licence.
 
@@ -18,6 +18,10 @@ Use the installation packages described in [INSTALL.md](docs/INSTALL.md). Develo
 
 Source layout and performance decisions: [ARCHITECTURE.md](docs/ARCHITECTURE.md). Current measured evidence and limitations: [VALIDATION.md](docs/VALIDATION.md).
 
-The phases and acceptance gates are in [ROADMAP.md](docs/ROADMAP.md), with module design in [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md). Persistent sessions and the [basic GUI transaction channel](docs/GUI.md) have passed recorded native cases. Complex controls and full-function acceptance remain pending. The stable internal ID `origin-agent` preserves existing MCP connections; the display name and blue open-circle icon are Origin Companion.
+The phases and acceptance gates are in [ROADMAP.md](docs/ROADMAP.md), with module design in [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md). Persistent sessions and [GUI transactions](docs/GUI.md), including UIA, mouse, keyboard and Unicode input, have passed recorded native cases. Query `origin_capabilities("coverage")` for the [coverage matrix](docs/COVERAGE.md). The stable internal ID `origin-agent` preserves existing MCP connections; the display name and blue open-circle icon are Origin Companion.
 
 Try a complete natural-language workflow using the [synthetic example](examples/README.md).
+
+## 多模型与经济模式（0.2.1）
+
+[多模型配置](docs/MODELS.md)支持 DeepSeek、GPT Terra、Gemini、GLM、Kimi 与 ELM 宿主预设。5 工具经济接口按需加载全部操作参数，常见配方使用短参数，文本输出可分页；完整 13 工具接口仍可选择。[ELM 提供的模型与额度边界](docs/ELM.md)。预设适配不是实际模型成功率认证，插件不额外调用模型 API。

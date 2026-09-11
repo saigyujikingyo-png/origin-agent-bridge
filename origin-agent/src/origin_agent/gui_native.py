@@ -15,6 +15,10 @@ class NativeGui:
         self.pid = runtime["origin_pid"]
         self.created = runtime["origin_created"]
         self.u = C.WinDLL("user32", use_last_error=True)
+        self.u.SetThreadDpiAwarenessContext.argtypes = [C.c_void_p]
+        self.u.SetThreadDpiAwarenessContext.restype = C.c_void_p
+        if not self.u.SetThreadDpiAwarenessContext(C.c_void_p(-4)):
+            raise RuntimeError("Per-monitor DPI awareness is required for Origin GUI observation")
         self.callback = C.WINFUNCTYPE(W.BOOL, W.HWND, W.LPARAM)
         signatures = {
             "EnumWindows": ([self.callback, W.LPARAM], W.BOOL),
@@ -23,6 +27,8 @@ class NativeGui:
             "GetWindowTextW": ([W.HWND, W.LPWSTR, C.c_int], C.c_int),
             "GetClassNameW": ([W.HWND, W.LPWSTR, C.c_int], C.c_int),
             "GetWindowRect": ([W.HWND, C.POINTER(W.RECT)], W.BOOL),
+            "GetClientRect": ([W.HWND, C.POINTER(W.RECT)], W.BOOL),
+            "ClientToScreen": ([W.HWND, C.POINTER(W.POINT)], W.BOOL),
             "GetWindow": ([W.HWND, W.UINT], W.HWND),
             "GetParent": ([W.HWND], W.HWND),
             "GetDlgCtrlID": ([W.HWND], C.c_int),
@@ -247,6 +253,9 @@ class NativeGui:
         self.u.PostMessageW(hwnd, 0x0101, 0x1B, 0xC0000001)
 
     def set_text(self, node, text):
+        if node.get("kind") == "accessible":
+            self.accessibility.action(node, "set_text", text)
+            return
         if node["kind"] != "control" or node["class"].lower() != "edit":
             raise ValueError("set_text requires an observed standard Edit control")
         if node["style"] & (0x20 | 0x800):  # Password or read-only edit.
@@ -274,8 +283,25 @@ class NativeGui:
         result = ImageGrab.grab(window=target["hwnd"])
         if min(result.size) < 20:
             raise RuntimeError("Origin window capture is empty")
+        client, origin = W.RECT(), W.POINT(0, 0)
+        if not self.u.GetClientRect(target["hwnd"], C.byref(client)) or not self.u.ClientToScreen(
+            target["hwnd"], C.byref(origin)
+        ):
+            raise OSError("Captured client-area coordinates are unavailable")
+        if self._info(target["hwnd"])["rect"] != target["rect"]:
+            raise OSError("Window moved during capture; observe again")
+        client_rect = [origin.x, origin.y, origin.x + client.right, origin.y + client.bottom]
+        if abs((client.right / result.width) / (client.bottom / result.height) - 1) > 0.02:
+            raise OSError("Screenshot and client-area scaling differ; visual input is unavailable")
         result.save(path, format="PNG")
-        return target["id"]
+        return {
+            "window_id": target["id"],
+            "rect": target["rect"],
+            "width": result.width,
+            "height": result.height,
+            "client_rect": client_rect,
+            "coordinate_system": "normalized screenshot; x/y in [0,1)",
+        }
 
     def terminate_owned(self):
         process = self.check_process()

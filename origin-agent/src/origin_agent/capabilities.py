@@ -107,6 +107,8 @@ def capabilities(
 ) -> dict:
     if not 1 <= limit <= 30 or offset < 0 or len(query) > 200:
         raise ValueError("Use limit 1..30, offset >=0 and query <=200 characters")
+    if not detail_id and query.casefold().strip() in ("coverage", "覆盖", "功能覆盖"):
+        return json.loads((Path(__file__).with_name("data") / "coverage.json").read_text(encoding="utf-8"))
     state = discover()
     installation = state["installations"][0] if state["installations"] else ""
     rows = _index(installation, int(time.monotonic() // 300))
@@ -115,7 +117,7 @@ def capabilities(
         "counts": dict(Counter(r["kind"] for r in rows)),
         "availability": "Installed/documented, not a claim of licensing or successful execution",
         "execution": "origin_run_program supports Python/originpro/COM, LabTalk/X-Functions, Origin C",
-        "gui_only": "Not yet covered by a persistent interactive GUI adapter",
+        "gui_only": "origin_gui: observed Win32/UIA controls and screenshot-bound input; verify each result",
     }
     if detail_id:
         row = next((r for r in rows if r["id"] == detail_id), None)

@@ -115,3 +115,44 @@
 探索测试曾发现并修复 MFC 空/重复目标 ID、旧菜单残留、对话框销毁时的 UIA 读取错误、同一 Worker 重连时的失效 OriginExt 对象、Windows 短暂文件共享冲突，以及截图失败不应否定已完成保存的问题。失败探索记录与最终通过记录分开保存，没有计入通过案例。
 
 用户选定 **Origin Companion＋蓝色开放圆环**。源码和各宿主打包元数据已统一；本机 Codex personal 插件缓存已刷新，显示名称及 SVG SHA-256 与源码一致。保留 `origin-agent` 连接 ID。安装引擎仍为 0.1.0，新增 GUI 尚未打包替换，也未完成新能力的宿主模型调用或第二台电脑验收。
+
+## 0.2 交付验收：复杂 GUI、冻结包与安装器
+
+2026-09-11，本轮实现 UIA 选择/切换/展开/折叠/数值，以及基于最新截图的点击、拖选、滚轮、快捷键和 Unicode 输入。加入原生自检、宿主配置合并、备份、失败恢复及带冲突保护的回滚；保持 12 个 MCP 工具和单一运行栈。
+
+本地核心/协议测试 **80 项通过**，Ruff 通过。真实 Origin 基线仍为 2026b SR2 10.350243、64 位普通版、非 Demo。
+
+| 冻结版验收 | 结果 | 本地证据 |
+|---|---|---|
+| 复杂 GUI | 43 个作业符合预期；39 成功、4 拒绝；107.687 秒；中文、拖选、滚轮、选择、勾选、提交和模态回滚均有回读 | `.local/gui-frozen-020-01/acceptance-gui.json` |
+| 通用程序 | ExpDec1 数值恢复、OPJU 继续编辑、LabTalk 总和 55、Origin C square(7)=49 全部通过 | `.local/frozen-020-r2-programs/acceptance-programs.json` |
+| 持续会话 | 12 个作业满足预期，覆盖失败回滚、取消恢复、过期版本、空闲再唤醒 | `.local/frozen-020-r2-sessions/acceptance-sessions.json` |
+| 多工程 | 12 个作业满足预期，包含普通 Save 后失败恢复、可见会话保留、跨工程检查点拒绝、工程/批处理切换 | `.local/frozen-020-r2-session_switching/acceptance-switching.json` |
+| 固定科研流程 | 三张图、两份原生拟合报告、数据回读、OPJU 重开和 PNG/PDF/SVG 通过；图像已查看；原生阶段 22.109 秒 | `.local/frozen-020-r2-native/acceptance.json` |
+| 可移植安装 | 中文与空格路径；PATH 仅 System32；未提供外部 Python/Node；真实 Origin 自检；模拟 Claude/WorkBuddy 配置生成；回滚恢复 7 个文件 | `.local/portable 中文验收/State/installations/87ca351acbd949539876a656ae7f7929/receipt.json` |
+
+冻结运行时共 **72 个作业**符合对应预期：63 成功、8 个预期拒绝/失败、1 个预期取消。源代码复杂 GUI 另有 43 个作业通过，用时 111.718 秒，不重复计入冻结版统计。
+
+一次初始 OPJU 继续编辑验收超时。Windows 电源日志证实对应区间因合盖进入新型待机，约十分钟后由电源按钮唤醒（Kernel-Power 506/507）。同一合成工程随后成功重新打开，四项完整程序回归通过。保留失败记录，未计入通过；插件不承诺在休眠/合盖时持续运行。
+
+官方 `@anthropic-ai/mcpb` 校验器要求 PNG 图标：已将选定 SVG 原样导出为 512×512 PNG，修复后清单和图标校验通过。ZIP/MCPB 约 **31.7 MiB**，无额外运行时 Node 依赖；SVG 仍供其他宿主使用。包内哈希用于完整性检查，尚未做发布者代码签名。
+
+完整功能标志保持 false。矩阵、3D、全部统计/信号/峰算法、每个自绘编辑器和 App 仍需任务级验收；第二台实体电脑、各宿主模型真正发起调用也不能从协议测试推定通过。详见 [COVERAGE.md](COVERAGE.md)。本节与前文旧版记录并存，旧版“尚未安装”的文字描述的是当时状态。
+
+
+## 0.2.1：多模型接口与本机升级
+
+2026-09-11，加入 full/economy 接口与 generic、DeepSeek、GPT Terra、Gemini、GLM、Kimi、ELM 配置。Terra 主用建议按用户偏好保留 **max** 推理；插件不更改宿主模型。104 项核心/协议测试通过（30.04 秒），Ruff 检查通过；包含两种模式的新旧 stdio 和 HTTP、参数去重/校验、语法位置反馈、不回显输入的错误、文本模型限制与配置优先级。
+
+工具定义体积为 full 19,514 字节 / economy 4,372 字节，减少 77.60%。数值来自 `scripts/benchmark_profiles.py` 的 UTF-8 JSON 序列化，不是提供商计费 token。全部 13 个操作在经济接口中可查询原 Schema；固定配方复用原有校验与任务去重。详细技能说明改为按需读取参考文件。
+
+0.2.0 已完成实际本机安装（收据 `4b0d06eb4307490a9c8f882c0e0029a6`），Claude Desktop、WorkBuddy 和 Codex 缓存的实际启动命令均通过 MCP 协议检验，工具数 12；该记录是 0.2.1 升级前的实测状态。主机配置不是模型推理调用证据。
+
+
+冻结版经济接口通过真实 MCP 完成两个原生作业（37.734 秒）：合成线性拟合斜率 2、截距 1，原生报告和 OPJU 重开通过；通用程序工作表回读 [7,14,21]、显式单元格合计 42。相同配方重用同一任务，分页读取后重构的 manifest 与本地文件完全相等。原生图像已查看。证据 `.local/frozen-021-economy-r2/acceptance-economy.json`。
+
+首次经济验收中，测试夹具使用 `sum(col(A))`，Origin 数值求值返回 7，未满足预期 42，因此被正确拒绝。夹具改用 `col(A)[1]+col(A)[2]+col(A)[3]` 后完整重跑通过；该修改不改变运行引擎。保留首次失败于 `.local/frozen-021-economy`，不将其计入成功。
+
+最终安装的程序版本、配置收据、宿主命令及隧道状态在本机 `.origin-agent/verification` 和本版本交付记录中另行记录。跨模型真实推理及第二台实体机器仍未验收。
+
+0.2.1 冻结版完整 GUI 回归再次通过：43 个作业，39 个成功、4 个预期拒绝/失败，用时 104.563 秒；含中文输入、拖选、滚轮、UIA 选择/值/切换、提交回读及模态回滚。证据 `.local/frozen-021-gui/acceptance-gui.json`。

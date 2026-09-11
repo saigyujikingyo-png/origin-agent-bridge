@@ -77,8 +77,17 @@ def test_capability_ast_does_not_import_or_execute_vendor_code(tmp_path):
 
 
 def test_worker_environment_omits_provider_credentials(store, monkeypatch):
-    monkeypatch.setenv("CONTROL_PLANE_API_KEY", "test-only-not-a-real-key")
+    keys = [
+        "CONTROL_PLANE_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "GEMINI_API_KEY",
+        "GLM_API_KEY",
+        "KIMI_API_KEY",
+        "ELM_API_KEY",
+    ]
+    for name in keys:
+        monkeypatch.setenv(name, "test-only-not-a-real-key")
     captured = {}
     monkeypatch.setattr(jobs.subprocess, "Popen", lambda *a, **k: captured.update(k))
     jobs.spawn(store, "worker", "a" * 32, "b" * 32)
-    assert "CONTROL_PLANE_API_KEY" not in captured["env"]
+    assert not set(keys).intersection(captured["env"])

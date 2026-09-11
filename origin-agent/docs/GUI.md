@@ -11,7 +11,10 @@
 | `begin` | 保存不可变 OPJU 检查点，再切回可写 working 工程，显示受管 Origin |
 | `observe` | 读取窗口、控件和菜单；`query` 过滤；`screenshot` 按需生成 PNG |
 | `invoke` | 调用最近观察中的菜单/按钮，或 UIA 的 Invoke、Expand、Legacy 默认动作 |
-| `set_text` | 修改最近观察中的标准可写 Edit，并回读完整输入 |
+| `set_text` | 修改标准可写 Edit 或 UIA Value，并回读完整输入 |
+| `select / toggle / expand / collapse` | 调用观察到的 UIA 模式；返回选择、勾选、展开和数值状态 |
+| `click / drag / scroll` | 在最新截图内使用归一化坐标，校验窗口与鼠标落点所属进程 |
+| `keys / type_text` | 受管窗口快捷键和 Unicode 文本，不使用剪贴板 |
 | `dismiss` | 向最近观察的弹出窗口发送 Escape，随后观察它是否关闭 |
 | `commit` | 弹窗关闭后保存 OPJU、更新工程索引、结束 GUI 事务 |
 | `rollback` | 恢复 begin 检查点；必要时重启本会话拥有的 Origin 实例 |
@@ -26,6 +29,7 @@
 - `gui_session.py`：事务、检查点、状态、截图工件与失败恢复。
 - `gui_native.py`：Win32 窗口/菜单/Button/Edit，进程身份约束，单窗口截图。
 - `gui_accessibility.py`：Origin MFC 菜单的 UI Automation 缓存观察与动作。
+- `gui_input.py`：截图、DPI 与客户区坐标绑定，前台/鼠标落点检查，Windows SendInput；中断时释放按键。
 - `origin_runtime.py`：Origin 连接；已终止进程的 originpro 1.1.15 失效引用释放。
 
 新增依赖仅 Windows 的 `comtypes==1.4.16`，用于 UI Automation。它加入 OriginExt 使用的 MTA 线程模型；不增加 HTTP 服务或模型调用。依赖自身的压缩 wheel 约 289 KiB，最终冻结包增量仍须打包实测。控件摘要最多 160 项，枚举有数量/时间预算；默认不返回截图，详细工件留在本地按需读取。这些措施控制上下文体积，尚未测得实际模型额度节省比例。
@@ -36,7 +40,7 @@
 
 原生接口承担数据、分析和批量绘图，GUI 通道承担必要的菜单/属性操作。这样可以减少找菜单、重复填表和在多个对话框之间切换的摩擦。保存可编辑 OPJU、保留检查点并回读结果，使用户能继续检查与修改。
 
-当前支持标准文本/按钮和具有所需 UIA 模式的菜单。复杂自绘图形编辑器、拖拽、任意按键、全部 Apps 和所有模态流程仍需逐项开发验收。截图本身不代表具备任意视觉点击能力；接口可调用也不等于科学结果正确。模型、权重、单位和数据处理仍需科学依据。
+0.2 已加入截图内点击、拖动、滚轮、快捷键和 Unicode 输入，用于补充不暴露可用 UIA 模式的自绘控件。坐标限定为最新截图内的 x/y 比例 [0,1)，目标必须为 capture.window_id；不能输入任意桌面坐标或操作其他程序。实例已验证文字拖选、下拉选项、中文输入与保存回读。每个复杂图形编辑器、App 和对话框仍须按任务核验，不能据通用输入机制推定全部功能通过。模型、权重、单位和数据处理仍需科学依据。
 
 GUI 事务只恢复工程，不能撤销外部文件写入、网络行为或全局设置。会话只管理它启动的 Origin，不接管用户其他未保存窗口。GUI 需要交互式 Windows 桌面；锁屏、远程断连和其他语言界面还没有验收。
 
@@ -46,6 +50,7 @@ GUI 事务只恢复工程，不能撤销外部文件写入、网络行为或全�
 
 ```powershell
 uv run python scripts/verify_gui.py --home C:\OriginCompanionTests\gui-new-run
+uv run python scripts/verify_gui.py --extended --home C:\OriginCompanionTests\gui-extended-new-run
 ```
 
 目录必须是空的新目录。脚本通过真实 stdio MCP 创建合成工作簿，打开 Window → Properties，修改 Long name，提交后回读名称和 `[1,2,3]`；再在属性窗口内修改并回滚，检查名称和数据恢复。另验证陈旧观察、事务内程序/批处理以及弹窗内提交均被拒绝。截图、OPJU、每步耗时和完整结果写入本地；最终关闭测试工程。宿主模型与第二台电脑的验收独立记录，不能从此脚本推定通过。

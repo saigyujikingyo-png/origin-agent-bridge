@@ -1,0 +1,62 @@
+{
+  "version": "0.2.1",
+  "verified_at_utc": "2026-09-11T13:02:57.608801+00:00",
+  "installation_receipt": "f1c0d1657cab483ebfc6c9853f517f6e",
+  "installed_executable_matches_release": true,
+  "agent_profile": {
+    "mode": "economy",
+    "preset": "gpt-terra",
+    "schema_version": 1,
+    "vision": "auto"
+  },
+  "preferred_host_reasoning": "max",
+  "hosts": {
+    "claude_desktop": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.1",
+      "host_model_invocation_tested": false
+    },
+    "workbuddy": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.1",
+      "host_model_invocation_tested": false
+    },
+    "codex_plugin": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.1",
+      "host_model_invocation_tested": false
+    }
+  },
+  "private_chatgpt_tunnel": {
+    "version": "0.2.1",
+    "tunnel_ready": true,
+    "tunnel_healthy": true,
+    "runtime_uses_installed_executable": true,
+    "old_tunnel_engine_present": false
+  },
+  "frozen_economy": {
+    "jobs_passed": 2,
+    "seconds": 37.734
+  },
+  "frozen_gui": {
+    "jobs": 43,
+    "succeeded": 39,
+    "expected_rejections": 4,
+    "seconds": 104.563
+  },
+  "automated_tests": 104,
+  "actual_model_success_rates_tested": false,
+  "second_physical_computer_tested": false,
+  "full_functionality_verified": false,
+  "archive_mib": 31.71,
+  "sha256": {
+    "origin-agent-0.2.1-windows-x64.zip": "0b5f3838f6ed9062e730813cbdbce4a983cb53d550126953cde8d93947583ca4",
+    "origin-agent-0.2.1-windows-x64.mcpb": "0b5f3838f6ed9062e730813cbdbce4a983cb53d550126953cde8d93947583ca4"
+  }
+}

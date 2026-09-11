@@ -53,6 +53,6 @@
 
 ## 当前状态
 
-0.1.0 是已发布且本机验证的有限工作流版本。0.2 在开发分支中扩展通用编程、持续会话和 GUI 事务，实际执行前核对指定版本；状态接口明确报告 `full_functionality_verified: false`。0.2 尚未替换本机已安装引擎。复杂 GUI、完整覆盖、多宿主全流程和跨电脑验证仍是未完成工作，当前不宣称完整分享版已经完成。
+0.2 提供通用编程、持续会话、Win32/UIA 与截图输入，以及自动配置和原生自检安装器。实际执行前核对指定版本；状态接口保持 `full_functionality_verified: false`。冻结版及本机安装记录见 [VALIDATION.md](VALIDATION.md)，已实测案例和缺口见 [COVERAGE.md](COVERAGE.md)。通用机制已具备，所有功能、App、宿主模型和第二台实体电脑仍不能一概宣称认证通过。
 
 来源：[学校化学学院软件页面](https://chem.ed.ac.uk/cto/student-support/computing-software)、[Ge-Shun 项目](https://github.com/Ge-Shun/origin-mcp)、[v0.1.4 发行](https://github.com/Ge-Shun/origin-mcp/releases/tag/v0.1.4)、[工具模式](https://github.com/Ge-Shun/origin-mcp/blob/main/docs/tools.md)、[原生工作流](https://github.com/Ge-Shun/origin-mcp/blob/main/.github/workflows/real-origin.yml)、[garethbeaumo](https://github.com/garethbeaumo/originlab-mcp)、[youngminsw](https://github.com/youngminsw/Origin-Pro-MCP)、[Yike-Ye](https://github.com/Yike-Ye/OriginLab-MCP)。

@@ -10,7 +10,8 @@ from mcp import Client
 
 
 @pytest.mark.anyio
-async def test_loopback_http_and_foreign_host_rejection(store):
+@pytest.mark.parametrize("profile", ["full", "economy"])
+async def test_loopback_http_and_foreign_host_rejection(store, profile):
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
@@ -20,6 +21,8 @@ async def test_loopback_http_and_foreign_host_rejection(store):
             "-m",
             "origin_agent",
             "serve",
+            "--profile",
+            profile,
             "--transport",
             "streamable-http",
             "--port",
@@ -44,7 +47,7 @@ async def test_loopback_http_and_foreign_host_rejection(store):
             )
             assert response.status_code in (400, 403, 421)
         async with Client(f"http://127.0.0.1:{port}/mcp") as client:
-            assert len((await client.list_tools()).tools) == 12
+            assert len((await client.list_tools()).tools) == (5 if profile == "economy" else 13)
             answer = await client.call_tool("origin_status", {})
             assert not answer.is_error
     finally:

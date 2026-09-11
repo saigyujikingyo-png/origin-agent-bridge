@@ -16,7 +16,29 @@ def main():
     serve = sub.add_parser("serve")
     serve.add_argument("--transport", choices=["stdio", "streamable-http"], default="stdio")
     serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--profile", choices=["full", "economy"])
+    serve.add_argument(
+        "--model-preset", choices=["generic", "deepseek", "gpt-terra", "gemini", "glm", "kimi", "elm"]
+    )
+    serve.add_argument("--vision", choices=["auto", "off", "on"])
+    profile = sub.add_parser(
+        "configure-model", help="Choose an economical MCP presentation, not an LLM account"
+    )
+    profile.add_argument(
+        "preset", choices=["generic", "deepseek", "gpt-terra", "gemini", "glm", "kimi", "elm"]
+    )
+    profile.add_argument("--profile", choices=["full", "economy"], default="economy")
+    profile.add_argument("--vision", choices=["auto", "off", "on"], default="auto")
     sub.add_parser("status")
+    doctor = sub.add_parser("doctor", help="Check the installation and optionally run a synthetic Origin job")
+    doctor.add_argument("--native", action="store_true")
+    integrate = sub.add_parser("integrate", help="Back up and configure local agent hosts")
+    integrate.add_argument("bundle", type=Path)
+    integrate.add_argument("--hosts", default="", help="Comma-separated claude,workbuddy,codex")
+    integrate.add_argument("--user-home", type=Path)
+    integrate.add_argument("--appdata", type=Path)
+    rollback = sub.add_parser("rollback-install", help="Restore a host-configuration installation receipt")
+    rollback.add_argument("receipt_id")
     inspect = sub.add_parser("inspect")
     inspect.add_argument("path")
     inspect.add_argument("--sheet")
@@ -47,7 +69,7 @@ def main():
         if args.command == "serve":
             from .server import make_server
 
-            server = make_server(store)
+            server = make_server(store, profile=args.profile, preset=args.model_preset, vision=args.vision)
             if args.transport == "stdio":
                 server.run()
             else:
@@ -61,7 +83,29 @@ def main():
                     max_request_body_size=1024 * 1024,
                 )
             return
-        if args.command == "status":
+        if args.command == "configure-model":
+            from .agent_profiles import configure_profile
+
+            result = configure_profile(store, args.preset, args.profile, args.vision)
+        elif args.command == "doctor":
+            from .installation import doctor
+
+            result = doctor(store, args.native)
+        elif args.command == "integrate":
+            from .installation import integrate
+
+            result = integrate(
+                args.bundle,
+                store.root,
+                [h.strip() for h in args.hosts.split(",") if h.strip()],
+                user_home=args.user_home,
+                appdata=args.appdata,
+            )
+        elif args.command == "rollback-install":
+            from .installation import rollback
+
+            result = rollback(store.root, args.receipt_id)
+        elif args.command == "status":
             from .discovery import discover
 
             result = {"plugin_version": __version__, **discover(), "home": str(store.root)}

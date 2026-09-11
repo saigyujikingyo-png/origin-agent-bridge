@@ -60,4 +60,8 @@ GUI 适配独立于科学算法，只服务受管 Origin 进程：观察窗口/�
 
 ## 本轮落地状态
 
-持续会话已实现并进行真实 Origin 测试，见 [SESSIONS.md](SESSIONS.md)。本轮增加原生 GUI 事务、MFC 菜单可访问性和标准控件操作，架构与边界见 [GUI.md](GUI.md)，逐项证据见 [VALIDATION.md](VALIDATION.md)。复杂图形编辑、分享安装升级和完整功能矩阵仍需后续验收。现有安装版仍为 0.1.0；本轮源代码属于未发布的 0.2 开发版。显示名称与蓝色开放圆环已选定为 Origin Companion。
+持续会话、Win32/UIA 与截图输入、配置备份/回滚和原生安装自检已实现。0.2 已通过冻结版的工作流、编程、24 个会话作业和 43 个 GUI 作业验收；架构与边界见 [GUI.md](GUI.md)，实际发行及安装证据见 [VALIDATION.md](VALIDATION.md)。功能分类可由 `origin_capabilities("coverage")` 查询。未把通用机制等同于每个功能已认证，第二台实体电脑及各宿主最终模型调用单独记录。显示名称与蓝色开放圆环为 Origin Companion。
+
+## 0.2.1：多模型适配层
+
+`agent_profiles.py` 在现有 MCP Server 上提供 full/economy 两种接口；不增加模型供应商客户端或第二套 Origin 内核。经济接口通过公开 `list_tools/call_tool` 方法延迟获取并校验全部操作参数。短参数配方重用 Workflow/plan/submit，所有写入依然遵循原任务去重、版本和 GUI 事务约束。`configure-model` 保存本机配置，也支持每个宿主命令行/环境覆盖；密钥留在宿主。`benchmark_profiles.py` 测工具定义字节，`verify_economy.py` 测真实 Origin 和文本分页，具体模型质量需另测。
