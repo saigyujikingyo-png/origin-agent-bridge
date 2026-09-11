@@ -129,11 +129,11 @@ class Store:
             config = os.environ.get("ORIGIN_AGENT_DATA_ROOTS")
             allowed_roots = [Path(p) for p in json.loads(config)] if config else default_roots()
         self.allowed_roots = list(dict.fromkeys([p.resolve() for p in allowed_roots] + [self.root / "inbox"]))
-        for name in ("inbox", "datasets", "plans", "jobs"):
+        for name in ("inbox", "datasets", "plans", "jobs", "sessions"):
             (self.root / name).mkdir(exist_ok=True)
 
     def path(self, kind: str, identifier: str) -> Path:
-        if kind not in ("datasets", "plans", "jobs"):
+        if kind not in ("datasets", "plans", "jobs", "sessions"):
             raise ValueError("Invalid store kind")
         return self.root / kind / valid_id(identifier)
 

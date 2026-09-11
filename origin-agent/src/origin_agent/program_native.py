@@ -2,16 +2,13 @@
 
 import contextlib
 import mimetypes
-import os
 import shutil
 import time
-from pathlib import Path
 
 from . import __version__
-from .native import origin_processes
+from .origin_runtime import connect_origin
 from .programs import OriginProgram, check_readback, load_program
 from .storage import Store, json_bytes, sha256, write_json
-from .target import require_target
 
 
 def snapshot(op):
@@ -35,9 +32,9 @@ def _decode_log(path):
     return raw.decode("utf-8-sig", errors="replace")
 
 
-def run_program(store: Store, identifier: str, plan_id: str):
-    import originpro as op
-
+def run_program(store: Store, identifier: str, plan_id: str, *, active: dict | None = None):
+    owned = active is None
+    op = None
     plan = load_program(store, plan_id)
     program = OriginProgram.model_validate(plan["workflow"])
     directory = store.path("jobs", identifier)
@@ -57,31 +54,13 @@ def run_program(store: Store, identifier: str, plan_id: str):
     outputs = [source_file]
     try:
         checkpoint("starting_origin")
-        before = origin_processes()
-        op.set_show(False)
-        engine = {
-            "version": op.lt_float("@V"),
-            "bitness": op.lt_int("@VB"),
-            "edition": "OriginPro" if op.lt_int("@IM") == 2 else "Origin",
-            "demo": op.lt_int("@VM"),
-            "executable_directory": op.path("e"),
-        }
-        unique = [
-            p
-            for pid, p in origin_processes().items()
-            if pid not in before
-            and p["exe"]
-            and Path(p["exe"]).parent.resolve() == Path(op.path("e")).resolve()
-        ]
-        if len(unique) == 1:
-            progress.update(origin_pid=unique[0]["pid"], origin_created=unique[0]["create_time"])
+        runtime = connect_origin() if owned else active
+        op, engine = runtime["op"], runtime["engine"]
+        progress.update(origin_pid=runtime["origin_pid"], origin_created=runtime["origin_created"])
         checkpoint("connected")
-        explicit = os.environ.get("ORIGIN_AGENT_EXECUTABLE")
-        if explicit and Path(explicit).resolve().parent != Path(op.path("e")).resolve():
-            raise RuntimeError("COM activated a different installation; fix registration")
-        require_target(engine)
         write_json(store.root / "last-native-engine.json", engine)
-        op.new()
+        if owned:
+            op.new()
         inputs = {}
         # Execute against copies so changing a source worksheet never overwrites the input snapshot.
         input_dir = directory / "inputs"
@@ -92,8 +71,11 @@ def run_program(store: Store, identifier: str, plan_id: str):
             if sha256(target) != source["sha256"]:
                 raise ValueError("Program input changed while creating its execution copy")
             inputs[alias] = target
-        if "__project__" in inputs and not op.open(str(inputs["__project__"])):
-            raise RuntimeError("Origin could not open the copied project")
+        if "__project__" in inputs:
+            if not owned:
+                raise ValueError("A session program cannot replace the active project")
+            if not op.open(str(inputs["__project__"])):
+                raise RuntimeError("Origin could not open the copied project")
         before_state = snapshot(op)
         checkpoint("executing_program")
         log = directory / "labtalk.log"
@@ -155,10 +137,11 @@ def run_program(store: Store, identifier: str, plan_id: str):
         if not op.save(str(project)):
             raise RuntimeError("Origin could not save the program project")
         outputs.append(project)
-        checkpoint("reopening_project")
-        op.new()
-        if not op.open(str(project)):
-            raise RuntimeError("Saved project could not be reopened")
+        if owned:
+            checkpoint("reopening_project")
+            op.new()
+            if not op.open(str(project)):
+                raise RuntimeError("Saved project could not be reopened")
         reopened = snapshot(op)
         if reopened != after_state:
             raise RuntimeError("Saved project structure differs after reopening")
@@ -195,8 +178,9 @@ def run_program(store: Store, identifier: str, plan_id: str):
         outputs += [result_file, state_file]
         verification = {
             "vendor_native": True,
-            "project_reopened": True,
-            "structure_roundtrip": True,
+            "project_reopened": owned,
+            "structure_roundtrip": owned,
+            "live_session_preserved": not owned,
             "numeric_data_roundtrip": False,
             "independent_scientific_validation": False,
             "explicit_postconditions_passed": sum(c.expected is not None for c in program.readbacks.values()),
@@ -248,5 +232,6 @@ def run_program(store: Store, identifier: str, plan_id: str):
         )
         raise
     finally:
-        with contextlib.suppress(Exception):
-            op.exit()
+        if owned and op is not None:
+            with contextlib.suppress(Exception):
+                op.exit()

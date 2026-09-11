@@ -36,6 +36,10 @@ def main():
     worker = sub.add_parser("worker")
     worker.add_argument("job_id")
     worker.add_argument("plan_id")
+    session_worker = sub.add_parser("session-worker")
+    session_worker.add_argument("runtime_dir", type=Path)
+    session_worker.add_argument("parent_pid", type=int)
+    session_worker.add_argument("parent_created", type=float)
     sub.add_parser("supervise")
     args = parser.parse_args()
     store = Store()
@@ -102,6 +106,11 @@ def main():
 
             target = run_program if load_plan(store, args.plan_id).get("kind") == "program" else run_native
             target(store, args.job_id, args.plan_id)
+            return
+        elif args.command == "session-worker":
+            from .session_native import serve_sessions
+
+            serve_sessions(store, args.runtime_dir, args.parent_pid, args.parent_created)
             return
         elif args.command == "supervise":
             from .jobs import supervise

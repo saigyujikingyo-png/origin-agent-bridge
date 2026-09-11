@@ -32,7 +32,7 @@ async def main():
             tools = await client.list_tools()
             status = await client.call_tool("origin_status", {})
             assert not status.is_error
-            assert len(tools.tools) == 10
+            assert len(tools.tools) == 11
             result[host] = {
                 "configured_command_passed": True,
                 "tool_count": len(tools.tools),

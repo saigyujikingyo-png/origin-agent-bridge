@@ -61,6 +61,10 @@ def plan_workflow(store: Store, workflow: Workflow) -> dict:
 
 def load_plan(store: Store, identifier: str):
     plan = read_json(store.path("plans", identifier) / "plan.json")
+    if plan.get("kind") == "session":
+        from .sessions import load_session_plan
+
+        return load_session_plan(store, identifier)
     if plan.get("kind") == "program":
         from .programs import load_program
 
