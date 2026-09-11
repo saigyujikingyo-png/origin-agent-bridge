@@ -61,6 +61,10 @@ def plan_workflow(store: Store, workflow: Workflow) -> dict:
 
 def load_plan(store: Store, identifier: str):
     plan = read_json(store.path("plans", identifier) / "plan.json")
+    if plan.get("kind") == "program":
+        from .programs import load_program
+
+        return load_program(store, identifier)
     payload = {key: plan[key] for key in ("schema_version", "engine_version", "workflow", "sources")}
     fingerprint = hashlib.sha256(json_bytes(payload)).hexdigest()
     if (

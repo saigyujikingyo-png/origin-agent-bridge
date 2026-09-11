@@ -1,8 +1,8 @@
 {
   "manifest_version": "0.3",
   "name": "origin-agent",
-  "version": "0.1.0",
-  "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "version": "0.2.0",
+  "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
   "display_name": "Origin Agent Bridge",
   "author": {
     "name": "Origin Agent Bridge contributors"

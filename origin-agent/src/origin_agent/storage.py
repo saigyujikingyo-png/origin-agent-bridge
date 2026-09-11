@@ -137,12 +137,12 @@ class Store:
             raise ValueError("Invalid store kind")
         return self.root / kind / valid_id(identifier)
 
-    def input_path(self, path: str) -> Path:
+    def input_path(self, path: str, *, data_only: bool = True) -> Path:
         source = Path(path).expanduser().resolve(strict=True)
         if not source.is_file() or not any(source.is_relative_to(root) for root in self.allowed_roots):
             raise ValueError(
                 "Input must be a file inside a configured data directory or the OriginAgent inbox"
             )
-        if source.suffix.lower() not in (".csv", ".tsv", ".xlsx"):
+        if data_only and source.suffix.lower() not in (".csv", ".tsv", ".xlsx"):
             raise ValueError("Supported data files: CSV, TSV, XLSX")
         return source

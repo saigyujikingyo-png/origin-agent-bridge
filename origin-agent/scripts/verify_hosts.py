@@ -15,7 +15,7 @@ async def main():
     parser.add_argument(
         "--codex-plugin",
         type=Path,
-        default=home / ".codex/plugins/cache/personal/origin-agent/0.1.0",
+        default=home / ".codex/plugins/cache/personal/origin-agent/0.2.0",
     )
     args = parser.parse_args()
     paths = {
@@ -32,7 +32,7 @@ async def main():
             tools = await client.list_tools()
             status = await client.call_tool("origin_status", {})
             assert not status.is_error
-            assert len(tools.tools) == 8
+            assert len(tools.tools) == 10
             result[host] = {
                 "configured_command_passed": True,
                 "tool_count": len(tools.tools),

@@ -45,3 +45,19 @@
 安装版作业 ID：`ac399f49e7d44c95908dbf313a510e8c`。完整 acceptance.json 和 OPJU 留在验证电脑本地，不包含在源码仓库中。
 
 实体第二台电脑、其他 Origin 版本、Claude/WorkBuddy/Codex 内的最终模型调用仍需分别实测，不能从协议测试或 ChatGPT 的成功推定全部通过。
+# 0.2 开发分支：通用接口原型
+
+2026-09-11，本机源码原型通过 29 项单元/协议测试、Ruff、插件清单和 skill 格式校验。实际 Origin 仍为 2026b SR2 10.350243 普通版；以下通过官方 MCP Client 调用源码服务，再由独立 Worker 调用实际 Origin。
+
+| 案例 | 实际结果 | 原生耗时 |
+|---|---|---|
+| Python 非线性 ExpDec1 拟合 | 无噪声合成数据恢复 A1=2、t1=1.4、y0=0.3；报表、曲线、OPJU 和图像生成；数值与预期检查通过 | 23.641 s |
+| 从 OPJU 副本继续编辑 | 成功修改轴标题并再次保存/重开，工程结构一致 | 14.250 s |
+| LabTalk / X-Functions | newbook、列运算、total 求和得到 55，type 日志回传，后置条件通过 | 13.094 s |
+| Origin C | 在本机编译函数，调用后回读 square(7)=49，后置条件通过 | 12.578 s |
+
+代码与文档已纠正两项实际接口差异：LabTalk `sum` 返回累计和数据集，求总和应使用 `total` 或 `sum.total`；`run.LoadOC` 在此版本需要 Windows 反斜杠路径，正斜杠返回代码 3。未满足预期的测试均曾被标记为失败，没有交付错误结果。`type` 日志无法捕获所有 X-Function `-h` 输出，文档已明确此边界。
+
+本机初次能力检索发现 799 个 X-Function 文件、305 个拟合函数文件和 305 个 Python API 索引项。这是发现数量，不是授权数量、已验收数量或全功能覆盖率。原生拟合图像已人工/Agent 查看。通用程序的工程检查仅验证结构重开，不包含完整数值往返和独立科学模型校验。
+
+证据保留在验证电脑 `.origin-agent/verification/general-source-020/acceptance-programs.json`。新代码未构建安装包、未替换当前已安装的 0.1.0，未测试新工具在 ChatGPT/Claude/WorkBuddy 内的模型调用，也未验收完整 GUI 与教授/学生多电脑使用。不能把下面 0.1 的发行证据自动套用到新代码。

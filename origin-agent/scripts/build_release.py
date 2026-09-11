@@ -2,6 +2,7 @@
 
 import argparse
 import importlib.metadata
+import importlib.util
 import json
 import shutil
 import subprocess
@@ -12,6 +13,7 @@ import zipfile
 from pathlib import Path
 
 from origin_agent import __version__
+from origin_agent.capabilities import api_index
 from origin_agent.storage import sha256
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,6 +36,9 @@ def main():
     record = ROOT / "build/freeze-location.json"
     source_hashes = {str(p.relative_to(ROOT)): sha256(p) for p in sorted((ROOT / "src").rglob("*.py"))}
     if not args.skip_freeze:
+        vendor_source = Path(importlib.util.find_spec("originpro").origin).parent
+        api_data = run_root / "data/api-index.json"
+        write(api_data, api_index(vendor_source))
         subprocess.run(
             [
                 sys.executable,
@@ -62,6 +67,8 @@ def main():
                 "OriginExt",
                 "--collect-data",
                 "jsonschema_specifications",
+                "--add-data",
+                str(api_data.parent) + ";origin_agent/data",
                 "--copy-metadata",
                 "originpro",
                 "--copy-metadata",

@@ -1,5 +1,7 @@
 # 安装与使用
 
+以下安装说明对应已发布的 0.1.0。开发分支的 0.2 通用执行原型尚未替换安装版。爱大统一全功能版的验收要求见 [EDINBURGH_PRODUCT.md](EDINBURGH_PRODUCT.md)。
+
 每台计算电脑需要 Windows x64 和已经激活、可正常启动的 Origin 2021 或更新版本。本次实际验收版本为 Origin 2026b SR2 10.350243 普通版。插件不包含 Origin 主程序或学校许可证。
 
 ## Windows 安装包

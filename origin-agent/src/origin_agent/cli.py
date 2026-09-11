@@ -24,6 +24,11 @@ def main():
     plan.add_argument("file")
     run = sub.add_parser("run")
     run.add_argument("plan_id")
+    program = sub.add_parser("program", help="Run a general trusted Origin program from a JSON specification")
+    program.add_argument("file")
+    caps = sub.add_parser("capabilities")
+    caps.add_argument("query", nargs="?", default="")
+    caps.add_argument("--detail-id")
     status = sub.add_parser("job")
     status.add_argument("job_id")
     stop = sub.add_parser("cancel")
@@ -75,14 +80,28 @@ def main():
             from .jobs import get_job
 
             result = get_job(store, args.job_id)
+        elif args.command == "program":
+            from .jobs import submit
+            from .programs import OriginProgram, prepare_program
+
+            spec = OriginProgram.model_validate_json(Path(args.file).read_text(encoding="utf-8-sig"))
+            prepared = prepare_program(store, spec)
+            result = submit(store, prepared["plan_id"], expected_kind="program")
+        elif args.command == "capabilities":
+            from .capabilities import capabilities
+
+            result = capabilities(args.query, detail_id=args.detail_id)
         elif args.command == "cancel":
             from .jobs import cancel
 
             result = cancel(store, args.job_id)
         elif args.command == "worker":
             from .native import run_native
+            from .planning import load_plan
+            from .program_native import run_program
 
-            run_native(store, args.job_id, args.plan_id)
+            target = run_program if load_plan(store, args.plan_id).get("kind") == "program" else run_native
+            target(store, args.job_id, args.plan_id)
             return
         elif args.command == "supervise":
             from .jobs import supervise

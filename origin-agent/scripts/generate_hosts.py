@@ -19,7 +19,7 @@ def main():
     identity = {
         "name": "origin-agent",
         "version": __version__,
-        "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+        "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
     }
     author = {"name": "Origin Agent Bridge contributors"}
     write(
@@ -41,9 +41,9 @@ def main():
             "mcpServers": "./.mcp.json",
             "interface": {
                 "displayName": "Origin Agent Bridge",
-                "shortDescription": "Plot and fit with your licensed Origin.",
-                "longDescription": "Use native Origin for plots, regression and batches. "
-                "Inspect previews and receive editable projects with verification records.",
+                "shortDescription": "Use your licensed Origin through an agent.",
+                "longDescription": "Discover installed functions, use Python/LabTalk/Origin C, "
+                "or run scientific workflows. Inspect outputs and continue editing project copies.",
                 "developerName": author["name"],
                 "category": "Productivity",
                 "capabilities": ["Read", "Write"],

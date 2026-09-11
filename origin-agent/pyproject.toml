@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "origin-agent-bridge"
-version = "0.1.0"
-description = "Local, reproducible Origin workflows for any MCP agent"
+version = "0.2.0"
+description = "Origin programming interfaces and reproducible workflows for any MCP agent"
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "MIT"

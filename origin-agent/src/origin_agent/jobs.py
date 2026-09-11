@@ -41,6 +41,15 @@ def command(*args: str) -> list[str]:
 def spawn(store: Store, *args: str, stdout=None) -> subprocess.Popen:
     environment = os.environ.copy()
     environment["ORIGIN_AGENT_HOME"] = str(store.root)
+    if args and args[0] == "worker":
+        for name in (
+            "CONTROL_PLANE_API_KEY",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+            "GH_TOKEN",
+            "GITHUB_TOKEN",
+        ):
+            environment.pop(name, None)
     if not getattr(sys, "frozen", False):
         environment["PYTHONPATH"] = str(Path(__file__).resolve().parents[1])
     return subprocess.Popen(
@@ -74,8 +83,10 @@ def _kick_locked(store: Store):
         pass
 
 
-def submit(store: Store, plan_id: str) -> dict:
-    load_plan(store, plan_id)
+def submit(store: Store, plan_id: str, *, expected_kind: str = "workflow") -> dict:
+    plan = load_plan(store, plan_id)
+    if plan.get("kind", "workflow") != expected_kind:
+        raise ValueError("Program plans must use origin_run_program, not the fixed-workflow tool")
     with file_lock(store.root / "scheduler.lock"):
         with database(store) as db:
             existing = db.execute("SELECT id FROM jobs WHERE plan_id=?", (plan_id,)).fetchone()
@@ -128,6 +139,13 @@ def get_job(store: Store, identifier: str, *, kick=True) -> dict:
         ]
     else:
         result["poll_after_seconds"] = 3
+        error_path = directory / "error.json"
+        if row["state"] in TERMINAL and error_path.exists():
+            diagnostic = read_json(error_path)
+            result["diagnostic"] = {
+                "type": diagnostic.get("type"),
+                "labtalk_output": diagnostic.get("labtalk_output", "")[-4000:],
+            }
     return result
 
 

@@ -44,7 +44,7 @@ async def test_loopback_http_and_foreign_host_rejection(store):
             )
             assert response.status_code in (400, 403, 421)
         async with Client(f"http://127.0.0.1:{port}/mcp") as client:
-            assert len((await client.list_tools()).tools) == 8
+            assert len((await client.list_tools()).tools) == 10
             answer = await client.call_tool("origin_status", {})
             assert not answer.is_error
     finally:

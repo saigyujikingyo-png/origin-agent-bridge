@@ -4,10 +4,10 @@
   "name": "Origin Agent Bridge",
   "name_zh": "Origin 科学分析助手",
   "name_en": "Origin Agent Bridge",
-  "version": "0.1.0",
-  "description": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "version": "0.2.0",
+  "description": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
   "description_zh": "用自然语言调用本机正版 Origin，完成导入、作图、拟合、批处理和可编辑工程导出。",
-  "description_en": "Native Origin plots, fits and batches with verified editable OPJU projects.",
+  "description_en": "Origin Python, LabTalk and Origin C automation, workflows and editable projects.",
   "minWorkbuddyVersion": "4.24.0",
   "examples_zh": [
     "检查 CSV，在 Origin 中绘制两条曲线。",
