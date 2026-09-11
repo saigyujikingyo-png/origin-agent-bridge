@@ -19,6 +19,7 @@ from .native import artifact_path
 from .planning import plan_workflow
 from .programs import OriginProgram, prepare_program
 from .storage import Store, read_json, sha256
+from .target import assess_target
 
 
 def make_server(store: Store | None = None):
@@ -75,10 +76,12 @@ def make_server(store: Store | None = None):
     def origin_status() -> dict[str, Any]:
         """Inspect installation and last native verification without starting Origin."""
         path = store.root / "last-native-engine.json"
+        engine = read_json(path) if path.exists() else None
         return {
             "plugin_version": __version__,
             **discover(),
-            "last_native_engine": read_json(path) if path.exists() else None,
+            "last_native_engine": engine,
+            "last_native_target_assessment": assess_target(engine),
             "data_directories": [str(p) for p in store.allowed_roots],
             "inbox": str(store.root / "inbox"),
             "compute": "local Windows",

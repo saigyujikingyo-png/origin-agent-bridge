@@ -13,6 +13,7 @@ from .datasets import column_digest, dataset_table, numeric_columns
 from .models import Workflow
 from .planning import load_plan
 from .storage import Store, read_json, sha256, write_json
+from .target import require_target
 
 COLORS = [(0, 114, 178), (213, 94, 0), (0, 158, 115), (204, 121, 167), (230, 159, 0)]
 
@@ -118,8 +119,7 @@ def run_native(store: Store, identifier: str, plan_id: str):
             raise RuntimeError(
                 "COM activated a different Origin installation; fix COM registration for this user"
             )
-        if engine["version"] < 9.8 or engine["bitness"] != 64 or engine["demo"] != 0:
-            raise RuntimeError("Requires an activated 64-bit Origin 2021 or later, outside Demo mode")
+        require_target(engine)
         write_json(store.root / "last-native-engine.json", engine)
         op.new()
         for panel_index, panel in enumerate(workflow.panels, 1):

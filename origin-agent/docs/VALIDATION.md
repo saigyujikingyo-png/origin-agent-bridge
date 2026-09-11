@@ -60,4 +60,12 @@
 
 本机初次能力检索发现 799 个 X-Function 文件、305 个拟合函数文件和 305 个 Python API 索引项。这是发现数量，不是授权数量、已验收数量或全功能覆盖率。原生拟合图像已人工/Agent 查看。通用程序的工程检查仅验证结构重开，不包含完整数值往返和独立科学模型校验。
 
-证据保留在验证电脑 `.origin-agent/verification/general-source-020/acceptance-programs.json`。新代码未构建安装包、未替换当前已安装的 0.1.0，未测试新工具在 ChatGPT/Claude/WorkBuddy 内的模型调用，也未验收完整 GUI 与教授/学生多电脑使用。不能把下面 0.1 的发行证据自动套用到新代码。
+证据保留在验证电脑 `.origin-agent/verification/general-source-020/acceptance-programs.json`。新代码未构建安装包、未替换当前已安装的 0.1.0，未测试新工具在 ChatGPT/Claude/WorkBuddy 内的模型调用，也未验收完整 GUI 与教授/学生多电脑使用。不能把前述 0.1 的发行证据自动套用到新代码。
+
+## 个人分享目标与候选实测
+
+用户进一步明确只针对其爱大授权的这个 Origin 版本，供个人分享给同学和教授。开发版据此加入指定构建号、位数、许可类型与非 Demo 检查，不再泛化宣称支持所有历史版本。加入版本检查后，本地单元/协议测试为 37 项通过；未探测的安装与已验证的目标明确区分，状态中的完整功能验收标志仍为 false。
+
+指定版本检查加入后，四项原生 MCP 案例再次全部通过：非线性拟合 21.51 秒、OPJU 继续编辑 14.23 秒、LabTalk 11.75 秒、Origin C 11.66 秒。新证据为项目忽略目录 `.local/target-020-native/acceptance-programs.json`；这个结果仍只覆盖上述案例。
+
+独立安装并实测 Ge-Shun/origin-mcp 0.1.4 的结果见 [候选评估](CANDIDATE_EVALUATION.md)。严格验收完成 17 次 MCP 调用，8 项检查通过、1 项失败；失败是外层成功、实际未执行的结构化非线性拟合。原始证据位于项目忽略目录 `.local/candidate-validation/run-02/candidate-report.json`，不是本项目已通过的发行验收。

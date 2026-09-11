@@ -11,6 +11,7 @@ from . import __version__
 from .native import origin_processes
 from .programs import OriginProgram, check_readback, load_program
 from .storage import Store, json_bytes, sha256, write_json
+from .target import require_target
 
 
 def snapshot(op):
@@ -78,8 +79,7 @@ def run_program(store: Store, identifier: str, plan_id: str):
         explicit = os.environ.get("ORIGIN_AGENT_EXECUTABLE")
         if explicit and Path(explicit).resolve().parent != Path(op.path("e")).resolve():
             raise RuntimeError("COM activated a different installation; fix registration")
-        if engine["version"] < 9.8 or engine["bitness"] != 64 or engine["demo"] != 0:
-            raise RuntimeError("Requires activated 64-bit Origin 2021 or later")
+        require_target(engine)
         write_json(store.root / "last-native-engine.json", engine)
         op.new()
         inputs = {}

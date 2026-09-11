@@ -5,6 +5,8 @@ import os
 import platform
 from pathlib import Path
 
+from .target import TARGET
+
 
 def discover() -> dict:
     candidates = []
@@ -45,6 +47,7 @@ def discover() -> dict:
         "installations": available,
         "configured_executable": explicit,
         "dependencies": dependencies,
+        "target_profile": dict(TARGET),
         "native_ready_to_probe": bool(available) and all(dependencies.values()),
         "connection_policy": "new isolated Application; verify actual executable directory at runtime",
     }
