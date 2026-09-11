@@ -10,7 +10,8 @@ Translate the requested outcome into Origin work. Do not ask users to learn menu
 ## Choose the available interface
 
 - If `origin_call` is available, use economy mode. `origin_help(operation=...)` returns the exact schema for any full-mode operation. Call it through `origin_call(operation=..., arguments_json=...)`, with one encoded JSON object. All full-mode operations remain accessible.
-- Inspect files through `origin_inspect_dataset`. Use returned columns and dataset ID. Cloud attachment IDs are not Windows file paths.
+- In economy mode, inspect with `origin_call(operation="origin_inspect_dataset", arguments_json='{"path":"C:/path/data.csv"}')`; use `origin_help` for other arguments. In full mode call `origin_inspect_dataset` directly. Reuse returned columns and dataset ID. Cloud attachment IDs are not Windows file paths.
+- Older host sessions may cache full-mode tool names; the server accepts them in economy mode for compatibility. New work should use the advertised interface. If a host itself rejects a cached tool name, refresh its tool catalog or start a new task.
 - Use `origin_recipe` for simple plotting or linear fitting with flat arguments. Fits require explicit intercept and weighting. `action=run` validates and submits when the task is authorized; no extra confirmation gate.
 - For advanced work read only the relevant section of [operations](references/OPERATIONS.md). Use capabilities discovery before unfamiliar native APIs. Full mode exposes these operations directly.
 

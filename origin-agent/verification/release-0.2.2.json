@@ -1,0 +1,65 @@
+{
+  "version": "0.2.2",
+  "date": "2026-09-11",
+  "automated_tests": 105,
+  "lint_passed": true,
+  "skill_and_plugin_validation_passed": true,
+  "mcpb_validation_passed": true,
+  "archive_members_sha256_passed": true,
+  "regression_reproduced_in_0_2_1": true,
+  "cached_full_tool_names_accepted_in_economy": true,
+  "advertised_tools": 5,
+  "schema_characters": 4743,
+  "native": {
+    "data_roundtrip": true,
+    "project_reopened": true,
+    "graphs_reopened": 3,
+    "native_reports_reopened": 2,
+    "preview_reviewed_panels": [
+      1,
+      2,
+      3
+    ],
+    "seconds": 28.219,
+    "synthetic_fixture_only": true
+  },
+  "installed_version": "0.2.2",
+  "installation_receipt_id": "b1bac553f3cd484b86cc22fdbf56a5d2",
+  "host_command_checks": {
+    "claude_desktop": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.2",
+      "host_model_invocation_tested": false
+    },
+    "workbuddy": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.2",
+      "host_model_invocation_tested": false
+    },
+    "codex_plugin": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.2",
+      "host_model_invocation_tested": false
+    }
+  },
+  "tunnel": {
+    "ready": true,
+    "healthy": true,
+    "engine_version": "0.2.2",
+    "same_account_and_tunnel": true
+  },
+  "work_project_directory_lock_released": true,
+  "work_ui_retry_verified": false,
+  "provider_model_task_verified": false,
+  "second_physical_machine_tested": false,
+  "sha256": {
+    "origin-agent-0.2.2-windows-x64.zip": "e4a485b29d70659a09db7029d6b8ac69199f8720b029169c15ca327520e071fd",
+    "origin-agent-0.2.2-windows-x64.mcpb": "e4a485b29d70659a09db7029d6b8ac69199f8720b029169c15ca327520e071fd"
+  }
+}

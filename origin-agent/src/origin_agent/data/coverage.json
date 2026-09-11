@@ -1,6 +1,6 @@
 {
   "baseline": "Origin 2026b SR2 10.350243, Windows x64, Origin edition, non-Demo",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "full_functionality_verified": false,
   "meaning": "Representative evidence, not a percentage of all Origin functions. Discover specific installed APIs, execute the authorized task, and verify its result.",
   "routes": ["Python/originpro/COM", "LabTalk/X-Functions", "Origin C", "Win32/UIA", "screenshot-bound mouse and keyboard"],

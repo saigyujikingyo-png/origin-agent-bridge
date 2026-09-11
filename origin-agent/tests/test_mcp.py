@@ -42,3 +42,19 @@ async def test_real_stdio_transport(store, mode, profile):
         assert len((await client.list_tools()).tools) == (5 if profile == "economy" else 13)
         answer = await client.call_tool("origin_status", {})
         assert not answer.is_error
+        source = store.root / "inbox" / "cached-tools.csv"
+        source.parent.mkdir(parents=True, exist_ok=True)
+        source.write_text("X,Y\n0,1\n1,3\n2,5\n", encoding="utf-8")
+        inspected = await client.call_tool("origin_inspect_dataset", {"path": str(source)})
+        assert not inspected.is_error
+        plan = await client.call_tool(
+            "origin_plan_workflow",
+            {
+                "workflow": {
+                    "panels": [
+                        {"dataset_id": inspected.structured_content["dataset_id"], "x": "X", "y": ["Y"]}
+                    ]
+                }
+            },
+        )
+        assert not plan.is_error

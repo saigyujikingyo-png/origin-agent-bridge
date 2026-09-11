@@ -8,7 +8,7 @@ The target is a smooth Origin plugin for licensed University of Edinburgh staff 
 
 Agent-neutral, local Origin workflows over MCP. The personal sharing build targets the user's Edinburgh-licensed **Origin 2026b SR2 (10.350243), Windows x64, Origin edition**. Native workers check this exact baseline. This project does not distribute Origin or a licence.
 
-Version 0.2 adds general Python/originpro/COM, LabTalk/X-Function and Origin C execution, installed capability discovery, persistent managed sessions and a native GUI transaction channel. Twelve MCP tools cover workflows, capabilities, session/GUI control and artifacts without registering one tool per Origin function. Programs run as trusted code with the Windows user's permissions.
+Version 0.2 adds general Python/originpro/COM, LabTalk/X-Function and Origin C execution, installed capability discovery, persistent managed sessions and a native GUI transaction channel. Thirteen full-mode MCP tools cover workflows, capabilities, session/GUI control and artifacts without registering one tool per Origin function. Programs run as trusted code with the Windows user's permissions.
 
 The fixed workflow route remains available for CSV/TSV/XLSX import, multi-Y plotting, error bars, linear regression and Beer–Lambert calibration with independent numerical checks. Independent programs reopen their saved OPJU for structural verification; session programs preserve the live project and report that no reopen check occurred. Session revisions reject stale edits and failed operations restore project checkpoints. Execution checks do not establish scientific correctness.
 
@@ -25,3 +25,5 @@ Try a complete natural-language workflow using the [synthetic example](examples/
 ## 多模型与经济模式（0.2.1）
 
 [多模型配置](docs/MODELS.md)支持 DeepSeek、GPT Terra、Gemini、GLM、Kimi 与 ELM 宿主预设。5 工具经济接口按需加载全部操作参数，常见配方使用短参数，文本输出可分页；完整 13 工具接口仍可选择。[ELM 提供的模型与额度边界](docs/ELM.md)。预设适配不是实际模型成功率认证，插件不额外调用模型 API。
+
+0.2.2 修复从完整模式切换到经济模式后，旧宿主会话缓存工具名导致的 `Unknown tool`。经济模式仍只展示 5 个入口，旧名称在服务端兼容转发并沿用完整参数、视觉能力和会话校验。见 [Work 排障](docs/WORK_TROUBLESHOOTING.md)。

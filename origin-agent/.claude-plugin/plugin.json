@@ -1,6 +1,6 @@
 {
   "name": "origin-agent",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
   "author": {
     "name": "Origin Companion contributors"

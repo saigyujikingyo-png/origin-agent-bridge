@@ -177,3 +177,49 @@ async def test_correctable_errors_are_bounded_without_echoing_inputs(store, mode
         )
         assert syntax.is_error
         assert '"line": 1' in syntax.content[0].text
+
+
+@pytest.mark.anyio
+async def test_economy_accepts_cached_full_names_with_same_validation(store, dataset, tmp_path):
+    async with Client(make_server(store, profile="economy", vision="off")) as client:
+        names = {t.name for t in (await client.list_tools()).tools}
+        assert "origin_inspect_dataset" not in names and len(names) == 5
+        inspected = await client.call_tool(
+            "origin_inspect_dataset", {"path": str(tmp_path / "calibration.csv")}
+        )
+        assert not inspected.is_error
+        assert inspected.structured_content["sha256"] == dataset["sha256"]
+        assert inspected.structured_content["columns"] == dataset["columns"]
+        args = {
+            "workflow": {
+                "panels": [{"dataset_id": dataset["dataset_id"], "x": "Concentration", "y": ["Absorbance"]}]
+            }
+        }
+        direct = await client.call_tool("origin_plan_workflow", args)
+        wrapped = await client.call_tool(
+            "origin_call", {"operation": "origin_plan_workflow", "arguments_json": json.dumps(args)}
+        )
+        assert not direct.is_error and not wrapped.is_error
+        assert direct.structured_content["plan_id"] == wrapped.structured_content["plan_id"]
+        invalid = await client.call_tool("origin_plan_workflow", {"workflow": {"private": "do-not-echo"}})
+        assert invalid.is_error and "do-not-echo" not in str(invalid.content)
+        assert "validation" in str(invalid.content)
+        assert (await client.call_tool("exec", {})).is_error
+        image = await client.call_tool("origin_get_artifact", {"artifact_id": "invalid", "mode": "preview"})
+        assert image.is_error and "Vision is off" in str(image.content)
+        gui = await client.call_tool(
+            "origin_gui",
+            {
+                "session_id": "a" * 32,
+                "expected_revision": 1,
+                "request_id": "cached",
+                "gui": {
+                    "action": "click",
+                    "observation_id": "b" * 32,
+                    "target_id": "window:test",
+                    "position": {"x": 0.5, "y": 0.5},
+                },
+            },
+        )
+        assert gui.is_error and "Vision is off" in str(gui.content)
+        assert {t.name for t in (await client.list_tools()).tools} == names

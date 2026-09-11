@@ -80,7 +80,7 @@ def main():
             "manifest_version": "0.3",
             **identity,
             "display_name": "Origin Companion",
-            "icon": "assets/icon.svg",
+            "icon": "assets/icon.png",
             "author": author,
             "license": "MIT",
             "server": {

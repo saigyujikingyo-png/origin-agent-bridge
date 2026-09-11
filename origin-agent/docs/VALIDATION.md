@@ -156,3 +156,13 @@
 最终安装的程序版本、配置收据、宿主命令及隧道状态在本机 `.origin-agent/verification` 和本版本交付记录中另行记录。跨模型真实推理及第二台实体机器仍未验收。
 
 0.2.1 冻结版完整 GUI 回归再次通过：43 个作业，39 个成功、4 个预期拒绝/失败，用时 104.563 秒；含中文输入、拖选、滚轮、UIA 选择/值/切换、提交回读及模态回滚。证据 `.local/frozen-021-gui/acceptance-gui.json`。
+
+
+## 0.2.2：Work 工具缓存兼容修复
+
+2026-09-11，先用安装版 0.2.1 + 合成 CSV 复现：经济模式直接调用 `origin_inspect_dataset` 返回 `Unknown tool`，经 `origin_call` 成功。0.2.2 在不扩大经济模式工具列表的条件下接受完整模式旧名称；未知名称、参数校验、视觉限制和既有会话状态检查保留。
+
+- 105 项自动测试通过，包含实际 stdio 的 auto/legacy 协议与 full/economy 两种模式。Ruff 检查及格式检查通过。
+- 冻结 Windows 版本在经济模式下通过旧名称完成 inspect → plan → run → get_job → inspect_project。3 个合成图、2 个原生拟合报告和 OPJU 重新打开验证通过；PNG/PDF/SVG 导出，3 张 PNG 已检查标签与裁切。该数据只用于程序验收，不是用户的作业结果。
+- 列表保持 5 个工具，JSON 字符数 4743；本次冷启动 0.984 秒，合成工作流端到端 28.219 秒。属于单次本机测量，不是模型推理或 token 计费指标。
+- 项目同步的 Windows 共享锁已单独解除；不是修改 Origin 引擎的结果。具体诊断与复发处理见 [Work 排障](WORK_TROUBLESHOOTING.md)。ChatGPT Work 用户界面重新发送及模型完整任务仍需独立确认，不能用协议检查代替。

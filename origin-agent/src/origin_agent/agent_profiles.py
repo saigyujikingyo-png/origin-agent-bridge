@@ -61,6 +61,21 @@ class AgentMCPServer(MCPServer):
             raise
 
 
+class EconomyMCPServer(AgentMCPServer):
+    """Advertise compact tools while accepting full-mode names cached by existing hosts."""
+
+    def __init__(self, full, *args, **kwargs):
+        self._full = full
+        super().__init__(*args, **kwargs)
+
+    async def call_tool(self, name, arguments, context=None):
+        if name in {"origin_status", "origin_help", "origin_call", "origin_recipe", "origin_get_artifact"}:
+            return await super().call_tool(name, arguments, context)
+        # Route by name before execution: never retry an uncertain action after a tool error.
+        # The full server still checks known names, schemas, vision policy and state revisions.
+        return await self._full.call_tool(name, arguments, context)
+
+
 class AgentProfile(ClosedModel):
     preset: Literal["generic", "deepseek", "gpt-terra", "gemini", "glm", "kimi", "elm"] = "generic"
     mode: Literal["full", "economy"] = "full"
@@ -147,7 +162,8 @@ def make_economy_server(full, store, profile):
 
     from . import __version__
 
-    mcp = AgentMCPServer(
+    mcp = EconomyMCPServer(
+        full,
         "origin-agent",
         title="Origin Companion",
         version=__version__,
