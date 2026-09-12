@@ -79,21 +79,38 @@
   ],
   "browser_receipt": {
     "four_attachment_links_visible": true,
-    "independent_files_verified": 0,
-    "status": "PENDING",
-    "reported_blocker": "Chrome ERR_BLOCKED_BY_CLIENT; blocking component not identified",
-    "evidence": "Live remote task title observed after the numerical receipt; not a completed binary receipt",
+    "independent_files_verified": 1,
+    "status": "PARTIAL_REMOTE_OPERATOR_REPORT",
+    "reported_blocker": "Automatic browser download blocked; remote operator attributes it to organizational security policy; the user suspects University of Edinburgh restrictions. Exact blocking component not independently identified.",
+    "evidence": "Earlier Chrome ERR_BLOCKED_BY_CLIENT; later remote operator reports PNG received through a formal interface and checked (1/4). Release maintainer has not independently received that download receipt or its digests.",
     "local_files_are_not_substituted_for_cloud_downloads": true,
     "cloud_work_reported_verified_files": 4,
     "cloud_work_report_evidence": "Remote task title reports Work 4/4; detailed final receiver records were not delivered by cross-task read tools",
-    "png_and_pdf_opened_by_remote_operator": true
+    "png_and_pdf_opened_by_remote_operator": true,
+    "initial_independent_files_verified": 0,
+    "verified_files_reported_by_remote_operator": [
+      "panel-01.png"
+    ],
+    "remaining_files_in_this_receipt_path": [
+      "panel-01.pdf",
+      "panel-01.svg",
+      "project.opju"
+    ],
+    "receipt_details_independently_received_by_release_maintainer": false
   },
   "limits": [
-    "No complete cloud delivery pass until actual received bytes and hashes are verified",
+    "Complete receipt for the tested delivery route remains unverified; no particular cloud drive or automated browser download method is mandatory. Remote operator reports PNG 1/4, but its detailed receipt has not reached the release maintainer.",
     "Original tool-host startup context issue remains open",
     "Local Work host not independently verified",
     "Cross-window account/workspace equivalence not confirmed; the dedicated remote plugin was used",
     "No every-function or every-model claim"
   ],
-  "evidence_policy": "Public NIST numerical results and artifact hashes only; no device name, credentials, private data, local paths or task/tunnel/account identifiers."
+  "evidence_policy": "Public NIST numerical results and artifact hashes only; no device name, credentials, private data, local paths or task/tunnel/account identifiers.",
+  "delivery_policy": {
+    "onedrive_required": false,
+    "destination": "User-selected authorized local folder, host attachment or other approved destination",
+    "specific_automatic_browser_download_required": false,
+    "acceptance": "Verify actual artifacts through a supported delivery route; record native execution, host delivery and browser automation separately. Do not claim unreceived files passed.",
+    "scope": "University OneDrive is a development archive preference, not a product delivery requirement"
+  }
 }

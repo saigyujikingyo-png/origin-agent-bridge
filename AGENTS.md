@@ -6,6 +6,8 @@ Shared defaults: GitHub distribution; simple installation for non-developers; mu
 
 Codex is the development environment. Users run plugins in Work cloud/local, Claude, WorkBuddy and other supported general Agent work environments. Target support and actual acceptance are separate. Do not claim all functions, hosts or models are verified from protocol tests alone.
 
+The private university OneDrive is for development archives, not a required runtime or result destination. Deliver artifacts to the user's chosen authorized location. Distinguish native execution, host attachment delivery and automated browser downloads; a policy-blocked download route is not an Origin execution failure.
+
 This repository implements Origin Companion; its Python package is origin-agent. Run commands from this checkout, with package commands under origin-agent when required. Machine-local runtime data and credentials stay outside the repository and cloud-sync working files. Preserve unrelated changes and existing working state.
 
 For any new Chembridge plugin created in a separate checkout, carry the current shared principles into that checkout and add an AGENTS.md entry requiring them. Keep the shared rule version and product-specific acceptance records clear. User instructions take precedence.

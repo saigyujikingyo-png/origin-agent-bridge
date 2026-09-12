@@ -139,7 +139,7 @@
     ]
   },
   "limitations": [
-    "Second-device SR1 passed four native cases and real Terra max cloud Norris native/reopen checks; browser file download and original tool-host startup context remain open",
+    "Second-device SR1 passed four native cases and real Terra max cloud Norris native/reopen checks; an automatic browser download route is policy-blocked per remote report, with 1/4 files reported independently received. A supported alternate delivery route may qualify; OneDrive is not required. Original tool-host startup context remains open.",
     "No claim of every Origin function or every host/model being validated",
     "Computer name is a routing aid, not cryptographic attestation",
     "Plugin update needs host tool catalog refresh where cached",
@@ -184,7 +184,15 @@
     "independent_received_figure_review": "remote-sr1-figure-review-0.2.8.json",
     "actual_cloud_work_receipt": "remote-sr1-cloud-work-0.2.8.json",
     "connection_receipt_time": "2026-09-12T11:08:47.388Z",
-    "receipt_note": "The earlier native receipt remains a historical snapshot; use actual_cloud_work_receipt for later cloud progress"
+    "receipt_note": "The earlier native receipt remains a historical snapshot; use actual_cloud_work_receipt for later cloud progress",
+    "delivery_requirement": "User-selected authorized destination; no OneDrive requirement and no universal requirement to use a specific automated browser download method",
+    "latest_remote_report": {
+      "independent_files_verified": 1,
+      "expected_files": 4,
+      "file": "PNG",
+      "evidence": "Remote operator final report; detailed receipt not independently received by release maintainer",
+      "download_blocker": "Automatic browser download restriction; precise blocking component not independently identified"
+    }
   },
   "followup_documentation_ci": {
     "commit": "73534f6d14def93a1a0995ec4fd23dbefd37e0d6",
