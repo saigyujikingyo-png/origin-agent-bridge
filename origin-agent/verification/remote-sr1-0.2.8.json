@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "updated_at_utc": "2026-09-12T10:07:20.602Z",
-  "status": "LOCAL_NATIVE_ACCEPTANCE_PASS_HOST_ENVIRONMENT_AND_CLOUD_WORK_OPEN",
+  "updated_at_utc": "2026-09-12T10:25:25.744Z",
+  "status": "LOCAL_NATIVE_ACCEPTANCE_PASS_STARTUP_CONTEXT_OPEN_CLOUD_AUTH_PENDING",
   "package": {
     "version": "0.2.8",
     "advertised_commit": "ef7a1c9",
@@ -66,7 +66,9 @@
       "Installed the verified 0.2.8 candidate; native installation selfcheck passed",
       "Compared identical minimal native readback through ordinary terminal MCP",
       "Tested APPDATA alone, LOCALAPPDATA alone, and both together in child processes only; all three failed before executing program code",
-      "Completed the four public NIST cases and artifact verification in the passing ordinary terminal environment"
+      "Completed the four public NIST cases and artifact verification in the passing ordinary terminal environment",
+      "Bounded original-context direct .NET COM activation to 30 seconds; no COM object or HRESULT returned",
+      "Compared read-only own-child-process token restriction, integrity and elevation fields; observed fields match but full host-boundary equivalence remains unproven"
     ],
     "registry_or_licence_repair_performed": false,
     "causal_fix_not_established": true,
@@ -91,7 +93,9 @@
       },
       "specific_causal_variable": "NOT_ISOLATED_APPDATA_AND_LOCALAPPDATA_ALONE_INSUFFICIENT",
       "global_environment_changed": false,
-      "installed_binaries_modified": false
+      "installed_binaries_modified": false,
+      "same_observed_token_fields": true,
+      "sandbox_and_com_access_equivalence_established": false
     },
     "original_test_client_replaced_environment": false,
     "original_host_child_environment_missing_variables": true,
@@ -160,7 +164,7 @@
       }
     ],
     "appdata_and_localappdata_restoration_sufficient": false,
-    "confirmed_scope": "The original tool-host inherited environment fails startup; an ordinary terminal environment passes the same installed executable and minimal program, followed by all four NIST cases. No global or product repair was made.",
+    "confirmed_scope": "Startup context difference: the original tool-host context fails native startup and a direct .NET COM activation times out; the ordinary terminal context passes. Equal observed token fields and Windows session do not establish all sandbox or COM-access equivalence. No root-cause repair was made.",
     "windows_event_correlation": {
       "window_start_utc": "2026-09-12T09:42:00.0000000Z",
       "window_end_utc": "2026-09-12T10:07:19.8406007Z",
@@ -174,6 +178,44 @@
       "unrelated_processes_terminated": false,
       "owned_terminal_client_exited_cleanly": true,
       "owned_environment_probe_mcp_servers_exited_cleanly": true
+    },
+    "final_bounded_dotnet_com_probe": {
+      "started_at_utc": "2026-09-12T10:20:30.5913678Z",
+      "status": "TIMED_OUT",
+      "stage": "creating_com",
+      "timeout_seconds": 30,
+      "com_object_created": false,
+      "hresult": null,
+      "hresult_reason": "No exception or COM object returned before the timeout",
+      "environment_override": false,
+      "ordinary_terminal_same_script_prior_result": "PASS",
+      "original_client_stopped_at_bound": true,
+      "origin_processes_after_probe": 0
+    },
+    "read_only_token_comparison": {
+      "checked_at_utc": "2026-09-12T10:20:30.3544766Z",
+      "all_observed_fields_equal": true,
+      "ordinary_terminal": {
+        "Is64BitProcess": true,
+        "SessionId": 2,
+        "IsRestricted": false,
+        "IntegrityRid": 8192,
+        "IsElevated": false,
+        "ElevationType": 3,
+        "IsAppContainer": false,
+        "RestrictedSidCount": 0
+      },
+      "original_tool_context": {
+        "Is64BitProcess": true,
+        "SessionId": 2,
+        "IsRestricted": false,
+        "IntegrityRid": 8192,
+        "IsElevated": false,
+        "ElevationType": 3,
+        "IsAppContainer": false,
+        "RestrictedSidCount": 0
+      },
+      "limits": "Own child-process metadata only; job-object, sandbox, parent-host and effective COM-access equivalence not established"
     }
   },
   "connection": {
@@ -183,14 +225,53 @@
     "codex_tools_after_host_restart": "NOT_VERIFIED",
     "chatgpt_work_model_native_acceptance": "NOT_RUN",
     "cloud_prerequisites": {
-      "tunnel_client_available": false,
+      "tunnel_client_available": true,
       "origin_profile_exists": false,
       "origin_private_credential_exists": false,
       "required_environment_credentials_present": false
     },
     "other_device_connector_used_for_native_jobs": false,
     "tool_host_inherited_environment": "STARTUP_FAILED",
-    "cloud_prerequisites_checked_at_utc": "2026-09-12T09:36:44.8530054Z"
+    "cloud_prerequisites_checked_at_utc": "2026-09-12T10:24:20.7680687Z",
+    "tunnel_client_preparation": {
+      "status": "INSTALLED_AND_HELP_VERIFIED_PERSONAL_AUTH_PENDING",
+      "version": "0.0.14",
+      "build_commit": "0f870e50a973fa820d4c409000059e181e8d242b",
+      "source": "https://github.com/openai/tunnel-client/releases/latest",
+      "archive_sha256": "784ab8da7b5a88f0109f1fd8aaf0a1c86067430b896dddf307ef7e3cc49fa1a5",
+      "executable_sha256": "fcc85a69ec0ad82518e4f8964f60c45e31787957782a0fc9c1b0c44e82d61b9b",
+      "published_checksum_matched": true,
+      "authenticode_status": "NotSigned",
+      "version_exit_code": 0,
+      "quickstart_help_exit_code": 0,
+      "connect_help_exit_code": 0,
+      "versioned_local_nonsynced_install": true,
+      "global_path_modified": false,
+      "profile_created": false,
+      "credentials_created_or_copied": false,
+      "managed_runtime_started": false,
+      "client_processes": 0,
+      "personal_connection_script_syntax_checked": true,
+      "personal_connection_script_executed": false
+    },
+    "personal_handoff": {
+      "platform_page": "https://platform.openai.com/settings/organization/tunnels",
+      "observed_page_state": "LOGIN_FORM",
+      "runtime_key_page": "https://platform.openai.com/settings/organization/api-keys",
+      "chatgpt_plugins_page": "https://chatgpt.com/plugins",
+      "organization_permissions_verified": false,
+      "target_workspace_association_verified": false,
+      "developer_mode_access_verified": false,
+      "steps": [
+        "Sign in personally to the intended OpenAI account and complete its authentication",
+        "Personally create a dedicated tunnel for this second device and confirm the intended Platform organization and ChatGPT workspace association",
+        "Personally create a dedicated runtime API key with Tunnels Read and Use; do not reuse another device key or an admin key",
+        "Run the prepared interactive connection script from a normal non-administrator Windows terminal; enter the new runtime key only in its hidden local prompt",
+        "Verify process_running, healthy and ready before personally authorizing the dedicated developer-mode app in the intended ChatGPT workspace",
+        "Verify the target device and versions from an actual Work model, then complete an isolated native readback, reopen and artifact receipt test"
+      ],
+      "new_nist_full_suite_needed_for_preparation": false
+    }
   },
   "nist": {
     "test_kit_sha256": "ae61f09750c6f334c1857da728785a1b5b1d3bee2296025ebd035838aabf8665",
@@ -471,7 +552,11 @@
     "business_code_changed": false,
     "canonical_plugin_source_changed": false,
     "release_published": false,
-    "secrets_in_report": false
+    "secrets_in_report": false,
+    "global_environment_changed": false,
+    "no_additional_nist_runs_during_tunnel_preparation": true,
+    "origin_executable_still_unchanged": true,
+    "installed_companion_still_matches_package": true
   },
   "delivery": {
     "scope": "Local stdio MCP binary resource receipt; not cloud Work delivery",
@@ -602,13 +687,38 @@
       "Missing display font Symbol",
       "Missing display font ArialUnicode"
     ],
-    "reviewed_figure_text_legible": true
+    "reviewed_figure_text_legible": true,
+    "reviewed_figure_assets": {
+      "release_tag": "v0.2.8",
+      "release_is_draft": true,
+      "uploaded_and_downloaded_back": true,
+      "verified_at_utc": "2026-09-12T10:12:07.9366556Z",
+      "png_count": 4,
+      "pdf_count": 4,
+      "zip_contains_per_file_sha256": true,
+      "assets": [
+        {
+          "name": "remote-sr1-figures.zip",
+          "bytes": 153983,
+          "sha256": "5951c4d7bb1e372a138a82b6e60c46d680c34b95da7abdb9855663f322b8f2c4",
+          "readback_matched": true
+        },
+        {
+          "name": "remote-sr1-figures.sha256.json",
+          "bytes": 1515,
+          "sha256": "e543174fe2855ac8c9246b2e0d70972a6a2ebcafa9f270c187ffb6658a4e4604",
+          "readback_matched": true
+        }
+      ],
+      "no_opju_logs_accounts_or_private_data": true,
+      "metadata_audit_pass": true
+    }
   },
   "remaining": [
     {
-      "item": "Tool-host startup environment",
+      "item": "Tool-host startup context difference",
       "status": "OPEN",
-      "reason": "Exact causal difference remains unisolated; restoring APPDATA and LOCALAPPDATA alone does not resolve the failure"
+      "reason": "Exact mechanism unisolated; APPDATA and LOCALAPPDATA restoration insufficient; original-context .NET COM activation timed out; equal observed token fields do not establish all host or COM-access equivalence"
     },
     {
       "item": "Actual local Work host model workflow",
@@ -616,7 +726,8 @@
     },
     {
       "item": "Second-device cloud Work connection and model native acceptance",
-      "status": "NOT_RUN_MISSING_LOCAL_CONNECTION_PREREQUISITES"
+      "status": "PERSONAL_LOGIN_AND_DEDICATED_AUTHORIZATION_REQUIRED",
+      "reason": "Official client installed and help verified; login page awaits personal login; no profile, dedicated credentials, running tunnel or real Work native job yet"
     }
   ]
 }

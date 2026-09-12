@@ -177,8 +177,16 @@
     "binary_resource_receipt": "PASS",
     "artifact_count": 16,
     "actual_cloud_work": "NOT_RUN",
-    "host_startup_context_issue": "OPEN",
+    "host_startup_context_issue": "OPEN: direct COM activation also timed out in the original context; observed token fields matched but full context equivalence is not established",
     "receipt": "remote-sr1-0.2.8.json",
-    "receipt_time": "2026-09-12T10:07:20.602Z"
+    "receipt_time": "2026-09-12T10:25:25.744Z",
+    "cloud_connection": "OFFICIAL_CLIENT_READY_PERSONAL_LOGIN_PENDING",
+    "independent_received_figure_review": "remote-sr1-figure-review-0.2.8.json"
+  },
+  "followup_documentation_ci": {
+    "commit": "73534f6d14def93a1a0995ec4fd23dbefd37e0d6",
+    "run": 34688046109,
+    "windows": "PASS",
+    "linux": "PASS"
   }
 }

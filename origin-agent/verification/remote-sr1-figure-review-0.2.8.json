@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-12",
+  "plugin_version": "0.2.8",
+  "origin_native_version": 10.300197,
+  "archive": "remote-sr1-figures.zip",
+  "archive_bytes": 153983,
+  "archive_sha256": "5951c4d7bb1e372a138a82b6e60c46d680c34b95da7abdb9855663f322b8f2c4",
+  "review_performed_on": "receiving device, independently of exporting device",
+  "files": [
+    {
+      "file": "Norris.png",
+      "bytes": 23158,
+      "sha256": "06aa634869414e950e8758c84f10608184905fdb6f34614c61d7a29b1df8295d"
+    },
+    {
+      "file": "Norris.pdf",
+      "bytes": 4031,
+      "sha256": "930c7a76acd7e7b84798c8711837d355f6a756308550a6a74ae2913c32a3d193"
+    },
+    {
+      "file": "Misra1a.png",
+      "bytes": 38940,
+      "sha256": "70d8a96268b1f0b3739e3fb64cf403359b1305ad4eaf2eb3f7649bf5b811d983"
+    },
+    {
+      "file": "Misra1a.pdf",
+      "bytes": 10492,
+      "sha256": "d24f810d1e5b4cc4b0e7c8b575adcdf5333495f5511e4a10b748dcea3eefbeae"
+    },
+    {
+      "file": "Eckerle4.png",
+      "bytes": 40027,
+      "sha256": "31bf22550951661b2960305d7ee9fed49e98f69951f4ee6f2014c39c32eec167"
+    },
+    {
+      "file": "Eckerle4.pdf",
+      "bytes": 11035,
+      "sha256": "335ba71834ea39bab50c23a04541a3cda30df5ec35c488b760975be326e014ab"
+    },
+    {
+      "file": "Chwirut1.png",
+      "bytes": 38341,
+      "sha256": "09fc3d4681b3336b1ba423a97f8bc93633afbcc0d3b4c39e20d55f9ed398fda4"
+    },
+    {
+      "file": "Chwirut1.pdf",
+      "bytes": 12213,
+      "sha256": "606bb8ef624b188ea366470ee09168008f7be0b9f9c3a6c71a7c78b5cbe92fac"
+    }
+  ],
+  "file_bytes_and_sha256_match": true,
+  "pngs_individually_viewed": 4,
+  "pdfs_independently_rendered_and_viewed": 4,
+  "pdf_renderer": "Poppler pdftoppm",
+  "visual_result": "PASS: titles, axes, observations, fit curves and legends are legible; no material cropping or overlap observed.",
+  "renderer_warnings": [
+    "No display font for Symbol",
+    "No display font for ArialUnicode"
+  ],
+  "warning_review": "All visible text in these four rendered PDFs remained legible; this does not validate other fonts, scripts or future exports.",
+  "actual_cloud_work_on_second_device": false,
+  "evidence_boundary": "This verifies the received SR1 export files. Native numerical and OPJU reopening evidence is recorded separately; the review is not a cloud-model run."
+}
