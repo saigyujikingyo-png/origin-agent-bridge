@@ -19,6 +19,7 @@
 - [0.2.8 候选云端 Work 验收](WORK_ACCEPTANCE_0.2.8.md)
 - [四套真实观测数据的原生核验](NIST_ACCEPTANCE_2026-09-12.md)
 - [Chembridge 云存储安排](CLOUD_STORAGE.md)
+- [所有 Chembridge 插件的统一开发准则](DEVELOPMENT_PRINCIPLES.md)
 - [GitHub 发行与便捷安装原则](PUBLIC_DISTRIBUTION.md)
 - [后续开发路线](origin-agent/docs/ROADMAP.md)
 - [开发者实现说明](origin-agent/README.md)
