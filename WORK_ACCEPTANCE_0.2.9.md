@@ -21,7 +21,7 @@ The calling older task still returned `Unknown tool` for its stale cloud alias. 
 
 The registered app was checked using the installed Codex `app/read` protocol. All five expected tools were enabled. No model call is made by this setup check.
 
-The first official local-plugin uninstall failed while older plugin processes held its cache. Configuration was restored. After identifying and closing only the old local Origin MCP servers and their PowerShell wrappers, the consolidation retry succeeded. The running cloud tunnel, Codex application and Origin application were preserved. The personal catalog retained its unrelated entry; the retired Origin source folder remains available for rollback. After the user reported a local Work failure, that receipt was rolled back and the official local plugin was reinstalled as a temporary fallback. The initial error was subsequently traced to host project synchronisation, not an Origin tool call. Final consolidation status is recorded below after retesting.
+The first official local-plugin uninstall failed while older plugin processes held its cache. Configuration was restored. After identifying and closing only the old local Origin MCP servers and their PowerShell wrappers, the consolidation retry succeeded. The running cloud tunnel, Codex application and Origin application were preserved. The personal catalog retained its unrelated entry; the retired Origin source folder remains available for rollback. After the user reported a local Work failure, that receipt was rolled back and the official local plugin was reinstalled as a temporary fallback. The initial error was subsequently traced to host project synchronisation, not an Origin tool call. Final consolidation used the installed 0.2.9 executable. An initial attempt again encountered a Windows cache sharing violation and restored its configuration. After closing only identified old local Origin servers with no child jobs, official removal and the targeted catalog migration succeeded. The final personal catalog has no local Origin entry; the same registered OpenAI app remains enabled with five tools. The existing scheduled private tunnel was restarted and verified running the 0.2.9 executable, with its account profile and encrypted key reused.
 
 Private app IDs, account URLs, credentials, machine identifiers and detailed local logs are excluded from this public report. They are stored only in the local installation receipt.
 
@@ -36,7 +36,23 @@ This establishes a host project-cache replacement conflict, rather than a missin
 - Local suite: 174 passed, one skipped because Windows symlink permission was unavailable.
 - Ruff lint and formatting passed; graphical setup PowerShell syntax parsed successfully.
 - New checks cover invalid links/keys, incorrect or unavailable app identities, unrelated-plugin preservation, failed CLI rollback, repeat consolidation, unfamiliar direct MCP entries, legacy installer routing, and real MCP initialization with the same title/icon in economy/full modes.
-- Frozen-package, installed-native, final hosted-version and CI results are added below after they run. The new graphical window has not yet had interactive desktop acceptance.
+- GitHub Windows and Ubuntu checks passed for runtime commit `da4f14f167e663fdbd92bfed6d46db7d3d3f0655`: [CI run](https://github.com/saigyujikingyo-png/origin-agent-bridge/actions/runs/34699408989).
+- Official MCPB manifest validation and Codex plugin validation passed on the built bundle. The MCPB validator recommends a 512 px icon; the current icon is valid.
+- ZIP and MCPB are byte-identical: 33,089,607 bytes each (31.56 MiB), SHA-256 `1f2006e641064f21beef69b01ff9d918bcf7ffde9b5af4503532286ac1ff3b23`. All 310 archive entries and individual file hashes were verified.
+- Isolated installation into a user path containing spaces, repeat installation and current-user upgrade from 0.2.8 passed, including native self-checks. Installation receipts and the previous version were retained.
+- The frozen executable ran with development runtimes removed from PATH. A synthetic six-row Beer-Lambert workflow passed independent slope/intercept/unknown-concentration checks, native project/report/text reopening, and PNG/PDF/SVG/OPJU byte-count and SHA-256 verification. Workflow elapsed 26.578 seconds; the complete regression including intentional-failure recovery took 42.219 seconds. No model was called in this regression.
+- The native PNG was visually inspected: six standards, fit line, legend and axis labels were readable. This is a synthetic packaging regression, not a claim of compliance with every course's figure requirements.
+- A deliberately missing Python dependency returned a terminal failure and actionable recovery instead of continued polling.
+- The installed Claude and WorkBuddy commands each returned 0.2.9 and the five-tool economy interface. These are command/protocol tests, not actual model-session acceptance for those hosts.
+- The new graphical connection window has passed syntax and code checks but has not had interactive desktop acceptance.
+
+## Post-upgrade hosted connection checks
+
+After the existing private tunnel restarted on the installed 0.2.9 core:
+
+- Cloud Work, GPT-5.6 Terra with max reasoning: a new status call returned **0.2.9**, Origin build **10.350243**; import-table help also succeeded. The expanded activity showed the requested actions; the UI reported 12 seconds for this two-call check.
+- Chat, UI label Instant: a new status call returned **0.2.9**. Its actual request and response were inspected in the tool-call panel.
+- A fresh Codex Terra max attempt mistakenly called the browser state tool and stopped without calling Origin. This is a model tool-selection failure, not an Origin execution failure. It used 42,436 input tokens (29,184 cached), 1,030 output tokens and 918 reasoning output tokens; charges were unavailable. A corrected prompt explicitly selecting the connected app was then tested separately: exactly one real `codex_apps` call to `origin_companion.origin_status` succeeded with **0.2.9**. The returned server metadata included the English title/description and blue icon URL. The retry used 62,090 input tokens (38,400 cached), 331 output tokens and 208 reasoning output tokens. Count the earlier failure and correction when assessing first-attempt reliability; these mixed host-context runs are not an isolated quota-saving benchmark.
 
 ## Remaining limits
 
