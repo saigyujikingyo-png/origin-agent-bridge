@@ -49,11 +49,27 @@
   "cloud_metadata": {
     "refresh_clicked_in_chatgpt": true,
     "advertised_tools": 5,
-    "current_codex_cloud_alias": "Unknown tool persists in the current conversation; fresh Work check tracked separately"
+    "current_codex_cloud_alias": "Unknown tool persists in the current conversation; fresh Work check tracked separately",
+    "actual_work_followup": {
+      "status": "PASS_STATUS_ONLY",
+      "plugin_version": "0.2.8",
+      "origin_status_calls_reported": 1,
+      "call_success_reported": true,
+      "native_job_started": false,
+      "evidence": "New response observed in the actual ChatGPT Work conversation after refresh; Work reports its current tool call returned 0.2.8 successfully. No raw tool transcript or model benchmark is claimed."
+    }
   },
   "limits": [
     "An already open host conversation may retain its previous tool catalog",
     "This refresh does not certify every Origin function or every host/model"
   ],
-  "evidence_policy": "No local paths, account/device identifiers, credentials or private research data."
+  "evidence_policy": "No local paths, account/device identifiers, credentials or private research data.",
+  "public_release": {
+    "tag": "v0.2.8",
+    "draft": false,
+    "prerelease": true,
+    "unauthenticated_zip_download_verified": true,
+    "bytes": 33085772,
+    "sha256": "54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77"
+  }
 }
