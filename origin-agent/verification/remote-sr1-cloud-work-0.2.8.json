@@ -99,7 +99,7 @@
     "receipt_details_independently_received_by_release_maintainer": false
   },
   "limits": [
-    "Complete receipt for the tested delivery route remains unverified; no particular cloud drive or automated browser download method is mandatory. Remote operator reports PNG 1/4, but its detailed receipt has not reached the release maintainer.",
+    "User confirms successful download to their own Downloads folder. The four-file receipt details for the recorded NIST route remain unverified; the later user report does not identify its files or device. Earlier operator report remains PNG 1/4. No OneDrive destination is required.",
     "Original tool-host startup context issue remains open",
     "Local Work host not independently verified",
     "Cross-window account/workspace equivalence not confirmed; the dedicated remote plugin was used",
@@ -112,5 +112,19 @@
     "specific_automatic_browser_download_required": false,
     "acceptance": "Verify actual artifacts through a supported delivery route; record native execution, host delivery and browser automation separately. Do not claim unreceived files passed.",
     "scope": "University OneDrive is a development archive preference, not a product delivery requirement"
+  },
+  "followup_user_download_confirmation": {
+    "date": "2026-09-12",
+    "source": "User confirmation in the active project task",
+    "status": "DOWNLOAD_TO_OWN_DOWNLOADS_CONFIRMED_BY_USER",
+    "destination": "Downloads folder of the user account",
+    "download_succeeded": true,
+    "specific_files": null,
+    "file_count": null,
+    "device_and_plugin_version": null,
+    "download_method": null,
+    "sha256_verification_reported": null,
+    "independently_rechecked_by_release_maintainer": false,
+    "scope": "Confirms a working user-selected download destination; does not establish receipt of all four NIST artifacts or identify the blocker on the earlier route."
   }
 }

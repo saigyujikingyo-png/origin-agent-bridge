@@ -1,7 +1,7 @@
 {
   "version": "0.2.8",
   "date": "2026-09-12",
-  "status": "TWO_DEVICE_CLOUD_NATIVE_PASSED_SECOND_DEVICE_DOWNLOAD_PENDING",
+  "status": "TWO_DEVICE_CLOUD_NATIVE_PASSED_FILE_RECEIPT_DETAILS_PENDING",
   "source_commit": "ef7a1c994871da8ba46f648ac84c3dab423425b9",
   "candidate_sha256": "54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77",
   "target_scope": [
@@ -139,7 +139,7 @@
     ]
   },
   "limitations": [
-    "Second-device SR1 passed four native cases and real Terra max cloud Norris native/reopen checks; an automatic browser download route is policy-blocked per remote report, with 1/4 files reported independently received. A supported alternate delivery route may qualify; OneDrive is not required. Original tool-host startup context remains open.",
+    "Second-device SR1 passed four native cases and real Terra max cloud Norris native/reopen checks. The user subsequently confirms download to their own Downloads succeeds; downloads are not universally blocked. Exact files/device/hashes of this user attempt were not supplied, so the four-artifact independent receipt remains pending. Original tool-host startup context remains open.",
     "No claim of every Origin function or every host/model being validated",
     "Computer name is a routing aid, not cryptographic attestation",
     "Plugin update needs host tool catalog refresh where cached",
@@ -199,5 +199,19 @@
     "run": 34688046109,
     "windows": "PASS",
     "linux": "PASS"
+  },
+  "user_download_confirmation": {
+    "date": "2026-09-12",
+    "source": "User confirmation in the active project task",
+    "status": "DOWNLOAD_TO_OWN_DOWNLOADS_CONFIRMED_BY_USER",
+    "destination": "Downloads folder of the user account",
+    "download_succeeded": true,
+    "specific_files": null,
+    "file_count": null,
+    "device_and_plugin_version": null,
+    "download_method": null,
+    "sha256_verification_reported": null,
+    "independently_rechecked_by_release_maintainer": false,
+    "scope": "Confirms a working user-selected download destination; does not establish receipt of all four NIST artifacts or identify the blocker on the earlier route."
   }
 }
