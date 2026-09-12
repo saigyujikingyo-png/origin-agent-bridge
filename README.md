@@ -8,7 +8,7 @@
 
 目标是供使用指定爱大授权 Origin 版本的同学、教授和研究人员个人分享使用。Origin 计算由 Windows 上的独立执行端完成；云端 Agent 经本人配置的安全连接调用，本地 Agent 经受支持的本机连接调用。常规任务优先批量原生操作，GUI 用于需要它的交互补充。
 
-当前发行是 **[0.2.7 预览版](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.7)**。真实云端 Work 已有验收案例；0.2.8 草稿已在第二台电脑通过学校 SR1 的四套原生数据测试及 Terra max 云端 Norris 原生执行，云端附件下载仍在核验。本地 Work 与其他宿主内的模型调用仍需独立验收。列为目标使用场景，不等于已经全部验证。
+当前发行是 **[0.2.8 预览版](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8)**。学校 SR1 已在第二台电脑通过四套原生数据测试及 Terra max 云端 Norris 原生执行；SR2 已有真实云端附件接收核验。用户确认下载到自己的 Downloads 成功，不要求学校 OneDrive。第二设备四件成果的完整独立接收明细、本地 Work 与其他宿主模型调用仍需继续验收；当前不宣称所有功能和宿主全部通过。
 
 - [下载后的安装与连接](origin-agent/docs/INSTALL.md)
 - [自然语言试用示例](origin-agent/examples/README.md)
@@ -16,7 +16,7 @@
 - [云端文件交付修复与实际下载验收](WORK_DELIVERY_0.2.7.md)
 - [云端卡住问题修复与复测](WORK_RECOVERY_0.2.6.md)
 - [此前详尽 Work 验收](WORK_ACCEPTANCE_2026-09-11.md)
-- [0.2.8 候选云端 Work 验收](WORK_ACCEPTANCE_0.2.8.md)
+- [0.2.8 云端 Work 验收](WORK_ACCEPTANCE_0.2.8.md)
 - [四套真实观测数据的原生核验](NIST_ACCEPTANCE_2026-09-12.md)
 - [Chembridge 云存储安排](CLOUD_STORAGE.md)
 - [所有 Chembridge 插件的统一开发准则](DEVELOPMENT_PRINCIPLES.md)

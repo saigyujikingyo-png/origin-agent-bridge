@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-12",
+  "version": "0.2.8",
+  "candidate_sha256": "54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77",
+  "scope": "Local installation refresh and protocol verification; not a new full-host acceptance",
+  "bundle_files_verified": 306,
+  "installed_file_mismatches": 0,
+  "frozen_source_differences": 0,
+  "native_self_check": {
+    "passed": true,
+    "native_readback": true,
+    "origin_version": 10.350243,
+    "bitness": 64,
+    "demo": 0
+  },
+  "fresh_plugin_connection": {
+    "plugin_version": "0.2.8",
+    "registered_plugin_launcher_used": true,
+    "status_is_error": false,
+    "tool_names": [
+      "origin_status",
+      "origin_help",
+      "origin_call",
+      "origin_recipe",
+      "origin_get_artifact"
+    ],
+    "recipe_help_is_error": false,
+    "invalid_plan_is_error": true,
+    "invalid_plan_structured": {
+      "error": "validation",
+      "issues": [
+        {
+          "field": "workflow.panels",
+          "message": "Field required",
+          "type": "missing"
+        }
+      ]
+    },
+    "seconds": 1.421
+  },
+  "local_refresh": {
+    "personal_plugin_reinstalled": true,
+    "duplicate_global_origin_mcp_removed": true,
+    "prior_configuration_backed_up": true,
+    "old_idle_mcp_connections_stopped": true,
+    "other_plugins_preserved": true,
+    "claude_and_workbuddy_configured_version": "0.2.8"
+  },
+  "cloud_metadata": {
+    "refresh_clicked_in_chatgpt": true,
+    "advertised_tools": 5,
+    "current_codex_cloud_alias": "Unknown tool persists in the current conversation; fresh Work check tracked separately"
+  },
+  "limits": [
+    "An already open host conversation may retain its previous tool catalog",
+    "This refresh does not certify every Origin function or every host/model"
+  ],
+  "evidence_policy": "No local paths, account/device identifiers, credentials or private research data."
+}
