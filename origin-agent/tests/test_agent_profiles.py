@@ -162,6 +162,8 @@ async def test_correctable_errors_are_bounded_without_echoing_inputs(store, mode
 
         invalid = await call("origin_plan_workflow", {"workflow": {"private": "do-not-echo-this" * 2000}})
         assert invalid.is_error
+        assert invalid.structured_content["error"] == "validation"
+        assert json.loads(invalid.content[0].text) == invalid.structured_content
         message = str(invalid.content)
         assert "do-not-echo-this" not in message
         assert "panels" in message and len(message) < 1800
@@ -176,6 +178,9 @@ async def test_correctable_errors_are_bounded_without_echoing_inputs(store, mode
             },
         )
         assert syntax.is_error
+        assert syntax.structured_content["error"] == "syntax"
+        assert syntax.structured_content["line"] == 1
+        assert json.loads(syntax.content[0].text) == syntax.structured_content
         assert '"line": 1' in syntax.content[0].text
 
 

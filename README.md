@@ -17,4 +17,4 @@
 - [后续开发路线](origin-agent/docs/ROADMAP.md)
 - [开发者实现说明](origin-agent/README.md)
 
-目标基线：Origin 2026b SR2 10.350243、Windows x64、普通 Origin。项目不分发 Origin 或学校许可证。插件代码采用 MIT 许可；第三方库保持各自许可。
+目标基线：Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64、普通 Origin。SR2 已有原生案例验收；SR1 正在第二台设备资格验证，尚未宣称通过。项目不分发 Origin 或学校许可证。插件代码采用 MIT 许可；第三方库保持各自许可。

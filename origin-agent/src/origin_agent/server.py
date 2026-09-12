@@ -47,6 +47,8 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
         title="Origin Companion",
         version=__version__,
         instructions="Use inspect → plan → run → get_job(wait_seconds=20). Reuse IDs. "
+        "When a device is specified, compare origin_status.device.computer_name before submitting work. "
+        "A mismatch requires the correct connection, not a job on another computer. "
         "Never invent column units, fitting constraints, preprocessing, or scientific evidence. "
         "Use get_artifact preview to inspect graphs. Completed jobs contain editable native OPJU. "
         "For operations beyond fixed recipes, discover origin_capabilities then use origin_run_program. "

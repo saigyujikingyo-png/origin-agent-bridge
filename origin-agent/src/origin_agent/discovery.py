@@ -5,7 +5,7 @@ import os
 import platform
 from pathlib import Path
 
-from .target import TARGET
+from .target import target_profile
 
 
 def discover() -> dict:
@@ -42,12 +42,16 @@ def discover() -> dict:
         except importlib.metadata.PackageNotFoundError:
             dependencies[name] = None
     return {
+        "device": {
+            "computer_name": platform.node(),
+            "scope": "Computer running this MCP server; native activation is verified separately",
+        },
         "platform": platform.system(),
         "architecture": platform.machine(),
         "installations": available,
         "configured_executable": explicit,
         "dependencies": dependencies,
-        "target_profile": dict(TARGET),
+        "target_profile": target_profile(),
         "native_ready_to_probe": bool(available) and all(dependencies.values()),
         "connection_policy": "new isolated Application; verify actual executable directory at runtime",
     }

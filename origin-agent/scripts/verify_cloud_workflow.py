@@ -55,6 +55,34 @@ async def main():
 
         assert len((await client.list_tools()).tools) == 5
         evidence["status"] = await direct("origin_status", {})
+        import platform
+
+        assert evidence["status"]["device"]["computer_name"] == platform.node()
+        evidence["device_identity_matches_process"] = True
+        bad_project = root / "inbox" / "invalid-project.csv"
+        bad_project.write_text("x,y\n1,2\n", encoding="utf-8")
+        invalid = await client.call_tool(
+            "origin_call",
+            {
+                "operation": "origin_session",
+                "arguments_json": json.dumps(
+                    {
+                        "action": "open",
+                        "request_id": "reject-csv-project",
+                        "project_path": str(bad_project),
+                    }
+                ),
+            },
+        )
+        assert invalid.is_error
+        assert invalid.structured_content == {
+            "error": "invalid_request",
+            "message": "Project inputs must be OPJ/OPJU",
+        }
+        assert json.loads(invalid.content[0].text) == invalid.structured_content
+        assert not list((root / "sessions").iterdir())
+        evidence["structured_error_verified_without_session"] = True
+
         receiver = await direct("origin_help", {"operation": "origin_get_artifact", "query": "receiver"})
         receiver_source = receiver["receiver"]["javascript"]
         expected_receiver = Path(__file__).resolve().parents[1] / "src/origin_agent/data/receive_artifact.js"

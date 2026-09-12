@@ -10,7 +10,7 @@ Cloud Work has recorded real-model acceptance. Local Work and other hosts need t
 
 The target is a smooth Origin plugin for licensed University of Edinburgh staff and students. See the [Edinburgh product definition and reuse assessment](docs/EDINBURGH_PRODUCT.md). Version 0.2 includes native programming, live projects, GUI input and a self-contained Windows installer. Coverage is recorded by verified example, not by assuming that every function works.
 
-Agent-neutral, local Origin workflows over MCP. The personal sharing build targets the user's Edinburgh-licensed **Origin 2026b SR2 (10.350243), Windows x64, Origin edition**. Native workers check this exact baseline. This project does not distribute Origin or a licence.
+Agent-neutral, local Origin workflows over MCP. The personal sharing build accepts **Origin 2026 SR1 (10.300197) and 2026b SR2 (10.350243), Windows x64, Origin edition**. Native workers check the exact build, bitness, edition and non-Demo activation. SR2 has documented native acceptance cases; SR1 qualification on a second device is pending. Matching the version does not certify all workflows. This project does not distribute Origin or a licence.
 
 Version 0.2 adds general Python/originpro/COM, LabTalk/X-Function and Origin C execution, installed capability discovery, persistent managed sessions and a native GUI transaction channel. Fourteen full-mode MCP tools cover workflows, capabilities, session/GUI control and artifacts without registering one tool per Origin function. Programs run as trusted code with the Windows user's permissions.
 

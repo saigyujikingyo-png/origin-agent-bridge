@@ -1,5 +1,16 @@
 # ChatGPT Work 排障
 
+## 确认连接的电脑
+
+0.2.8 的 `origin_status.device.computer_name` 返回运行 MCP 执行端的电脑名称。指定第二台电脑时，Work 应先与用户指定的设备比较，不匹配就停止提交任务并切换到正确的连接。这个字段不启动 Origin，也不证明许可有效或软件版本已经原生验证；它是识别执行端的辅助信息，不是密码学设备认证。每台电脑仍需要各自的正版目标版本、执行端及相应连接。不要把另一台电脑的成功作业当作本机验收。
+
+## Invalid input appears as a host serialization error
+
+In the 2026-09-12 acceptance run, a session source path outside the configured input roots was correctly rejected, but the host displayed a generic serialization error. The 0.2.7 server returned an MCP error with plain text and no structured content. Version 0.2.8 returns bounded JSON text and structured content for correctable validation, syntax, input and tool errors, with the MCP error flag preserved. Full mode, economy mode and cached full-mode names use the same error contract. No execution is retried.
+
+Read the returned reason and correct the input. For a completed project, use `origin_run_program` with `project_artifact` to continue on a copy. A managed session accepts a `project_path` in a configured data directory or the inbox; an internal job path is not automatically an allowed input path. The input-root policy has not changed. Native worker failures retain their terminal job state and require a deliberate corrected submission.
+
+
 ## 项目无法用于本地聊天
 
 “无法将此项目用于本地聊天”发生在 ChatGPT 准备项目本地镜像时，可能早于任何插件调用。2026-09-11 在 Windows 客户端 26.903.9818.0 上观察到 `stage=filesystem`；项目镜像目录被已结束任务的 `node_repl.exe` 作为工作目录占用，Windows 返回共享冲突 32。释放已确认闲置的进程后，同一目录的 DELETE 访问检查通过；没有修改同步文件、权限或应用数据库。

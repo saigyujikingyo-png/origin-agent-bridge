@@ -7,6 +7,7 @@ from typing import Any, Literal
 
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError, UnexpectedToolError
+from mcp_types import CallToolResult, TextContent
 from pydantic import Field, ValidationError
 
 from .models import ClosedModel
@@ -21,6 +22,15 @@ PRESETS = {
     "kimi": "Use explicit steps and operation examples; the host must preserve the model's tool context.",
     "elm": "Use an ELM API key in an MCP-capable host. Account model access and limits need verification.",
 }
+
+
+def error_result(payload):
+    """Return a bounded MCP error envelope that JSON-oriented hosts can decode."""
+    return CallToolResult(
+        content=[TextContent(text=json.dumps(payload, ensure_ascii=False))],
+        structured_content=payload,
+        is_error=True,
+    )
 
 
 class AgentMCPServer(MCPServer):
@@ -39,25 +49,23 @@ class AgentMCPServer(MCPServer):
                             :6
                         ]
                     ]
-                    raise ToolError(json.dumps({"error": "validation", "issues": issues})) from None
+                    return error_result({"error": "validation", "issues": issues})
                 if isinstance(cause, SyntaxError):
-                    raise ToolError(
-                        json.dumps(
-                            {
-                                "error": "syntax",
-                                "line": cause.lineno,
-                                "column": cause.offset,
-                                "message": cause.msg[:200],
-                            }
-                        )
-                    ) from None
+                    return error_result(
+                        {
+                            "error": "syntax",
+                            "line": cause.lineno,
+                            "column": cause.offset,
+                            "message": cause.msg[:200],
+                        }
+                    )
                 if isinstance(cause, ValueError):
-                    raise ToolError(str(cause)[:1200]) from None
+                    return error_result({"error": "invalid_request", "message": str(cause)[:1200]})
                 if cause.__cause__ is None:
                     break
                 cause = cause.__cause__
             if not isinstance(exc, UnexpectedToolError):
-                raise ToolError(str(exc)[:1200]) from None
+                return error_result({"error": "tool", "message": str(exc)[:1200]})
             raise
 
 
@@ -172,6 +180,7 @@ def make_economy_server(full, store, profile):
         "Local file: inspect; cloud table: origin_import_table via origin_call. "
         "Then use origin_recipe for plots, linear fits and Beer-Lambert. "
         "All full-mode operations remain available via origin_call with validated arguments_json. "
+        "For a specified device, compare status.device.computer_name before submitting; stop on mismatch. "
         "Reuse dataset/plan/job/session IDs. Stop polling terminal jobs; report failure promptly. "
         "Wait 20s only for pending jobs; never replay uncertain GUI input. "
         "Use current session revisions. Batch related work. Do not guess units, fit assumptions or APIs. "
@@ -195,7 +204,7 @@ def make_economy_server(full, store, profile):
 
     @mcp.tool(annotations=read, structured_output=False)
     async def origin_status() -> CallToolResult:
-        """Inspect Origin, the active profile, and local data directories. Does not launch Origin."""
+        """Read device.computer_name, Origin and data directories; verify the intended PC before work."""
         return await full.call_tool("origin_status", {})
 
     @mcp.tool(annotations=read)
