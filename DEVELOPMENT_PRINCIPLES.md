@@ -1,97 +1,98 @@
-# Chembridge 统一开发与交付准则
+# Chembridge development and delivery principles
 
-规则版本：2026-09-12.2。依据用户明确要求制定，适用于 Chembridge 下所有学校便捷插件、专业软件插件和工作流 Agent 自动化插件，不限于 Origin Companion。新插件从这些默认准则开始，不要求用户在每个对话重复说明；具体任务的新指令优先。
+Rule version: **2026-09-12.3**. These requirements were explicitly requested by the user and apply to all Chembridge university convenience plugins, specialist software plugins and agent workflow automation plugins, not only Origin Companion. New plugins start with these defaults; users should not have to repeat them in each task. New task-specific user instructions take precedence.
 
-## 1. GitHub 发行
+## 1. GitHub distribution
 
-- 源码、依赖锁定、文档、可公开的测试、脱敏验收记录和可分发安装包由 GitHub 管理。
-- 当前默认路线是 GitHub Releases 分享，暂不以公共插件商店、学校官方发行、校园 SSO 或自建公共平台为前置条件。
-- 每个产品保持清楚的版本线和下载入口。同一平台上能共用的包不按模型、Agent 或软件小版本重复分叉；由运行时识别能力，在兼容表中分别记录支持范围和验收。
-- 发行包含安装说明、校验信息、兼容范围、已知问题、更新与恢复方法。预览版和稳定版如实标记；旧发行保留供回滚。
-- 私人资料、课程原件、受限软件、账号配置、许可证和密钥不随公开发行上传。学术测试优先使用公开来源、合成数据或明确获准的数据。
+- Manage source, dependency locks, documentation, public tests, sanitised acceptance records and distributable packages through GitHub.
+- Use **English for public GitHub content**: repository descriptions, README files, installation and usage guides, release notes and issue/PR templates. Preserve exact technical identifiers and quoted source/UI evidence. This does not restrict the language users may use with their agents.
+- The default route is GitHub Releases. A public plugin store, official university distribution, campus SSO or a hosted public platform is not a prerequisite.
+- Keep a clear version line and download entrypoint for each product. Do not permanently fork a shared platform package by model, agent or minor software version; detect capabilities at runtime and record support and acceptance separately in a compatibility matrix.
+- Include installation instructions, checksums, compatibility, known issues, update and recovery steps. Label previews and stable releases accurately; retain earlier releases for rollback.
+- Do not publish private materials, original course documents, restricted software, account configuration, licences or secrets. Prefer public, synthetic or explicitly authorised academic test data.
 
-## 2. 面向非开发者的便捷安装与运行
+## 2. Accessible installation and use
 
-用户目标流程：下载适用安装包 → 双击或通过宿主安装 → 清楚选择/连接 Agent → 自动检查 → 用自然语言完成任务并取得成果。
+The target flow is: download the appropriate package → double-click or install through the host → select/connect an agent → automatic checks → request work in natural language and receive results.
 
-- 日常用户不应被要求克隆源码、安装 Git、配置开发环境、另装编程语言运行时、手写命令或修改 JSON。必要组件由安装包携带或通过清楚的安装引导取得。
-- 自动发现目标软件和当前安装；核对适用版本及所需授权，用隔离的测试资料自检。安装是否成功与真实 Agent 工作流是否通过分开判断。
-- 升级、重复安装和重连复用本人的已有配置及加密凭据。只有观察到缺失、失效或权限不符时才要求处理凭据，不反复要求生成密钥。
-- 保留其他插件与宿主配置、用户修改和研究成果；失败时有可恢复备份及清楚提示。提供直观的状态检查、重连、恢复和卸载入口。
-- 服务商登录、MFA、许可证激活或账号关联等必须由本人完成的步骤如实列出，并引导至正确界面，不声称能完全自动化。常规运行应独立于 Codex 或开发终端。
-- 尚未实现的图形向导、自动更新或一键修复必须记为缺口，不能用“一键安装”掩盖实际脚本步骤。
+- Everyday users should not need to clone source, install Git, configure a development environment, separately install a language runtime, write commands or edit JSON. Bundle required components or provide clear installation guidance.
+- Discover the target software and existing installation, check the supported version and licence, and self-test with isolated data. Installation success and a real agent workflow are separate acceptance results.
+- Reuse the user's existing configuration and encrypted credentials during upgrades, repeated installation and reconnection. Request credential action only after observing missing, invalid or insufficient permissions; do not repeatedly request new keys.
+- Preserve other plugins, host configuration, user changes and research outputs. Keep recoverable backups and clear failure messages. Provide understandable status, reconnection, recovery and removal entrypoints.
+- Identify steps requiring the account owner, such as provider login, MFA, licence activation or account association, and guide them to the correct interface. Do not claim those steps are fully automated. Routine use should be independent of Codex and development terminals.
+- Record graphical wizards, automatic updates or one-click repair as gaps when not implemented. Do not describe a partly scripted setup as an entirely one-click installation.
 
-## 3. 多 Agent 与多模型
+## 3. Multiple agents and models
 
-- Codex 用于开发、维护和验收；主要使用场景是 ChatGPT Work 云端/本地、Claude、WorkBuddy 及其他具备相应工具能力的通用 Agent。用户不必进入代码开发环境。
-- 优先使用 MCP、官方软件 API 和可移植文件格式，采用一个执行内核加薄宿主适配层。不要为每个模型复制业务逻辑、科学计算或整套后台服务。
-- 适配按真实能力判断：工具调用、结构化参数、上下文容量、流式结果、文件收发、视觉和本地/云端访问。品牌名称或配置预设不能代替能力检查。
-- 模型目标包括 GPT Terra、DeepSeek、Gemini、GLM、Kimi；可用时按任务接入 ELM 等学校服务。具体型号、权限与费用以使用时的实际宿主/账户为准，不假设所有账号都可用。
-- 对较经济或能力较弱的模型，提供简单参数、常用配方、少量清楚入口、按需帮助和可纠正错误。纯文本模型应有适当替代路径，不强依赖截图。
-- 配置成功、协议兼容、真实宿主中的模型调用和端到端成果验收是不同证据。没有测试的组合标记为未验证。
+- Use Codex for development, maintenance and acceptance. Primary use cases are ChatGPT Work cloud/local, Claude, WorkBuddy and other general agents with suitable tool capabilities. Users should not need a coding environment.
+- Prefer MCP, official software APIs and portable file formats, with one execution core and thin host adapters. Do not duplicate business logic, scientific calculations or backend services for each model.
+- Adapt to actual capabilities: tool calls, structured arguments, context capacity, streaming results, file transfer, vision and local/cloud access. A brand name or preset is not a capability check.
+- Target GPT Terra, DeepSeek, Gemini, GLM and Kimi; integrate university services such as ELM when available for the task. Exact models, permissions and costs depend on the actual host and account at the time of use.
+- Give economical or less capable models simple arguments, common recipes, a few clear entrypoints, on-demand help and correctable errors. Provide an appropriate text-only route instead of requiring screenshots.
+- Configuration, protocol compatibility, a real host model call and end-to-end artifact acceptance are distinct evidence. Mark untested combinations as unverified.
 
-## 4. 默认测评基准：Terra max
+## 4. Default benchmark: Terra max
 
-- Chembridge 默认 benchmark 为用户常用的 **GPT-5.6 Terra，推理强度 max**。这是用户指定的经济性基准，不是对所有账户价格或最便宜模型的永久断言。
-- 在宿主确实提供该组合时，优先用它完成代表性工作流。不得为了宣称额度节省擅自降低推理强度、替换成其他模型，或把预设配置当作真实测评。
-- 基准暂不可用时，记录原因及实际使用的模型/强度，不把替代结果标成 Terra max，也不为完成测试自动开通额外付费模型服务。
-- 使用相同输入、任务目标、结果要求和核验条件比较不同模型/接口。测试包含常用任务、连续修改、数据不足、无效参数、预期拒绝和失败恢复；按插件实际功能选择，不机械要求无关案例。
-- 记录准确模型、强度、宿主、插件版本、目标软件版本、设备类别、测试日期、首轮成功情况、人工纠正、工具调用/重试、端到端耗时和成果质量。
-- 能取得时记录实际输入、缓存、输出、推理 token 和计费；取得不到时写明不可用。工具描述的 UTF-8 字节数、字符数或估算 token 不能冒充实际账单。
+- The Chembridge benchmark is **GPT-5.6 Terra with max reasoning**, the user's usual configuration. It is the user's economy reference, not a permanent claim about every account's price or the cheapest available model.
+- Prefer this combination for representative workflows when the host actually offers it. Do not reduce reasoning effort, substitute a model or treat a preset as a benchmark to claim quota savings.
+- When unavailable, record why and the actual model/effort used. Do not label substitute results Terra max or automatically enable additional paid model services to finish testing.
+- Compare interfaces/models using the same input, goal, result requirements and checks. Include common tasks, continued edits, missing data, invalid arguments, expected refusals and recovery where relevant to the plugin.
+- Record the exact model, effort, host, plugin/software versions, device category, date, first-attempt success, human corrections, tool calls/retries, end-to-end time and result quality.
+- Record actual input, cached, output and reasoning tokens and charges when available; otherwise mark them unavailable. UTF-8 schema bytes, characters and estimated tokens are not billing evidence.
 
-## 5. 爱丁堡大学适用标准
+## 5. University of Edinburgh requirements
 
-- 面向爱大师生真实的学习、研究和校园工作环境。先核对相关学校软件分发版本、授权范围、数据源及具体课程/实验/工作流程要求，再设计适配。
-- “爱大标准”不是所有任务共用的虚构格式：按具体学校官方资料、课程说明、实验手册或用户提供的要求执行；保留来源与日期，缺资料时说明边界，不宣称已符合所有课程。
-- 软件接口和功能以用户的合法授权与实际版本为界；兼容多种学校版本时逐版本核验，不复制许可证或用一台电脑的结果认证所有设备。
-- 涉及科学工作时保留原始数据与单位，明确方法、拟合约束、权重及不确定度；不伪造误差棒、实验结果或课程规范。优先交付原生可编辑成果，并按需要复核数值、重开文件及查看导出图形。
-- 开发者插件与学校/软件厂商官方产品的身份如实区分，未获认可不暗示官方背书。适用规则与学校服务信息发生变化时重新核查。
+- Design for actual study, research and university work. Check the relevant university software distribution, licence scope, data source and specific course/laboratory/workflow requirements first.
+- There is no invented universal "Edinburgh format". Follow the applicable official source, course instructions, laboratory manual or user-supplied requirements, retaining sources and dates. State missing evidence rather than claiming compliance with every course.
+- Respect each user's legal licence and installed software version. Verify each supported university build separately; do not copy licences or certify every device from one computer's result.
+- Preserve scientific raw data and units. State methods, fit constraints, weights and uncertainty; do not invent error bars, experimental results or course rules. Prefer editable native artifacts and check numbers, reopened files and exported figures where needed.
+- Identify independent developer plugins accurately. Do not imply university or vendor endorsement without approval. Recheck applicable rules and university service information when they change.
 
-## 6. 轻量、快速、高性能与高效率
+## 6. Lightweight, responsive and efficient execution
 
-- 优先复用现有依赖、系统能力和软件原生 API；只在有实测需要时引入新依赖、独立服务、数据库或常驻进程。不要为小插件先构建庞大平台。
-- 常用任务使用配方和批处理；复杂功能按需查找并调用原生编程接口，GUI 用于确有需要的交互，不要求用户学习复杂 GUI 或调试生成代码。
-- 任务有明确状态、合理超时、可用时的取消和恢复；不无限轮询或盲目重试。不确定写操作是否成功时先读状态，避免重复执行。
-- 避免阻塞界面和开发会话；缓存可复用结果并设置边界。按任务测量安装体积、启动/响应时间、执行耗时、内存、磁盘与传输量，不凭架构标签宣传高性能。
-- 用有针对性的测试覆盖真实风险和失败路径；原生软件、安装包、协议以及宿主模型分别验收。已有检查通过后，只有新变更或未解决问题才扩大或重复测试。
+- Reuse existing dependencies, system facilities and native software APIs. Add dependencies, services, databases or resident processes only for a demonstrated need; do not build a large platform for a small plugin.
+- Use recipes and batches for common tasks; discover complex features on demand and call native programming interfaces. Use GUI interaction where needed without requiring users to learn a complex interface or debug generated code.
+- Give jobs clear status, reasonable timeouts, and cancellation/recovery where supported. Avoid endless polling or blind retries. Read status before repeating a write whose outcome is uncertain.
+- Avoid blocking the interface or development task. Bound caches and measure package size, startup/response time, execution time, memory, disk and transfer use. Architecture labels alone do not establish performance.
+- Use focused tests for real risks and failure paths. Validate native software, packages, protocol and host models separately. Expand or repeat passing checks only for new changes or unresolved issues.
 
-## 7. 额度友好
+## 7. Efficient use of model quota
 
-- 默认少量工具入口、简短结构化结果、延迟加载说明、分页读取和按需截图；不要每轮发送全部 Schema、大文件、完整日志或整段手册。
-- 尽量将检查、计划和执行组合成清楚的工作流，减少不必要的 Agent 往返，同时保留有用的错误、任务状态和结果证据。
-- 科学计算与确定性处理交给本机软件或确定性代码；不为模型适配默认增加第二套付费推理层。已有授权范围内的常规步骤自主完成，缺少影响结果的必要信息才询问。
-- 额度优化不能省略正确性、数据核验、文件真实性和用户授权。评估费用时计入失败、重试、工具说明、截图与人工介入；工具更少不自动等于总费用更低。
+- Default to few tools, short structured responses, delayed guidance, paginated reads and on-demand screenshots. Do not resend every schema, large file, full log or manual each turn.
+- Combine inspection, planning and execution into clear workflows to reduce unnecessary agent round trips while retaining useful errors, status and evidence.
+- Run scientific and deterministic processing in local software or deterministic code. Do not add a second paid reasoning layer for model adaptation. Complete routine authorised steps autonomously; ask only for missing information that materially affects the result.
+- Quota optimisation must preserve correctness, data checks, artifact authenticity and user authorisation. Count failures, retries, tool instructions, screenshots and human intervention when comparing costs. Fewer tools do not automatically mean lower total cost.
 
-## 8. 云存储与本地磁盘
+## 8. Cloud storage and local disk
 
-遵循 CLOUD_STORAGE.md：为节省开发设备硬盘，大型输入、历史构建及完整验收材料优先归档到用户授权的爱大私有 Chembridge 云目录；这是开发资料存储约定，不是插件运行、成果保存或交付验收的依赖。活跃源码、运行时、依赖、数据库、锁和实时作业保留在已核实的非同步本地目录。
+Follow [CLOUD_STORAGE.md](CLOUD_STORAGE.md). Prefer the authorised private university Chembridge folder for large development inputs, old builds and full acceptance materials to save development-machine disk space. This is a development archive policy, not a dependency for plugin operation, result storage or delivery. Keep active checkouts, runtimes, dependencies, databases, locks and running jobs in verified local directories outside cloud sync.
 
-插件成果按用户选择交付到本地文件夹、宿主附件或其他获准位置；不要求保存到爱大 OneDrive，也不为正常使用新增 OneDrive 登录或上传步骤。
+Deliver outputs to the user's chosen local folder, host attachments or another authorised location. Do not require university OneDrive or add OneDrive login/upload steps to routine use.
 
-按需取回所需文件，避免全目录扫描触发下载；冷数据在云端实际回读并校验后才释放本地副本。保留当前运行版本和可用回滚版本。同步目录的“删除”不能当作“释放空间”。不把工作区设在云目录视为自动清理已实现。
+Retrieve files on demand; avoid whole-folder scans that trigger downloads. Release local cold copies only after reading back and verifying the cloud archive. Retain the current runtime and a usable rollback version. Deleting a synced file is not the same as freeing its local space. A cloud workspace does not establish automatic cleanup.
 
-## 9. 交付门槛与证据
+## 9. Delivery gates and evidence
 
-每个插件按适用项维护兼容矩阵及发布门槛，至少回答：
+Each plugin maintains an applicable compatibility matrix and release gates covering:
 
-| 方面 | 应记录的证据 |
+| Area | Required evidence |
 | --- | --- |
-| 安装 | 新设备/用户、升级、重复安装、路径差异、自检、恢复与卸载的实际结果 |
-| Agent 与模型 | 实际工作入口、准确模型/强度，Terra max 基准及未验证组合 |
-| 学校适用性 | 相关课程或学校来源、软件构建/授权边界，未取得依据的要求 |
-| 任务质量 | 数据/方法、原生结果、可编辑成果、必要的重开/视觉/独立核对 |
-| 交付 | 用户通过适用的宿主附件、手动下载或自动保存取得且可打开的文件；保存位置由用户选择，不要求 OneDrive；必要时核对字节数与哈希，链接存在不等于下载成功 |
-| 效率 | 首轮成功、人工纠正、调用和重试、整体耗时、可取得的真实用量、资源占用 |
-| 发布 | 版本、包和校验、安装说明、已知问题、回滚路径、适当检查通过 |
+| Installation | Actual results for a new device/user, upgrade, repeat installation, path differences, self-test, recovery and removal |
+| Agents and models | Actual work entrypoint, exact model/effort, Terra max benchmark and unverified combinations |
+| University applicability | Relevant course/university sources, software build/licence boundaries and unsupported assumptions |
+| Task quality | Data/method, native results, editable artifacts and necessary reopening, visual or independent checks |
+| Delivery | Files the user actually receives and can open through host attachments, manual download or automatic saving; user-selected location, no OneDrive requirement; size/hash checks where needed, not merely an existing link |
+| Efficiency | First-attempt success, human corrections, calls/retries, total time, available actual usage and resource consumption |
+| Release | Version, package/checksums, installation guide, known issues, rollback route and appropriate passing checks |
 
-验收软件执行、文件生成、宿主附件交付和浏览器自动下载时分别记录结果。除非任务明确要求自动下载，某一种浏览器自动下载方式不是通用交付门槛；采用其他正式、获准方式实际取得文件也可验收对应交付方式，人工步骤计入便利性和效率。组织或浏览器拦截只证明该传输方式受限，不能直接推断为 Origin 执行失败或 OneDrive 保存失败；拦截来源尚未定位时如实标注，不改写为全部成果已经交付。
+Record software execution, file generation, host attachment delivery and automated browser downloads separately. Unless the task specifically requires automatic download, one browser automation route is not a universal delivery gate. Actual receipt through another official, authorised method can validate that delivery method; count manual steps in usability and efficiency. An organisational/browser block establishes a restriction on that route, not an Origin execution or OneDrive save failure. If its source is unknown, state that and do not claim all artifacts were delivered.
 
-历史通过、当前通过、失败、跳过与未知分别记录。未完成的必要门槛不标记完成；通过几个例子不等于软件全部功能、所有学校版本、所有 Agent/模型都通过。
+Distinguish historical passes, current passes, failures, skips and unknowns. Do not mark incomplete required gates complete. A few examples do not certify every software function, university version, agent or model.
 
-## 10. 跨对话与新插件继承
+## 10. Inheritance across tasks and plugins
 
-- Chembridge 资料工作区的 AGENTS.md 与 START_HERE.md 将本文件作为共同入口。每个新插件开始设计或编码前先读本准则，再读取该插件的具体约束与已知问题。
-- 在云同步目录以外建立新插件仓库时，将本文件的当前版本作为共享准则副本加入仓库，并在该仓库 AGENTS.md 中要求读取；不要只把约定留在一次对话中。
-- 各插件独立保存功能范围、安装方式、兼容矩阵、benchmark 和验收记录，不继承其他插件的通过结论。
-- 更新共同准则时同步 Chembridge 入口与已知副本，标记版本。旧仓库副本或已经运行的对话需要重新读取才能取得新规则，不宣称会自动改写所有历史对话。
-- 用户的新指令优先；普通实现选择在既有授权范围内自主完成。准则缺少的本机路径、服务权限和敏感配置从当前环境核实，不要求用户重复已确认的项目方向。
+- The Chembridge materials workspace's `AGENTS.md` and `START_HERE.md` point to this shared entrypoint. Read it before designing or coding a new plugin, then read that plugin's constraints and known issues.
+- When creating a plugin checkout outside cloud sync, include the current shared principles and require them in its `AGENTS.md`. Do not leave these agreements only in a conversation.
+- Keep each plugin's scope, installation, compatibility, benchmark and acceptance records independent. Do not inherit another plugin's pass results.
+- Synchronise the Chembridge entrypoint and known copies when updating shared principles, and mark the version. Older checkouts and running tasks need to reread updates; do not claim all historical tasks update automatically.
+- New user instructions take precedence. Resolve ordinary implementation choices within existing authorisation. Verify machine paths, service permissions and sensitive configuration from the current environment without asking users to repeat established project direction.

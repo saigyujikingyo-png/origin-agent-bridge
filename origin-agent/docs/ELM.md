@@ -1,19 +1,19 @@
-# 爱丁堡大学 ELM
+# University of Edinburgh ELM
 
-公开信息核对日期：**2026-09-11**。以下来自大学官方页面的公开检索内容；没有登录个人 ELM 账户或使用 API Key 探测实际权限。
+Public information checked: **2026-09-11**. This is a dated record of university public pages; no personal ELM account was accessed and no API key was used to probe account permissions.
 
-ELM 是学校提供的多模型服务入口。官方说明向全体学生和教职员工免费提供，并可在 ELM 内申请 API Key。这表示 ELM 服务访问，不是发放可转到个人 OpenAI、DeepSeek 等账户的通用 token 余额。[官方介绍](https://information-services.ed.ac.uk/computing/comms-and-collab/elm/elm-competence-centre/introduction-to-elm)
+ELM is the university's multi-model service. The reviewed official introduction described free access for students and staff and API-key requests within ELM. This is access to the ELM service, not a transferable token balance for a personal OpenAI, DeepSeek or other provider account. [Official introduction](https://information-services.ed.ac.uk/computing/comms-and-collab/elm/elm-competence-centre/introduction-to-elm)
 
-| 接入 | 官方公开目录中的代表型号 |
+| Access | Representative models in the reviewed public catalogue |
 | --- | --- |
-| 网页聊天 | GPT-5.5、GPT-5.4、GPT-5.4-mini/nano，以及早期 GPT/o 系列 |
-| 网页聊天 | Gemini-3.1-flash-lite、Gemini-3.1-pro；本地托管 Llama 3.3、EuroLLM |
-| API | 目录明确列出 GPT-5.5/5.5-pro、GPT-5.4/5.4-pro/mini/nano、GPT-5/mini/nano、GPT-4.1；编码类别列出 GPT-5.3-codex |
+| Web chat | GPT-5.5, GPT-5.4, GPT-5.4-mini/nano and earlier GPT/o series |
+| Web chat | Gemini-3.1-flash-lite, Gemini-3.1-pro; locally hosted Llama 3.3 and EuroLLM |
+| API | Explicitly listed GPT-5.5/5.5-pro, GPT-5.4/5.4-pro/mini/nano, GPT-5/mini/nano and GPT-4.1; GPT-5.3-codex in the coding category |
 
-目录还描述可通过 API 使用本地托管和 OpenAI 模型。但它**没有明确列出 GPT-5.6 Terra、DeepSeek、GLM、Kimi**；不能把概括性“完整模型系列”当作特定账户的权限证据。Gemini 出现在网页聊天栏目，不能据此确认每个 Gemini 型号也可通过该账户 API 调用。[官方模型目录](https://information-services.ed.ac.uk/computing/elm/elm_competence_centre/elm-models-available-through-the-api)
+The catalogue also described API access to locally hosted and OpenAI models. It **did not explicitly list GPT-5.6 Terra, DeepSeek, GLM or Kimi**. General wording about a model family does not prove a specific account's access. Gemini's web-chat listing does not establish API access to each Gemini model. [Official model catalogue](https://information-services.ed.ac.uk/computing/elm/elm_competence_centre/elm-models-available-through-the-api)
 
-**未核实到统一的每人每月 token 数、速率限制或 API 无限额度承诺。** 上下文窗口表示单次任务可容纳的输入规模，和账户免费配额不是同一个概念。实际型号、请求限制及用途规则应以申请页面、个人控制台或 ELM 团队确认结果为准；此插件没有把商业 API 标价计作学生应支付费用。
+**No universal per-person monthly token allowance, rate limit or unlimited API commitment was verified.** Context-window size is the amount a request can accommodate, not free account quota. Confirm current models, limits and permitted uses through the application page, personal console or ELM team. Commercial API list prices are not treated here as fees students must pay.
 
-使用 Origin Companion 时，选择支持自定义模型 API 且支持本地 MCP 的 Agent；在该 Agent 的安全配置中填写 ELM 颁发的 Key 和官方提供的地址，选择获准的模型，然后连接本机 Origin Companion。官方有 [Python/API 接入示例](https://information-services.ed.ac.uk/computing/elm/elm-competence-centre/examples-of-how-to-use-elm-with-python-and-elm-api-key/interacting-with-elm-using-python-and-the-elm-api)。不要假设 ELM 网页聊天本身能安装本地 MCP 插件，不要把 Key 写入本仓库或分享包。
+To use ELM with Origin Companion, choose an agent supporting a custom model API and local MCP. Configure the ELM-issued key and official endpoint securely in that agent, select an authorised model and connect the local Origin Companion runtime. The university provides [Python/API examples](https://information-services.ed.ac.uk/computing/elm/elm-competence-centre/examples-of-how-to-use-elm-with-python-and-elm-api-key/interacting-with-elm-using-python-and-the-elm-api). Do not assume the ELM web chat itself can install local MCP plugins. Do not put keys in this repository or a sharing package.
 
-每位同学/教授使用自己的 ELM 身份与本机有效 Origin 授权。可分享插件，不共享学校账号或 API Key。Origin Companion 的模型配置不申请额度、不代为开通模型、不产生新的模型推理账单；实际推理由所选 Agent/服务计量。
+Each student or staff member uses their own ELM identity and valid Origin licence. Share the plugin, not university accounts or API keys. Origin Companion's profile configuration does not request quota, enable a model or create another model-inference bill; the chosen host/service meters actual inference.

@@ -1,97 +1,103 @@
-# 安装 Origin Companion 0.2
+# Install Origin Companion 0.2.8
 
-本版本面向 **Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64、普通 Origin、非 Demo**。每台电脑先自行安装并激活其中一个版本。SR2 已有原生验收记录；学校 SR1 的第二台设备验收仍在进行，不能仅凭安装器识别版本判定通过。插件不分发主程序或学校许可证，也不解除 OriginPro/第三方 App 的许可限制。
+Supported baseline: **Origin 2026 SR1 (10.300197)** or **Origin 2026b SR2 (10.350243)**, Windows x64, standard Origin edition, activated and non-Demo. Install and activate one of these builds on each computer first. SR2 has recorded native and cloud acceptance; SR1 has second-device native and Terra max cloud execution evidence, with delivery details and a tool-host startup issue still open. Version detection alone is not acceptance. The plugin does not distribute Origin or university licences, or unlock OriginPro/third-party App features.
 
-## 从你的 Agent 工作环境开始
+## Choose your agent environment
 
-Codex 用于本项目的开发与维护。师生使用下载的安装包，在云端 Work、本地 Work、Claude Desktop、WorkBuddy 等工作环境里连接 Origin Companion；无需克隆源码、安装 Git、创建代码项目或另装 Python。若宿主需要资料目录，使用研究文件夹即可。
+Codex is used to develop and maintain this project. Students and staff install the packaged runtime and connect from cloud Work, local Work, Claude Desktop, WorkBuddy or another supported agent. No source checkout, Git, code project or separate Python installation is required. If the host asks for a folder, use your research materials folder.
 
-| 使用场景 | 连接入口与当前状态 |
-|---|---|
-| 云端 Work | 在安装 Origin 的 Windows 电脑安装执行端，再配置自己的安全连接；已有真实云端验收。首次账号/隧道接入仍有下文所列设置步骤，尚未成为全程图形向导 |
-| 本地 Work | 通过该宿主支持的插件或本机连接入口使用；本地 Work 用户流程待独立验收。不要把 `codex` 安装选项或 Codex CLI 自检当成本地 Work 已验证 |
-| Claude Desktop / WorkBuddy | 使用下列安装器对应选项；本机配置和协议已验证，实际宿主模型验收单独记录 |
+| Environment | Connection and evidence |
+| --- | --- |
+| Cloud Work | Install the runtime on the Windows computer with Origin, then configure your own secure connection. Actual cloud acceptance is recorded. First-time account/tunnel setup still requires the steps below; there is no complete graphical wizard yet. |
+| Local Work | Use the plugin/local connection facility supported by that host. The local Work user flow needs independent acceptance; the `codex` installer option and Codex CLI checks do not certify it. |
+| Claude Desktop / WorkBuddy | Use the matching installer options below. Local configuration and protocol have been checked; actual host/model workflows are recorded separately. |
 
-连接后，在 Agent 中提出分析、绘图或工程编辑目标，并查看返回的图像及可编辑工程。完整流程的目标是让用户在工作环境内完成任务；下面的维护命令用于排障或高级设置，不是每次使用的步骤。
+Once connected, describe the analysis, figure or project edit and review returned images and editable projects. Maintenance commands below are for troubleshooting or advanced setup, not every use.
 
-## 一键安装
+## Download, extract and install
 
-1. 下载 `origin-agent-0.2.8-windows-x64.zip`，核对随发行提供的 SHA-256，解压到普通本地目录。
-2. 双击 `Install.cmd`，输入希望配置的宿主名称，例如 `claude,workbuddy`。直接回车只安装引擎和生成配置；云端 Work 用户随后完成下文的本人安全连接设置。本地 Work 的专用安装与用户入口尚需独立验收。
-3. 安装器校验完整文件集合、复制独立运行时，再使用合成数据启动 Origin、检查指定版本和数值回读。通过后才合并宿主配置、切换活动版本。重新打开所选 Agent。
-4. 让 Agent 先检查 Origin Companion 状态，再提交你的实际绘图、分析或编辑任务。
+1. Get `origin-agent-0.2.8-windows-x64.zip` from the [release page](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8), check the supplied SHA-256 and extract to an ordinary local folder.
+2. Double-click `Install.cmd`. Enter the hosts to configure, such as `claude,workbuddy`. Pressing Enter installs the engine and generates configuration only. Cloud Work users then set up their own secure connection below. Dedicated local Work installation and entrypoint acceptance remain open.
+3. The installer verifies the complete file set, copies the bundled runtime, starts Origin with synthetic data and checks the build and numerical read-back. It merges host configuration and switches the active version only after these checks pass. Reopen the selected agent.
+4. Ask the agent to check Origin Companion status before submitting a real analysis, plotting or editing task.
 
-无需另装 Python、Node、uv 或编译器。默认程序在 `%USERPROFILE%\.origin-agent\app\0.2.8`，研究产物和会话在 `%USERPROFILE%\.origin-agent`。不改动 Origin 安装及许可；默认引擎安装不注册自启，云端用户可另外启用下方的私有隧道登录任务。包没有商业代码签名；哈希证明传输完整性，不能替代发布者签名。
+There is no separate Python, Node, uv or compiler requirement. The default runtime is `%USERPROFILE%\.origin-agent\app\0.2.8`; research outputs and sessions live under `%USERPROFILE%\.origin-agent`. Origin installation/licensing is unchanged. The engine installation does not register startup by default; cloud users can enable the private-tunnel login task below. Packages do not have a commercial code signature: a hash verifies transfer integrity, not publisher identity.
 
-已有用户可无交互升级：
+For an unattended upgrade of an existing installation:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractive -Hosts claude,workbuddy
 ```
 
-安装器保留其他 MCP 和宿主设置。旧版程序保留，默认不删除研究数据。每次安装输出 `receipt_id`，备份保存在 `.origin-agent\installations\<receipt_id>`。升级失败自动恢复已修改的配置；如果文件随后被用户修改，回滚会报告冲突而保留该修改。主动回滚：
+The installer preserves other MCP/host settings, old runtime versions and research data. Each installation returns a `receipt_id`, with backups under `.origin-agent\installations\<receipt_id>`. A failed upgrade restores modified configuration automatically; if the user has subsequently edited a file, rollback reports the conflict and preserves that edit. To request rollback:
 
 ```powershell
 & "$env:USERPROFILE\.origin-agent\app\0.2.8\server\origin-agent.exe" rollback-install <receipt_id>
 ```
 
-自检与诊断：
+Native diagnostics:
 
 ```powershell
 & "$env:USERPROFILE\.origin-agent\app\0.2.8\server\origin-agent.exe" doctor --native
 ```
 
-`doctor` 本身只检查发现；加 `--native` 才会创建合成工程并验证原生回读。若有未结束的 GUI 事务，先完成或回滚事务再安装。GUI 操作需要可交互、未锁屏的 Windows 桌面；休眠、合盖或断电会中断本机任务，恢复后先读取作业/会话状态再继续。
+`doctor` alone checks discovery; `--native` creates a synthetic project and verifies native read-back. Finish or roll back an open GUI transaction before installation. GUI interaction needs an unlocked interactive Windows desktop. Sleep, closing the lid or shutdown can interrupt local jobs; read job/session status before resuming.
 
-## 各宿主
+## Host options
 
-- **Claude Desktop**：选择 `claude` 自动合并配置。也可直接导入 `.mcpb`；它自带运行时，使用默认本机数据目录。是否自动加载 skill 取决于宿主，服务器同时提供紧凑工具说明。
-- **WorkBuddy**：选择 `workbuddy` 自动合并 `~/.workbuddy/mcp.json` 并安装工作流 skill。包内 `workbuddy` 目录保留连接器元数据和蓝色圆环图标。
-- **本地 Work**：作为独立用户工作入口验收；当前不把 Codex 的开发配置步骤等同于本地 Work 安装说明。
-- **其他 MCP Agent**：通用配置在 `.origin-agent/host-configs/0.2.8/generic-mcp.json`。各宿主连接入口和插件格式不同，运行引擎和工作流契约共用，实际使用仍需宿主验收。
+- **Claude Desktop:** select `claude` to merge configuration automatically, or import the `.mcpb` directly. It includes its runtime and uses the default local data directory. Automatic skill loading depends on the host; compact tool guidance is also served by the plugin.
+- **WorkBuddy:** select `workbuddy` to merge `~/.workbuddy/mcp.json` and install the workflow skill. The package's `workbuddy` folder includes connector metadata and the blue open-circle icon.
+- **Local Work:** this is a separate user entrypoint requiring acceptance. Codex development setup is not a substitute for its installation instructions.
+- **Other MCP agents:** use `.origin-agent/host-configs/0.2.8/generic-mcp.json` through the host's supported configuration flow. Hosts have different connection/plugin formats but share the runtime and workflow contract; actual host acceptance is still needed.
 
 <details>
-<summary>开发与可选兼容入口：Codex / Claude Code</summary>
+<summary>Development and optional compatibility: Codex / Claude Code</summary>
 
-- **Codex**：选择 `codex` 需要本机有 Codex CLI；安装器通过其 `mcp add` 接口配置 MCP 与全局 skill。已用 personal marketplace 安装同名插件时，更新该插件而不要再添加一份 MCP。此开发机配置保留插件卡片和图标，不是通用用户安装前提。
-- **Claude Code**：可用包内 `.claude-plugin`、`plugin.json` 和 `skills` 安装，作为开发、调试或可选兼容入口。
+- **Codex:** selecting `codex` requires the local Codex CLI. The installer configures MCP and a global skill through `mcp add`. If the same plugin is already installed through a personal marketplace, update that plugin instead of adding a duplicate MCP connection. The development-machine plugin card/icon is not a general user prerequisite.
+- **Claude Code:** the packaged `.claude-plugin`, `plugin.json` and `skills` can be used for development, debugging or optional compatibility.
 
 </details>
 
-完整模式有 14 个工具，经济模式只显示 5 个工具，其余操作按需查询参数后调用。两种模式共用同一 Origin 内核；工具数量不是功能数量。实际支持边界与未验证功能见 [COVERAGE.md](COVERAGE.md)。
+Full mode exposes 14 tools; economy mode exposes five, with additional operation arguments retrieved on demand. Both use the same Origin core. Tool count is not function coverage; see [COVERAGE.md](COVERAGE.md).
 
-## ChatGPT 云端
+## ChatGPT cloud connection
 
-本机已有的隧道、账户关联和密钥不会被安装器重置。升级后需要重新连接隧道来启动新引擎。首次使用按 [OpenAI 官方说明](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)创建账号支持的安全 MCP 隧道，使用自己的工作区、Tunnel ID 和本机密钥：
+The installer does not reset an existing tunnel, account association or key. Reconnect after an upgrade to launch the new runtime. For first-time setup, follow the [official Secure MCP Tunnel guide](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) using a supported account, your own workspace, Tunnel ID and locally configured key:
 
 ```powershell
-.\Connect-ChatGPT.ps1 -TunnelId <自己的TunnelID> -TunnelClient <官方客户端路径> -Run
+.\Connect-ChatGPT.ps1 -TunnelId <your-tunnel-id> -TunnelClient <official-client-path> -Run
 ```
 
-密钥只在本机设置，不写入源码或聊天。现有用户用自己的启动器重新连接；不要复制开发者的隧道配置、账户或密钥给同学。本机必须开机且隧道客户端在线。聊天附件不自动同步到 Windows，Agent 使用前需要本地副本或宿主支持的文件传输。
+Keep the key on your computer, not in source or chat. Existing users reconnect with their own launcher; do not share the developer's tunnel configuration, account or key. The Windows computer must be on and the tunnel client online. Chat attachments do not automatically appear on Windows; the agent needs a local copy or a supported transfer route before using them.
 
-### 让云端连接独立于 Codex
+### Run the cloud connection independently of Codex
 
-已配置私有隧道，且限制用途的密钥已保存在本机 `.origin-agent/secrets/tunnel-key.dpapi` 的用户，可运行发行包旁的脚本：
+If your private tunnel is configured and a suitably restricted key is stored at `.origin-agent/secrets/tunnel-key.dpapi`, run the script beside the release package:
 
 ```powershell
 .\Enable-ChatGPT-Tunnel-Startup.ps1 -StartNow
 ```
 
-这会创建名称以 `Origin Companion Private Tunnel` 开头的 Windows 当前用户登录任务。新安装附带当前用户 SID，避免不同 Windows 账号重名；本人的既有任务保持原名。任务使用普通用户权限、隐藏窗口、仅在用户登录时运行，退出 Codex 不影响该进程。包装脚本读取当前安装指针；隧道客户端处理网络重连，若进程意外结束，计划任务以一分钟间隔最多重启三次。不在注销、关机或休眠期间执行 Origin，也不替代 GUI 所需的未锁屏桌面。
+This creates a current-user Windows login task whose name begins with `Origin Companion Private Tunnel`. New tasks include the current user's SID to avoid name collisions; existing personal tasks keep their names. The task runs with normal user permissions in a hidden window while the user is logged in, independently of Codex. The wrapper reads the active installation pointer. The tunnel client handles network reconnection; if the process exits unexpectedly, Task Scheduler retries up to three times at one-minute intervals. It does not run Origin during logout, shutdown or sleep, or replace the unlocked desktop required for GUI interaction.
 
-连接配置统一保存在 `%USERPROFILE%\.origin-agent\cloud\profiles`。首次启用会复制本人的已有连接配置；其中密钥必须仍是环境变量引用，不会创建或复制其他人的凭据。此路径避免 MSIX 打包应用的 AppData 重定向导致后台任务读取不到配置。密钥仅在当前用户后台进程内解密，不写入参数、仓库或共享包。首次没有该加密密钥时脚本会报缺少前置配置，不会在后台弹出输入框。
+Connection profiles live at `%USERPROFILE%\.origin-agent\cloud\profiles`. Initial setup copies the user's existing connection configuration, retaining environment-variable references for keys; it does not create or copy another person's credentials. This avoids AppData redirection in MSIX-packaged applications. The background process decrypts the key for the current user only; it is not written to arguments, the repository or shared packages. A missing encrypted key is reported as a setup prerequisite, with no hidden background input prompt.
 
-核验应同时看计划任务状态、`tunnel-client runtimes status origin-agent --json` 以及 Work 中的真实 `origin_status` 调用。只看到后台进程不能证明云端已经连通。`.origin-agent/cloud/background-status.json` 和 `background-error.json` 分别保留最近成功与错误时间，旧错误不代表当前仍失败。
+Check the scheduled task, `tunnel-client runtimes status origin-agent --json`, and an actual `origin_status` call in Work. A running process alone does not prove cloud connectivity. `.origin-agent/cloud/background-status.json` and `background-error.json` retain the latest success/error timestamps; an old error does not establish a current failure.
 
-需要停用时，先停止并禁用本人的上述 Windows 计划任务，再对同一 `origin-agent` 别名执行 `tunnel-client runtimes stop origin-agent`；重新启用仍使用同一个脚本。不要只结束 Codex，也不要结束其他 Origin 实例。它不更改模型订阅或学校许可。
+To disable it, stop and disable your own scheduled task, then run `tunnel-client runtimes stop origin-agent` for the same alias. Re-enable using the same setup script. Closing Codex alone is insufficient; do not terminate unrelated Origin instances. This does not change model subscriptions or university licensing.
 
-桥接代码为 MIT，插件本身没有模型中间层收费；Origin、Agent 及云端服务按各自许可/套餐使用。账号或服务价格需以提供商当前说明为准。
+The bridge is MIT-licensed and adds no paid model intermediary. Origin, agent hosts and cloud services remain subject to their respective licences/plans; check the provider's current terms for account availability and pricing.
 
-## 多电脑与卸载
+## Updates and result delivery
 
-同一个 ZIP 可在每台符合目标版本的 Windows 电脑单独安装，生成本机绝对路径。不要直接复制另一台机器生成的宿主 JSON。每位同学/教授使用自己的 Origin 授权和 Agent 账号。此处是可移植安装机制；第二台实体电脑的实测状态见 [VALIDATION.md](VALIDATION.md)。
+After updating, reconnect the local plugin or refresh the cloud connection's tool list, then start a new conversation if the old one retains cached tools. The current local runtime and a refreshed cloud Work status call were verified as 0.2.8 in the [refresh receipt](../verification/local-refresh-0.2.8.json).
 
-卸载时先从宿主移除插件/MCP 连接或回滚安装配置，再删除程序版本目录。自己的 OPJU、数据与会话可以保留。通用 Python/LabTalk/Origin C 程序按当前 Windows 用户权限执行；按授权任务使用，不能把隔离工作进程当作脚本安全沙箱。
+Save results to your Downloads folder or another chosen authorised location. University OneDrive is not required. Native execution, host file receipt and a particular browser's automated download route are separate checks. See [Work troubleshooting](WORK_TROUBLESHOOTING.md).
 
-多模型/经济模式配置和实测边界见 [MODELS.md](MODELS.md)，学校模型服务说明见 [ELM.md](ELM.md)。
+## Multiple computers and removal
+
+Install the same ZIP independently on each supported Windows computer so local absolute paths are generated correctly. Do not copy another computer's generated host JSON. Each person uses their own Origin licence and agent account. Portable installation mechanisms and actual second-device acceptance are distinct; see [VALIDATION.md](VALIDATION.md).
+
+To remove the plugin, first remove its host/plugin connection or roll back the installation configuration, then remove the runtime version directory. Personal OPJU files, data and sessions may be retained. General Python/LabTalk/Origin C code runs with the current Windows user's permissions; the worker process is not a script security sandbox.
+
+See [MODELS.md](MODELS.md) for model/economy profiles and [ELM.md](ELM.md) for university model-service evidence.

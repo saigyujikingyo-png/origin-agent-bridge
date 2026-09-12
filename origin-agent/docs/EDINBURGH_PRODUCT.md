@@ -1,71 +1,67 @@
-# Origin Companion：个人分享目标与复用决策
+# Origin Companion: product scope and reuse decision
 
-更新日期：2026-09-12。这是使用 Codex 开发和维护、可分享给同学和教授的插件。主要运行场景是云端 Work、本地 Work、Claude Desktop、WorkBuddy 等通用 Agent 工作环境。目标是在爱大提供的指定 Origin 版本上，让已获授权的学生、教授和研究人员以自然语言使用该版本的全部功能，并保持安装简单、连续编辑顺畅。
+Updated: 2026-09-12. Origin Companion is developed and maintained with Codex for personal sharing with classmates, professors and researchers. Users work in cloud Work, local Work, Claude Desktop, WorkBuddy and other general-purpose agents. The goal is natural-language access to the complete functionality of the specified, legally licensed Edinburgh Origin versions, with straightforward installation and continuous editing.
 
-项目不寻求学校官方发行；学校审批、校园 SSO 和集中管理不是交付前置条件。
+This is an independent sharing project. Official university distribution, campus SSO and central administration are not prerequisites.
 
-## 开发环境与使用环境
+## Development versus use
 
-- **开发与维护**：由 Codex 完成代码修改、构建、测试和发布；代码仓库、开发终端及工程工具属于此环节。
-- **用户工作环境**：用户在 Work 云端或本地任务、Claude、WorkBuddy 等宿主里连接插件、提供数据、提出科研目标并检查结果。安装、使用和恢复不应要求克隆源码、创建代码项目、运行开发服务器或理解脚本。
-- **本机执行端**：发行包自带 Python 运行时，在已激活目标 Origin 的 Windows 电脑上执行；Agent 运行在云端并不把 Origin 迁移到云端。执行端应独立于开发会话和开发终端。
-- **验收口径**：必须从对应宿主的真实用户工作入口完成任务。Codex CLI、协议客户端、原生脚本及 CI 只证明各自检查的内容；它们不能替代云端 Work、本地 Work 或其他宿主内的模型验收。
+- **Development:** Codex handles source changes, builds, tests and releases. Repositories, development terminals and engineering tools belong here.
+- **User work:** users connect from an agent, provide data, describe research goals and check results. Installation, use and recovery should not require source clones, code projects, development servers or script expertise.
+- **Local execution:** the package includes its Python runtime and runs on a Windows computer with activated target Origin. A cloud agent does not move Origin into the cloud. The runtime must be independent of the development task and terminal.
+- **Acceptance:** test from the real user entrypoint of each host. Codex CLI, protocol clients, native scripts and CI establish only their own checks, not a host/model workflow.
 
-Codex/Claude Code 接入保留为开发、调试和可选兼容入口，不作为师生使用前提。若宿主要求选择文件夹，应使用研究资料目录；插件不要求 Git 仓库。若宿主自身必须先创建代码开发项目，记录为该入口的使用摩擦，不能据此宣布已完成目标工作场景。
+Codex/Claude Code integrations remain optional development and compatibility routes. If a host asks for a folder, a research folder is sufficient; the plugin does not require Git. If a host requires a code project, record that as user friction rather than claiming the intended work scenario is complete. Cloud Work has real calls recorded; local Work requires separate acceptance.
 
-当前云端 Work 有真实调用证据；本地 Work 尚需单独验收，不能把已配置 Codex MCP 视为本地 Work 已通过。不同宿主的接入方式与实际可用性分开记录。
+## Two specified Origin builds
 
-## 统一版本的处理
+After checking the university download directory and second device on 2026-09-12, the user selected **Origin 2026 SR1 (10.300197)** and **Origin 2026b SR2 (10.350243)**, Windows x64, standard edition. SR1 was the observed university distribution; SR2 retains existing acceptance. Native workers allow these exact builds and check bitness, edition and non-Demo activation. Other builds are not automatically admitted.
 
-2026-09-12，远程核查学校下载目录及第二台设备后，用户明确选择同时支持 **Origin 2026 SR1（10.300197）和 Origin 2026b SR2（10.350243）、Windows x64、普通版**。SR1 对应此次观察到的学校分发版本，SR2 保留已有验收。原生 Worker 只允许这两个明确的构建，仍检查位数、版本类别及非 Demo 激活；其他构建不自动放行。
+Support and acceptance are separate. SR2 tests do not certify SR1. SR1 has passed four native datasets and a Terra max cloud Norris workflow through an independent normal-user runtime. Complete independent cloud artifact receipt details and the original tool-host startup issue remain open. Both builds retain `full_functionality_verified: false`.
 
-兼容范围与验收结果分开记录。SR2 的历史原生测试不能用于认证 SR1；SR1 必须在保留该版本的第二台设备上启动、执行、导出、重开并通过对应 Work 入口。目前 SR1 已在普通用户运行端完成四套原生测试和 Terra max 云端 Norris 原生执行；完整云端附件接收及原工具宿主启动上下文问题仍待核验。每个版本都保持 `full_functionality_verified: false`，不以运行检查通过代替全功能证明。
+The sharing package contains the plugin and required redistributable runtime only. Recipients supply their own activated Origin. Complete functionality is bounded by what that licensed version actually provides, including less common analysis, editing, Apps and GUI interactions; features exclusive to a different licence are not missing plugin features.
 
-插件分享包只包含插件和必要运行环境；接收者使用自己已经安装并激活的目标版本。"全部功能"以这个版本实际提供的功能为边界，涵盖非常用分析、图形编辑、Apps 和 GUI 交互；不把只有另一许可类型才提供的功能算作插件缺失。
+## Existing-project evaluation
 
-## 现成项目核验
+The public GitHub review covered Origin/OriginPro MCP, natural-language automation, Edinburgh/university deployment, installation and host support. **No existing release was found with public evidence that it fully meets this target.** That is not proof that no related project exists.
 
-检索范围：GitHub 公开的 Origin/OriginPro MCP、自然语言自动化、Edinburgh/大学部署、安装和宿主支持资料。结论是**未发现有公开证据证明已完整满足本目标的现成发行版**，不等于证明 GitHub 上绝对不存在相关项目。
+| Project | Reusable work | Gap or insufficient evidence in the reviewed version |
+| --- | --- | --- |
+| Ge-Shun/origin-mcp | Origin 2026/2026b bridge; 25 compact tools/full mode; function knowledge; sheets, matrices, graphs, analysis and templates; Start/Stop OPX; instance/recovery design | Marked Alpha/testing; default dependency resolution failed locally until MCP 1.x was pinned; structured nonlinear fit reported outer success without executing; OPX installation and all host flows unverified |
+| garethbeaumo/originlab-mcp | originpro/COM; 66 tools; import, graph editing, nonlinear fits and local configuration panel | A feature list does not prove complete Origin coverage or all target deployments/hosts |
+| youngminsw/Origin-Pro-MCP | COM, separate sessions, recovery, MCP/CLI; statistics, signals, matrices and plots | Author reported OriginPro 2020 testing; standard 2026b and broad deployment require verification |
+| Yike-Ye/OriginLab-MCP | Windows/VM remote control, actual graph-state read-back and compact tools | Mainly plotting and inspection; author reported Origin 2024, not an Edinburgh full-function release |
 
-| 项目 | 可直接利用的成果 | 与本产品目标的差距/证据不足 |
-|---|---|---|
-| Ge-Shun/origin-mcp | Origin 2026/2026b 桥接；25 个 compact 工具与 full 模式；函数知识库；工作表、矩阵、图形、分析、模板；Origin Start/Stop OPX；单实例与恢复逻辑 | 当前仍标注 Alpha/testing；本机实测默认依赖安装后无法启动，需固定 MCP 1.x；结构化非线性拟合外层成功但实际未执行；OPX 安装与各宿主完整流程仍未验证 |
-| garethbeaumo/originlab-mcp | originpro/COM；66 个工具；导入、图形编辑、非线性拟合；本地安装配置面板 | 功能列表不构成全 Origin 覆盖证明；未见满足统一校园部署和所有目标宿主的完整验证 |
-| youngminsw/Origin-Pro-MCP | COM、独立会话、恢复、MCP/CLI；统计、信号、矩阵及绘图 | 作者明确实测 OriginPro 2020；2026b 普通版与全校部署仍需验证 |
-| Yike-Ye/OriginLab-MCP | Windows/虚拟机远程控制、图形实际状态回读、较紧凑工具界面 | 重点在绘图和状态检查；作者报告 Origin 2024 实测，不是爱大全功能发行版 |
+Ge-Shun v0.1.4 commit `fecb7226ed60d7651d921d2586eb9950bf16b618` was reviewed and tested in an isolated Python environment through actual MCP calls. With MCP 1.30.0 pinned, import, linear coefficients, matrix read/write, continued edits and OPJU save/reopen passed. Structured ExpDec1 did not, so overall strict acceptance failed. The 17-step test used the upstream serial bridge with a separate external Origin instance, not embedded OPX startup. See [candidate evaluation](CANDIDATE_EVALUATION.md).
 
-本次固定 Ge-Shun commit `fecb7226ed60d7651d921d2586eb9950bf16b618`（v0.1.4），先审查源码，再在独立 Python 环境中通过实际 MCP 调用本机 Origin，完成 17 步验证。固定兼容 MCP 1.30.0 后，数据导入、线性拟合数值、矩阵读写、连续修改、OPJU 保存并回读修改值通过；结构化 ExpDec1 拟合未通过，因此整体验收为失败。这个测试使用上游串行 bridge 类和独立外部 Origin 实例，不是 OPX 嵌入启动验收。详见 [实测与复用决策](CANDIDATE_EVALUATION.md)。
+## Technical decision
 
-## 技术决策
+Selectively reuse the candidate's knowledge organisation, verified object adapters and session design. Evidence does not support simply repackaging it as a complete product. Retain Origin Companion's portable runtime, host wrappers, input snapshots and verification. The existing native nonlinear implementation, numerically verified on the same Origin build, addresses the observed fitting gap.
 
-**优先选择性复用 Ge-Shun/origin-mcp 的知识、通过验收的对象适配和持续会话设计**。实测不支持直接把其发行重新包装成完整版本。现有 Origin Agent Bridge 的便携运行环境、多宿主包装、输入快照和结果校验可以保留；已经通过同一版本数值断言的原生非线性拟合实现用于补上已发现缺口。
+See [implementation design](IMPLEMENTATION_PLAN.md). Persistent sessions/checkpoints and the [GUI channel](GUI.md) have recorded native cases. Extend complex controls, sharing installation and function-category acceptance using real outcomes and correction counts. Retain MIT attribution if incorporating upstream modules. Candidate source currently exists only in ignored test directories and is not included in this release.
 
-实现路线及模块契约见 [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)。持续会话及检查点已通过原生场景测试；GUI 基础通道已实现，见 [GUI.md](GUI.md)。之后补齐复杂控件、分享安装和完整功能分类验收。每项以实际结果和人工修正次数决定是否可交付。模块复用保留 MIT 许可/署名；目前候选源码只存在忽略的测试目录，没有并入本插件发行。
+## Acceptance for a smooth, complete plugin
 
-## “顺畅全功能版”的验收定义
+| Area | Completion criterion |
+| --- | --- |
+| Installation | One package, clear host selection, Origin discovery, connection and synthetic self-test; no source checkout, development terminal, manual JSON or separate Python; account authorisation identified separately |
+| Functionality | Imports, sheets/matrices, 2D/3D, fitting, statistics, signals, peaks, templates, Apps and project interaction for the specified build; GUI coverage where APIs are insufficient; evidence per category |
+| Continuous work | Edit the same project, preserve manual changes, inspect current objects/graphs, and restore explicit checkpoints without silently rebuilding away content |
+| Learning effort | Users state research goals; the agent finds operations and supplies arguments; ask only for missing information affecting scientific conclusions, and provide actionable recovery |
+| Results | Editable OPJU, traceable parameters/sources/steps, actual visual review and appropriate numerical checks |
+| Shared use | Same code/interface, with individual data, settings and agent accounts; no developer-specific paths, keys or accounts |
+| Hosts | Real cloud Work, local Work and each promised agent entrypoint accepted independently, without development-process dependencies |
+| Performance/quota | On-demand discovery, batching, session reuse, short default summaries, no extra model service, and measured time/calls |
+| Distribution | Shareable package/link, checksums, updates and rollback; clean-environment/different-user installation checks; classmate/staff trials inform usability without waiting for official university release |
 
-| 方面 | 完成条件 |
-|---|---|
-| 安装 | 同一安装包；用户选择目标 Agent 工作环境；自动发现 Origin、配置连接并完成合成数据自检；不要求源码仓库、开发终端、手改 JSON 或另装 Python；宿主自己的账号授权单独处理 |
-| 功能 | 覆盖指定 Origin 版本的导入、工作表、矩阵、2D/3D、拟合、统计、信号、峰、模板、Apps 和工程交互；官方 API 之外的交互有 GUI 适配；逐类有验收结果 |
-| 连续工作 | 在原工程上继续编辑；保留用户手动修改；能查看当前对象和图形；撤回或回到明确检查点；不会悄悄重建丢失内容 |
-| 学习成本 | 用户表达实验/研究目标即可；Agent 找到功能并填写参数；仅询问影响科学结论的缺失信息；错误信息能说明问题和恢复步骤 |
-| 结果 | 原生可编辑 OPJU；参数、数据来源和处理步骤可追溯；实际图像检查；关键数值有对应检验 |
-| 师生共用 | 相同代码和界面；各用户独立数据、设置和 Agent 账号；不依赖开发者的路径、密钥或账号 |
-| 多宿主 | 云端 Work、本地 Work 和每个承诺支持的 Agent 分别从真实工作入口验收；没有源码工作区或开发进程依赖；协议客户端与 Codex CLI 成功不替代宿主模型验收 |
-| 性能与额度 | 按需检索工具和文档；批量执行；连续修改复用会话；默认小摘要；不增加额外模型服务；记录真实时间和调用次数 |
-| 分享维护 | 可以直接发送安装包或下载链接；接收者无需开发者账号、密钥和本机路径；提供校验、升级和回滚；验证干净环境和不同 Windows 用户的安装；实际同学/教授试用用于改进体验，不等待学校官方发布 |
+Complete functionality means the plugin does not arbitrarily restrict the licensed version's scope. It does not mean AI cannot err, and neither tool count nor arbitrary script execution replaces acceptance.
 
-“全功能”表示指定授权版本的功能不被插件人为缩减；不表示 AI 不会犯错，也不以接口名称数量或能够执行任意脚本代替功能验收。
+## Host differences and current state
 
-## 各宿主的连接差异
+Local MCP generally requires the least account setup and uses each person's own agent account; execution remains on Windows. Cloud ChatGPT needs each recipient's supported connection and workspace permissions. Developer tunnel IDs/keys are not packaged. Campus deployment/SSO is outside the current scope. Mac users need a reachable licensed Windows computer or VM; native macOS Origin execution is not claimed.
 
-本地 MCP 是最少账号配置的默认路线，使用各用户自己的 Agent 账号。本地执行端仍在 Windows。ChatGPT 云端需要各接收者完成受支持连接及目标工作区权限；开发者个人 tunnel/key 不写进分享包。校园集中分发和 SSO 不在本项目范围。
+Version 0.2 provides general programming, persistent sessions, Win32/UIA and screenshot input, automatic configuration and native installation checks. Broad mechanisms exist, but not every function, App, host/model or device is certified. See [validation history](VALIDATION.md), [coverage](COVERAGE.md) and [current Work evidence](../../WORK_ACCEPTANCE_0.2.8.md).
 
-统一的是安装体验、Origin 基线、能力和工作流，不是共享一个模型账号或一份私人密钥。Mac 用户需要可达的已授权 Windows 计算端或虚拟机，当前不宣称原生 macOS 运行 Origin。
+GitHub Releases remains the distribution route. One Windows package supports both target builds; upgrades reuse personal settings and encrypted credentials. Initial host selection uses text and first-time cloud setup still includes official account steps and scripts, so an entirely graphical one-click flow is not claimed. See [distribution principles](../../PUBLIC_DISTRIBUTION.md).
 
-## 当前状态
-
-0.2 提供通用编程、持续会话、Win32/UIA 与截图输入，以及自动配置和原生自检安装器。实际执行前核对指定版本；状态接口保持 `full_functionality_verified: false`。冻结版及本机安装记录见 [VALIDATION.md](VALIDATION.md)，已实测案例和缺口见 [COVERAGE.md](COVERAGE.md)。通用机制已具备，所有功能、App、宿主模型和第二台实体电脑仍不能一概宣称认证通过。
-
-来源：[学校化学学院软件页面](https://chem.ed.ac.uk/cto/student-support/computing-software)、[Ge-Shun 项目](https://github.com/Ge-Shun/origin-mcp)、[v0.1.4 发行](https://github.com/Ge-Shun/origin-mcp/releases/tag/v0.1.4)、[工具模式](https://github.com/Ge-Shun/origin-mcp/blob/main/docs/tools.md)、[原生工作流](https://github.com/Ge-Shun/origin-mcp/blob/main/.github/workflows/real-origin.yml)、[garethbeaumo](https://github.com/garethbeaumo/originlab-mcp)、[youngminsw](https://github.com/youngminsw/Origin-Pro-MCP)、[Yike-Ye](https://github.com/Yike-Ye/OriginLab-MCP)。
+Sources reviewed: [School of Chemistry software](https://chem.ed.ac.uk/cto/student-support/computing-software), [Ge-Shun](https://github.com/Ge-Shun/origin-mcp), [v0.1.4](https://github.com/Ge-Shun/origin-mcp/releases/tag/v0.1.4), [tool modes](https://github.com/Ge-Shun/origin-mcp/blob/main/docs/tools.md), [native CI](https://github.com/Ge-Shun/origin-mcp/blob/main/.github/workflows/real-origin.yml), [garethbeaumo](https://github.com/garethbeaumo/originlab-mcp), [youngminsw](https://github.com/youngminsw/Origin-Pro-MCP), [Yike-Ye](https://github.com/Yike-Ye/OriginLab-MCP). These are dated evaluation sources, not claims about future upstream releases.

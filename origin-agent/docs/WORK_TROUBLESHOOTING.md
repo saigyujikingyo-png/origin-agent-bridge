@@ -1,67 +1,67 @@
-# ChatGPT Work 排障
+# Troubleshooting ChatGPT Work
 
-## 确认连接的电脑
+## Confirm the execution computer
 
-0.2.8 的 `origin_status.device.computer_name` 返回运行 MCP 执行端的电脑名称。指定第二台电脑时，Work 应先与用户指定的设备比较，不匹配就停止提交任务并切换到正确的连接。这个字段不启动 Origin，也不证明许可有效或软件版本已经原生验证；它是识别执行端的辅助信息，不是密码学设备认证。每台电脑仍需要各自的正版目标版本、执行端及相应连接。不要把另一台电脑的成功作业当作本机验收。
+In 0.2.8, `origin_status.device.computer_name` identifies the computer running MCP. Compare it with the user's intended device before submitting work; switch connections if it differs. This field does not start Origin, validate licensing or certify a native build. It assists routing, not cryptographic device authentication. Each computer needs its own licensed target Origin, runtime and connection; another computer's success is not this device's acceptance.
 
 ## Invalid input appears as a host serialization error
 
-In the 2026-09-12 acceptance run, a session source path outside the configured input roots was correctly rejected, but the host displayed a generic serialization error. The 0.2.7 server returned an MCP error with plain text and no structured content. Version 0.2.8 returns bounded JSON text and structured content for correctable validation, syntax, input and tool errors, with the MCP error flag preserved. Full mode, economy mode and cached full-mode names use the same error contract. No execution is retried.
+In the 2026-09-12 acceptance run, a session source outside allowed input roots was correctly rejected but appeared as a generic host serialization error. 0.2.7 returned an MCP error with plain text and no structured content. 0.2.8 returns bounded JSON text and structured content for correctable validation, syntax, input and tool errors, retaining the MCP error flag. Full mode, economy and cached full-mode names share this contract; execution is not retried.
 
-Read the returned reason and correct the input. For a completed project, use `origin_run_program` with `project_artifact` to continue on a copy. A managed session accepts a `project_path` in a configured data directory or the inbox; an internal job path is not automatically an allowed input path. The input-root policy has not changed. Native worker failures retain their terminal job state and require a deliberate corrected submission.
+Correct the reported input. To continue an output copy, use `origin_run_program` with `project_artifact`. A session accepts `project_path` in configured data roots or the inbox; an internal job path is not automatically an allowed input. The root policy has not changed. Native worker failures remain terminal and need a deliberate corrected submission.
 
+## A project cannot be used for local chat
 
-## 项目无法用于本地聊天
+The message "This project cannot be used for local chat" can occur while ChatGPT prepares a local project mirror, before any plugin call. One Windows client 26.903.9818.0 case on 2026-09-11 logged `stage=filesystem`: an ended task's `node_repl.exe` retained the mirror as its working directory, causing Windows sharing violation 32. After releasing that confirmed idle process, DELETE-access checking passed without changing sync files, permissions or the app database.
 
-“无法将此项目用于本地聊天”发生在 ChatGPT 准备项目本地镜像时，可能早于任何插件调用。2026-09-11 在 Windows 客户端 26.903.9818.0 上观察到 `stage=filesystem`；项目镜像目录被已结束任务的 `node_repl.exe` 作为工作目录占用，Windows 返回共享冲突 32。释放已确认闲置的进程后，同一目录的 DELETE 访问检查通过；没有修改同步文件、权限或应用数据库。
+This is one diagnosed case, not a universal cause or a plugin fix for the client. If repeated, check whether the associated task is still running; after preserving work, restarting the client may release old helpers. Do not delete `.chatgpt-projects`, alter sync files or bulk-terminate other tasks. An actual client retry is still the end-to-end check.
 
-这是本机一次故障的诊断记录，不代表所有同文案错误都有同一原因，也不代表插件升级修复了客户端本身。若复发，先确认相关任务是否仍在运行；保存任务后重启客户端可释放旧辅助进程。不要删 `.chatgpt-projects`、修改同步文件或批量结束其他任务的进程。客户端实际重试仍是端到端确认步骤。
+## Unknown tool
 
-## Origin 返回 Unknown tool
+0.2.1 economy mode advertised five tools and routed its 13 full operations through `origin_call`. Old conversations could still send names such as `origin_inspect_dataset` and `origin_plan_workflow`, which that version rejected.
 
-0.2.1 经济模式只注册 5 个入口，完整模式的 13 个工具改由 `origin_call` 执行。旧会话或宿主缓存仍可能直接发送 `origin_inspect_dataset`、`origin_plan_workflow` 等名称，导致服务端拒绝。
+0.2.2 kept five advertised tools while accepting cached full-mode names at dispatch, preserving name/argument/vision/session checks and risk annotations. Each request takes one path; failed execution does not trigger an automatic retry. New conversations should use `origin_help` and `origin_call`; unknown names remain rejected.
 
-0.2.2 继续只发布 5 个经济模式入口，并在调用分发层接受完整模式名称；完整服务器仍验证名称、参数、视觉策略和会话状态。按名称选择一次执行路径，不在执行失败后自动重试。新任务优先使用 `origin_help` 和 `origin_call`；未知名称仍被拒绝。完整模式工具的风险标注保持不变。
+Reconnect MCP after an upgrade, and reconnect your existing personal tunnel for cloud Work. If the host rejects a name before sending it, refresh its tool list or start a new Work conversation. Do not change models or create a new model key solely for this error. Confirm inspection/planning with synthetic data before authorised real work. Startup/protocol checks are not host-model acceptance.
 
-升级后重启相关 MCP 连接；ChatGPT 云端需要重连自己的既有隧道。若宿主在发送前就拒绝旧名称，刷新工具列表或新开 Work 任务。不要为此更换模型或填写新的模型 API 密钥。
+## Cloud metadata versus an existing conversation
 
-使用合成数据确认 `origin_inspect_dataset`、`origin_plan_workflow` 可用，再运行获授权的真实工作。启动命令和协议测试通过不等于宿主模型已完成自然语言验收。
+In a real 2026-09-11 case, the backend returned 0.2.2 while the cloud app still registered eight early tools. Reconnecting the tunnel alone did not refresh metadata. The observed web flow was Settings → Plugins → Origin app → Refresh, then confirm five economy tools including `origin_help`, `origin_call` and `origin_recipe`. Older installations may display Origin Agent Bridge; rename the same app rather than recreating it or its key. UI wording/location can change.
 
-## 云端工具目录与旧任务的区别
+The existing task retained its old eight-tool registry even after refresh and another mention. Compatibility dispatch let it import, fit, reopen OPJU and export figures, but could not expose names the host had never registered. A new authorised task successfully used `origin_status`, `origin_help` and `origin_call` for `origin_capabilities`, discovering five tools and 13 operations including programs, sessions and GUI. That was read-only discovery, not execution of every capability.
 
-2026-09-11 的真实云端验收中，后端 `origin_status` 已返回 0.2.2，但 ChatGPT 云端应用仍登记 8 个早期工具。仅重连隧道不会保证 ChatGPT 重新读取工具目录。在本次网页版界面中，从设置 → 插件 → 选中 Origin 应用 → 刷新，确认列表包含 `origin_help`、`origin_call`、`origin_recipe` 等 5 个经济入口。早期安装可能显示旧名称 Origin Agent Bridge，可在同一应用中修改显示名称，无须重新创建应用或密钥。界面文案与位置可能随客户端版本改变。
+OpenAI's [Developer mode and MCP apps](https://help.openai.com/en/articles/12584461) distinguishes server changes from registered metadata. Specific UI/cache behaviour here is observed evidence. See [cloud-work-0.2.2.json](../verification/cloud-work-0.2.2.json). One interrupted PDF-info read succeeded on a read-only retry; uncertain writes must first be checked by job ID.
 
-已开始的云端任务在刷新后继续运行、重新 @ 插件，实际工具注册表仍保持旧 8 项。兼容转发已允许该旧任务完成导入、线性拟合、OPJU 重开和 PNG/PDF/SVG 导出，但无法让宿主向模型暴露此前未登记的名称。用户授权创建新任务后，实际执行 `origin_status`、`origin_help` 和通过 `origin_call` 读取 `origin_capabilities` 三项均成功：新任务显示 5 个经济入口，帮助列出 13 项操作，包括通用程序、持续会话和 GUI。该新任务只做读取，没有提交作业或执行全部功能。后续增加能力时，刷新云端应用目录，并新开 Work 任务加载新增接口；不要把原任务未显示新增名称误判为服务端仍不可用。
+In the 0.2.8 refresh, actual Work reported one successful status call returning 0.2.8, while the old alias in a long development conversation still returned `Unknown tool`. These are separate observations; see the [refresh receipt](../verification/local-refresh-0.2.8.json).
 
-OpenAI 的说明也区分服务端代码更新与 ChatGPT 已登记的工具快照：[Developer mode and MCP apps](https://help.openai.com/en/articles/12584461)。本次具体界面和旧任务缓存行为来自现场观察。
+## Cloud goes offline after Codex exits
 
-完整云端合成验收见 [cloud-work-0.2.2.json](../verification/cloud-work-0.2.2.json)。一次 PDF 信息读取连接中断后只读重试成功；不要把自动重试应用到未确认是否已经提交的写操作，先按 job ID 查询状态。
+A later 2026-09-11 test returned `Tunnel-client has not been seen for 300 seconds`: local MCP worked, but the old tunnel process had exited. A new login task also exposed an MSIX issue: configuration seen by Codex under `AppData/Roaming/tunnel-client/origin-agent.yaml` actually lived under its package `LocalCache/Roaming`, invisible to the ordinary scheduled task.
 
-## 重启 Codex 后云端离线
+Connection/startup scripts now use `.origin-agent/cloud/profiles`, retaining the user's identity. A current-user background task reads `.origin-agent/install.json` and manages the connection independently. See [INSTALL.md](INSTALL.md). Record outage, recovered status, native success and process independence separately; one ready status does not prove continuous availability.
 
-2026-09-11 的后续 Work 详尽测试发现 `Tunnel-client has not been seen for 300 seconds`。本机 MCP 可以正常使用，但原隧道进程已经结束。首次建立 Windows 登录任务时又复现配置不可见：Codex 内看到的 `AppData/Roaming/tunnel-client/origin-agent.yaml` 实际位于其 MSIX 包的 `LocalCache/Roaming`，普通 Windows 计划任务不共享这层重定向。
+A 0.2.3 injected exit did not recover despite scheduler retry settings after re-registering a running task; the Windows cause remained unknown. From 0.2.4 the resident supervisor directly monitors the connection process and creation time, retries after 5/15/30 seconds up to three times, and resets after five stable minutes. The scheduled task still handles login startup. Stop/disable that task before deliberately stopping its tunnel so intentional disconnection is not treated as a fault. This mechanism does not guarantee every cloud request succeeds.
 
-连接和登录脚本改用 `.origin-agent/cloud/profiles`，保留原隧道身份；Windows 当前用户后台任务从 `.origin-agent/install.json` 读取当前引擎，维持连接进程，具有退出后的有限重启。安装及停用方式见 [INSTALL.md](INSTALL.md)。当前验收过程中应分别记录连接中断、恢复后的只读成功、实际原生作业成功及进程独立性；不能把一次 ready 状态视为长期无中断证据。
+## Long wait after a job has already failed
 
-0.2.3 的后续故障注入中，计划任务设置了重试但一次进程退出未自动恢复；当时刚重新注册过运行中的任务，未确认 Windows 内部原因。因此 0.2.4 驻留程序直接监测连接进程及创建时间，退出后以 5/15/30 秒间隔最多重试三次，稳定运行五分钟后重置计数；Windows 任务继续负责登录启动。此机制处理连接进程退出，不把 ready 状态解释为所有云端网络请求必定成功。主动断开时先停用并停止后台任务，再停止受管隧道，避免主动断开被当成故障重连。
+A deleted trial left local NumPy-import and nonexistent `GLayer.set_label` failures, with no verified figure or OPJU. Without the original conversation, its entire waiting time and cloud retrieval delay cannot be reconstructed.
 
-## 长时间等待、实际作业已失败（0.2.6）
+0.2.6 reports failed/cancelled/interrupted jobs as `terminal=true`, with no later-poll instruction, the last stage and recovery guidance. Report failure promptly; correct it before submitting again. Continued polling is not recovery.
 
-一次已删除的 Work 试用留下两次本机失败记录：生成的 Python 首先引用未打包的 NumPy，修订后又调用不存在的 `GLayer.set_label`。没有经过核验的图或 OPJU。由于原对话已删除，无法据此归因其整段等待时间，也不能证明云端数据获取阶段是否另有等待。
+After retrieving cloud data, use `origin_import_table` for CSV/TSV and `origin_recipe(recipe="beer_lambert")` for standard calibration. This reuses native fitting, independent numbers, OPJU reopen and export checks. Supply intercept/weighting explicitly; absorptivity also needs actual path length and concentration units. General Python is available, but standard fits should not require temporary code or undeclared packages.
 
-0.2.6 修复终态反馈：失败、取消或中断不再返回“稍后查询”，明确 `terminal=true`、停止轮询，进度标明终态并保留最后执行阶段。模块/API 错误返回恢复建议。Agent 应及时说明失败，修正后才重新提交，不能把持续轮询当作重试。
+If no tools are available, check the installed-plugin list, not only the personally created directory. One 2026-09-11 case still showed Install for an existing personal Origin Companion app. Restoring it required an actual call to verify connectivity. Keep connection, model selection and scientific execution failures distinct.
 
-云端取回数据后，使用 `origin_import_table` 导入 CSV/TSV，再调用 `origin_recipe(recipe="beer_lambert")`。这条流程复用原生拟合、独立数值核对、OPJU 重开和导出检查。截距和权重需明确指定；摩尔吸光系数还需实际光程与浓度单位。通用 Python 仍可用，但标准拟合不应依赖临时代码或未声明的第三方包。
+## Files exist locally but Work has no attachments
 
-若工具根本不在任务中，先确认 ChatGPT 已安装列表，而非只看“我创建的”。2026-09-11 排查时，同一 Origin Companion 仍在个人目录，但显示“安装插件”；恢复安装后还需核对实际工具调用。连接状态、模型选择和科学计算失败应分别记录。
+`info` and `origin://` references establish local existence, not cloud receipt. `origin_get_artifact(mode="download")` returns an embedded binary MCP resource; verify its full size and SHA-256. Info mode does not transfer binary. Files over 32 MiB are explicitly refused, never truncated.
 
+If the host does not create attachments, request `origin_help(operation="origin_get_artifact", query="receiver")`. The fixed receiver writes a new temporary file in the host output directory, streams chunks, verifies completeness and only then exposes the artifact without overwriting earlier results. It adds no public service or manual user decoding. See [file delivery](../skills/origin-workflow/references/FILE_DELIVERY.md).
 
-## 已生成结果，但 Work 没有下载附件（0.2.7）
+Earlier temporary receivers failed by assuming `atob` existed or using non-TTY stdin that immediately returned EOF. Those are transfer-method errors, not evidence that Origin stalled or the host cannot write files. The fixed receiver avoids both. If a host truly cannot save/execute files, state that limit; do not invent URLs or label local paths as cloud attachments.
 
-`info` 和 `origin://` 资源链接只说明文件存在；它们不是云端已收到文件的证据。使用 `origin_get_artifact(mode="download")` 取得含二进制的 MCP 嵌入资源，并核对完整字节数和 SHA256。默认信息查询不会传输二进制。单文件上限 32 MiB；超限会明确拒绝，不截断文件。
+0.2.7 also converts numeric Unicode superscripts/subscripts to Origin text formatting while preserving original inputs/requests. Reopen checks verify saved formatting; visual review still matters for fonts/layout.
 
-有的宿主不会自动创建附件。经济模式可调用 `origin_help(operation="origin_get_artifact", query="receiver")`，按需取得固定接收器。它在宿主自己的输出目录新建临时文件，逐块写入，完整校验后才生成交付文件，不覆盖已有结果。它不会另开公网服务，也不会要求用户手工解码。详细说明见 [文件交付](../skills/origin-workflow/references/FILE_DELIVERY.md)。
+## Downloads and university OneDrive
 
-实际 Work 排查中，临时接收脚本曾先后误用不存在的 `atob`、以及立即收到 EOF 的非 TTY stdin。这是接收方式错误，不能直接解释为 Origin 无响应或宿主不能写文件。固定接收器不依赖这两个机制。若宿主确实没有文件保存或命令执行能力，应明确说明该宿主的交付限制；不要伪造 URL 或把本机路径标成云端附件。
-
-新版同时将图题和坐标中的 Unicode 数字上下标转为 Origin 自身的文字格式；原始数据和请求保留原文，重开校验检查实际保存的格式。仍需查看导出图，不能仅凭文字读回推定字体与布局无误。
+Use the user's chosen local folder, host attachment or other authorised destination. University OneDrive is a development archive preference, not a runtime/delivery requirement. The user confirmed successful downloading to their own Downloads folder. A historical `ERR_BLOCKED_BY_CLIENT` route remains recorded with its exact blocking component unknown; it does not establish failure at every destination. A user-reported download does not by itself supply per-file hash evidence for all artifacts. See [0.2.8 acceptance](../../WORK_ACCEPTANCE_0.2.8.md).

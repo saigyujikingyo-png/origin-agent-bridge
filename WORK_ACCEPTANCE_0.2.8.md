@@ -1,59 +1,57 @@
-# Origin Companion 0.2.8 预览版验收
+# Origin Companion 0.2.8 preview acceptance
 
-日期：2026-09-12。候选执行代码为 `ef7a1c994871da8ba46f648ac84c3dab423425b9`；安装包 SHA-256 为 `54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77`。0.2.8 以预览版分享；本文不宣布完整双版本、所有宿主或全功能稳定发布。
+Date: 2026-09-12. Executable source commit: `ef7a1c994871da8ba46f648ac84c3dab423425b9`. Package SHA-256: `54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77`. 0.2.8 is shared as a preview; this report does not declare complete dual-build, all-host or full-function stability.
 
-## 第一台设备的真实云端 Work
+## First device: actual cloud Work
 
-从实际 Work 用户入口调用已安装的 0.2.8，模型界面显示 GPT-5.6 Sol、轻度推理。实际使用状态、按需帮助、通用操作、批量配方和成果读取五个工具。
+The real Work user entrypoint called installed 0.2.8. The visible model was GPT-5.6 Sol with light reasoning. Five economy tools were used: status, help, general operation, recipe and artifact retrieval.
 
-先提交不完整计划，确认返回 `isError: true`、JSON 文本与结构化错误一致，指出缺少 panels，且不创建任务；Agent 随后能继续执行正常工作流。没有用持续重试掩盖该错误。
+An incomplete plan first returned `isError: true`, matching JSON text/structured content and a missing-`panels` explanation, without creating a job. The agent could then continue a valid workflow; repeated polling did not conceal the error.
 
-使用公开 [NIST Norris 观测数据](https://www.itl.nist.gov/div898/strd/lls/data/Norris.shtml)，通过正版 Origin 2026b SR2（10.350243，x64 普通版，Demo=0）完成 36 行数据的自由截距、非加权原生线性拟合。
+The public [NIST Norris observed data](https://www.itl.nist.gov/div898/strd/lls/data/Norris.shtml), 36 rows, were fitted with a free intercept and no weighting in licensed Origin 2026b SR2 (10.350243), x64, standard edition, Demo=0.
 
-| 核对项 | 结果 |
+| Check | Result |
 | --- | --- |
-| 斜率 | 1.0021168180204543 |
-| 截距 | -0.26232307377398456 |
+| Slope | 1.0021168180204543 |
+| Intercept | -0.26232307377398456 |
 | RSS | 26.617398529423433 |
 | R² | 0.9999937458837117 |
-| 原生作业耗时 | 13.196 秒 |
-| Work 界面整轮耗时 | 3 分 43 秒 |
-| 工程重开 | 数据、图形文字、标题及原生拟合报告通过回读 |
-| 用户成果 | PNG、PDF、SVG、OPJU 四份真实云端附件 |
+| Native job time | 13.196 seconds |
+| Full Work turn shown in UI | 3 minutes 43 seconds |
+| OPJU reopen | Data, graph text, title and native fit report read-back passed |
+| Delivered artifacts | Actual cloud PNG, PDF, SVG and OPJU attachments |
 
-PNG 已查看；PDF 附件已在云端页面实际打开检查。四份收到的文件均与本机成果清单的大小和 SHA-256 一致，详细值见[机器可读验收记录](origin-agent/verification/release-0.2.8.json)。本次没有使用私人课程或 Google Drive 作业数据。
+PNG was viewed and the PDF attachment opened in the cloud interface. All four received files matched the local manifest's sizes and SHA-256 values. See the [machine-readable record](origin-agent/verification/release-0.2.8.json). No private coursework or Google Drive assignment data were used.
 
-## 安装包与工程检查
+## Package and engineering checks
 
-- 在无开发运行时 PATH 的独立目录测试冻结版，原生工作流、保存重开、结构化输入错误、重复请求复用及预期失败终态通过。
-- 本机安装 306 个文件，校验和不匹配数为 0；云端连接已重启至 0.2.8，真实 Work 工具清单已刷新。
-- 本地测试 150 通过、1 因 Windows 符号链接权限跳过；GitHub Windows 与 Linux CI 各 151 通过。检查对应上述执行代码，不把历史测试归到以后修改的代码。
-- 另有 [四套公开真实数据的原生测试](NIST_ACCEPTANCE_2026-09-12.md)，运行版本为 0.2.7，不能改标为 0.2.8 的非线性验收。
+- The frozen runtime ran from an independent directory without development-runtime PATH entries: native workflow, save/reopen, structured input errors, duplicate-request reuse and expected terminal failure passed.
+- All 306 installed files matched the package. The cloud runtime was restarted on 0.2.8 and its registered tool list refreshed.
+- Local tests: 150 passed and one skipped because of Windows symlink permissions. GitHub Windows and Linux CI each passed 151 tests. These checks apply to the stated executable commit, not arbitrary later code.
+- The separate [four-dataset observed-data test](NIST_ACCEPTANCE_2026-09-12.md) on the first device used 0.2.7; it must not be relabelled as 0.2.8 nonlinear acceptance.
 
-## 第二设备与剩余门槛
+## Second device and remaining gates
 
-学校 Origin 2026 SR1（10.300197）保持原版本。0.2.8 安装自检及四套 NIST 数据的本机原生测试通过：Norris、Misra1a、Eckerle4、Chwirut1，共 299 个观测值。拟合参数和 RSS 满足预先声明的容差；工程重开后原始 x/y 逐值一致，Chwirut 原生统计也与独立结果一致。16 件成果通过本机 MCP 二进制读取与哈希核验，PNG、PDF 与白底 SVG 均经过图像检查。具体参数、容差、耗时和摘要见[第二设备脱敏回执](origin-agent/verification/remote-sr1-0.2.8.json)。
+The university Origin 2026 SR1 (10.300197) installation was retained. The 0.2.8 installation self-test and four local native NIST cases passed: Norris, Misra1a, Eckerle4 and Chwirut1, totalling 299 observations. Fit parameters/RSS met predeclared tolerances; saved/reopened x/y values matched exactly, and native Chwirut statistics matched independent calculations. All 16 artifacts passed local MCP binary receipt and hash checks; PNG, PDF and white-background SVG figures were visually checked. Parameters, tolerances and timings are in the [second-device receipt](origin-agent/verification/remote-sr1-0.2.8.json).
 
-第二台设备导出的四张 PNG 与四份 PDF 已在第一台设备独立接收，逐文件大小和 SHA-256 一致。四份 PDF 又经独立 Poppler 渲染后与四张 PNG 逐张查看，标题、坐标、图例及曲线可读。渲染器提示 Symbol/ArialUnicode 字体映射缺失，但该批可见文字正常；不据此推断其他字体或语言也已通过。详见[独立图形复核](origin-agent/verification/remote-sr1-figure-review-0.2.8.json)。
+Four PNGs and four PDFs from that device were independently received on the first device, with matching sizes/hashes. PDFs were separately rendered with Poppler and all eight figures inspected: titles, axes, legends and curves were readable. The renderer warned about Symbol/ArialUnicode mappings, but visible text in these figures was correct; this does not certify other fonts/languages. See the [independent figure review](origin-agent/verification/remote-sr1-figure-review-0.2.8.json).
 
-原工具宿主启动上下文仍会在启动 Origin 时失败；同一安装程序在普通终端上下文中完成上述测试。虽然发现原环境缺 APPDATA、LOCALAPPDATA，分别补回或同时补回后仍失败，因此这两项不是已证实的解决办法。最终对照中，同一 .NET COM 创建脚本在原上下文等待 30 秒后超时，未得到 COM 对象或错误码；普通终端此前成功。只读检查的完整性、权限提升及受限令牌字段相同，但不能证明全部宿主限制或有效 COM 权限相同。没有改动全局环境、注册表、许可证或已安装二进制；根因与宿主边界仍待明确。
+The original tool-host launch context still failed to start Origin; the same installed executable completed those tests in a normal terminal context. Missing APPDATA/LOCALAPPDATA were observed, but restoring either or both did not fix it. In the final comparison, the same .NET COM creation script timed out after 30 seconds in the original context without returning an object or error code; the normal terminal had succeeded. Read-only integrity/elevation/restricted-token fields matched, which does not prove every host restriction or effective COM permission was identical. Global environment, registry, licence and installed binaries were not changed; the root cause remains unresolved.
 
-第二设备已由本人完成登录与专用凭据本机加密保存，复用该凭据启动独立普通用户运行端。实际 Chrome 云端 Work 使用 GPT-5.6 Terra、max 推理，明确选择该设备专用插件并发现 14 个工具。设备/版本预检通过（7.61 秒），Norris 原生作业通过（8.422 秒）：斜率 1.0021168180204543、截距 -0.26232307377398456、RSS 26.617398529423433，满足 NIST 容差；数据、图形文字、标题及原生拟合报告均在 OPJU 重开后回读通过。
+The user completed login and local encrypted storage of a dedicated credential. Reusing it, an independent normal-user runtime connected to actual Chrome cloud Work with **GPT-5.6 Terra, max reasoning**. The device-specific plugin exposed 14 tools. Device/version preflight passed in 7.61 seconds; native Norris passed in 8.422 seconds, with slope 1.0021168180204543, intercept -0.26232307377398456 and RSS 26.617398529423433. These met NIST tolerances; data, text, title and report read-back passed after OPJU reopen.
 
-Work 页面已显示四个成果链接，远程任务报告 Work 内部已校验 4/4，PNG/PDF 可打开查看。早期 Chrome 自动下载出现 `ERR_BLOCKED_BY_CLIENT`，当时独立文件校验为 0/4；后续远程任务反馈经正式接口取得并校验 PNG，独立接收进度为 1/4，PDF、SVG、OPJU 尚未完成该接收路径的核验。最新 1/4 作为远程报告记录，发布维护端尚未独立收到该次 PNG 的下载校验明细；不能与此前本机资源接收的图形复核混为同一证据。详见[第二设备真实 Work 记录](origin-agent/verification/remote-sr1-cloud-work-0.2.8.json)。
+Work showed four artifact links. The remote task reported internal 4/4 checks and viewable PNG/PDF. Early automated Chrome downloads returned `ERR_BLOCKED_BY_CLIENT`, with independent file receipt then at 0/4. A later remote report said PNG was obtained and checked through an official interface, bringing that route to 1/4; PDF/SVG/OPJU receipt on the same route remained unverified. The maintainer had not independently received that PNG download's detailed receipt. Do not conflate this remote report with the earlier independently received native figures. See [second-device cloud Work](origin-agent/verification/remote-sr1-cloud-work-0.2.8.json).
 
-远程任务将阻断描述为组织安全策略；用户补充判断是爱大拦截了自动下载，且无需将成果保存到爱大 OneDrive。具体拦截组件尚未独立定位，不据此断定是 OneDrive 保存失败或 Origin 执行失败。验收区分原生作业、宿主附件交付与浏览器自动下载：使用用户选定的本地文件夹、宿主正式附件或其他获准接收方式即可验证对应交付，不将指定学校云盘或某一种自动下载方式作为通用发布门槛；未实际取得的文件仍保留未验收状态。
+The remote task described organisational policy as the cause; the user suggested university blocking of automatic downloads and clarified that saving to university OneDrive was unnecessary. The exact blocking component was not independently identified. This is not evidence of OneDrive saving or Origin execution failure. Native jobs, host attachments and automated browser downloads are separate gates. Actual receipt through a chosen local folder, official host attachment or another authorised method validates that route; a specific cloud folder or browser automation method is not universally required. Files not received remain unverified.
 
-用户随后实际尝试并确认，下载到自己账户的“下载”（Downloads）文件夹成功。该保存位置已有用户实测成功证据，不再把“无法下载成果”列为所有保存位置的共同阻塞；可以继续使用自己的 Downloads，无需转存学校 OneDrive。此次反馈未提供具体文件清单、数量、设备、插件版本或摘要，按“用户确认下载成功”记录，不擅自改标为本次 NIST 四件成果全部经过独立哈希验收。此前失败的特定路径仍保留历史记录，不能据此确定拦截根因。
+The user later personally confirmed successful downloading to their own **Downloads** folder. That destination has user-reported success, so inability to download is not a blocker shared by all destinations. No particular file list, count, device, version or hash was supplied; record this as user-confirmed download, not independent 4/4 NIST artifact verification. Preserve the historical failed route without claiming its root cause is known.
 
-另一窗口的账号/工作区对应关系尚未确认，不把不同窗口工具清单视为相同账号证据。状态接口中的 SR1 资格标记仍保留 pending，直到余下的宿主验证完成。
+Another window's account/workspace association was not established; different tool lists are not proof of the same account. The runtime's SR1 qualification flag remains pending until remaining host checks finish. All Origin functions, models and agents are not certified. Device names aid routing, not cryptographic attestation. Cached hosts may need a refresh/reconnection after updates.
 
-当前仍不宣称全部 Origin 功能、所有模型、所有 Agent 宿主均已验证。设备名称只用于路由检查，不是密码学设备证明。更新后，缓存工具清单的宿主需要刷新或重开连接。
+## Local refresh and public download
 
-## 本机刷新复核
+On 2026-09-12, the package and installed 306 files were rechecked with zero differences, and executable sources matched the build manifest. The 0.2.8 synthetic native self-test/read-back passed. A fresh connection through the reinstalled personal plugin returned 0.2.8 and five economy tools; recipe help and structured invalid-plan errors passed. A duplicate standalone MCP entry was backed up and removed, and idle old-version connections ended while retaining the installed new plugin entry.
 
-2026-09-12，已重新核验候选包与本机安装的 306 个文件，校验差异为 0；当前执行源码与包内构建清单一致。本机 0.2.8 合成数据原生自检及回读通过。通过重新安装的个人插件入口建立全新连接，状态返回 0.2.8，五个经济模式工具可发现；配方帮助正常，无效计划返回结构化校验错误。重复的独立 Origin MCP 配置已备份并移除，旧版空闲连接已结束，保留已安装的新插件入口。
+The ChatGPT connection was refreshed and showed five current tools. A read-only follow-up in actual Work then reported exactly one successful `origin_status` call, version 0.2.8, with no native job. This is an observed Work status reply, not a complete workflow or model benchmark; its raw tool transcript was not independently obtained. The old cloud-tool alias in the long-running development conversation still returned `Unknown tool`, recorded separately from refreshed Work success. Existing conversations may need to reload tools or start anew; refreshing does not change Origin licensing. See the [refresh receipt](origin-agent/verification/local-refresh-0.2.8.json).
 
-ChatGPT 连接已点击刷新并显示五个当前工具。随后在实际 Work 任务中再次进行只读检查，界面新回复明确报告仅调用一次 `origin_status`、调用成功且版本为 0.2.8，未启动原生作业。这是本轮 Work 状态检查，不冒充完整工作流或模型 benchmark；未独立取得该次原始工具日志。本开发对话中的旧云端工具别名仍返回 `Unknown tool`，与刷新后 Work 的成功结果分开记录。已有对话可能需要重新载入工具或新建对话；刷新不改变 Origin 授权。详见[本机刷新回执](origin-agent/verification/local-refresh-0.2.8.json)。
-
-0.2.8 预览版已在 GitHub 公开，原资格验收草稿另行保留。通过未登录的公开下载取得 ZIP 共 33,085,772 字节，SHA-256 与上述候选包完全一致。
+The 0.2.8 preview is public on GitHub, with the earlier qualification draft retained separately. An unauthenticated public ZIP download returned **33,085,772 bytes**, matching the package SHA-256 above. English documentation changes do not rebuild or replace that verified executable package.

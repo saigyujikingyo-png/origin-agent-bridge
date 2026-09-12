@@ -1,39 +1,39 @@
 # Chembridge
 
-Chembridge 面向爱大师生，开发让学习、研究和日常学校工作更方便的插件与 Agent 自动化工作流。它是多个插件的总项目；Origin Companion 是专业软件插件之一。
+Chembridge develops plugins and agent workflows that make study, research and everyday university work easier for University of Edinburgh students and staff. It is an umbrella project; Origin Companion is one of its specialist software plugins.
 
-| 方向 | 用户希望完成的工作 | 交付形式 |
+| Area | User goal | Deliverable |
 | --- | --- | --- |
-| 学校便捷插件 | 查找和整理资料、复用常见学校工作流程 | 按用户授权连接资料源的插件 |
-| 专业软件插件 | 通过自然语言使用已获授权的软件，保留原生可编辑成果 | 通用 Agent 接口和必要的本机执行端 |
-| 工作流自动化插件 | 串联资料读取、处理、软件执行、检查和交付 | 可追溯、可恢复的工作流 |
+| University convenience plugins | Find and organise materials; reuse common university workflows | Plugins connected to sources authorised by the user |
+| Specialist software plugins | Use licensed software through natural language while retaining editable native results | General-purpose agent interfaces and any necessary local execution runtime |
+| Workflow automation plugins | Connect retrieval, processing, software execution, checking and delivery | Traceable workflows with recovery mechanisms |
 
-这些方向是项目范围，不代表表中所有产品已经实现。当前仓库交付 Origin Companion；保留其名称、安装包、版本历史与 GitHub 地址。以后按产品成熟度增加独立模块或仓库，避免为了总项目先搭建复杂平台。
+These areas define the scope, not a list of completed products. This repository delivers Origin Companion and retains its name, packages, release history and GitHub address. Add separate modules or repositories as products mature; do not build a large platform before it is needed.
 
-## 所有插件的共同准则
+## Shared principles
 
-开发前先读 [Chembridge 统一开发与交付准则](DEVELOPMENT_PRINCIPLES.md)（2026-09-12.2）。这是跨对话默认约定：GitHub 发行、非开发者便捷安装、多 Agent/多模型、经济模型友好、**GPT-5.6 Terra + max 作为 benchmark**、按实际任务核实爱大标准、轻量快速、高效率与额度友好。具体证据、兼容矩阵和未完成项分别记录，不能把这些目标写成全部已达成。
+Read the [Chembridge development and delivery principles](DEVELOPMENT_PRINCIPLES.md), version **2026-09-12.3**, before development. The defaults are GitHub distribution in English, accessible installation for non-developers, multiple agents and models, economical-model support, **GPT-5.6 Terra + max as the benchmark**, verified task-specific Edinburgh requirements, and lightweight, responsive, efficient operation with careful use of model quota. Record evidence, compatibility and remaining work separately; these goals are not all certified achievements.
 
-新插件在自己的仓库 AGENTS.md 中接入这份共同准则，避免用户在每个开发对话重新解释。用户新的明确要求优先；已有运行中的对话需要重新读取入口后使用新规则。
+Each new plugin must reference these principles in its own `AGENTS.md`, so users do not need to repeat them in every development task. New user instructions take precedence. Tasks already running must reread the entrypoint to adopt updated rules.
 
-## 使用与开发
+## Use and development
 
-用户在 Work 云端或本地、Claude、WorkBuddy 等 Agent 工作环境中提出目标、提供必要资料并检查结果。Codex 用于开发、维护和验收；代码仓库、Git、开发终端不应成为用户运行插件的前提。
+Users describe goals, provide necessary materials and review results in cloud or local Work, Claude, WorkBuddy or another agent environment. Codex is used for development, maintenance and acceptance. A code checkout, Git and a development terminal should not be prerequisites for using a plugin.
 
-各插件共用精简的约定：先检查能力与目标设备，按需加载操作说明，批量执行，返回任务状态及可操作错误，最后交付成果和核验记录。专业软件仍由用户自己的合法授权执行端运行。用户账号、许可证和连接凭据各自独立。
+Plugins share a small set of conventions: check capabilities and the target device, load operation guidance on demand, batch execution, return job status and actionable errors, and deliver artifacts with verification records. Specialist software runs on each user's legally licensed execution device. Accounts, licences and connection credentials remain individual.
 
-优先复用现有 MCP、官方软件 API 和文件格式；仅在确有需要时增加 GUI 适配。默认不引入额外模型服务、数据库集群或常驻开发服务器。多个插件的共同机制通过实际复用再抽取，不先制造大而全的公共框架。
+Prefer existing MCP implementations, official software APIs and portable formats. Add GUI adapters only where needed. Do not introduce extra model services, database clusters or persistent development servers by default. Extract common mechanisms after demonstrated reuse, rather than creating a large general framework in advance.
 
-## 交付与验收
+## Delivery and acceptance
 
-每个插件分别记录版本、宿主、目标软件、设备及实际通过的案例。协议测试、原生脚本和 CI 不能替代真实 Agent 工作入口的验收。不得把“可运行任意脚本”视为“全部功能已验证”，也不得把一台设备或一个版本的结果用于认证另一台设备或版本。
+Each plugin records its own version, host, target software, device and verified cases. Protocol tests, native scripts and CI cannot replace acceptance through the actual agent work environment. Arbitrary script execution does not prove complete function coverage; results from one device or software version do not certify another.
 
-源码、文档、可公开的测试及发行包由 GitHub 管理。大型数据和历史材料采用[学校云存储约定](CLOUD_STORAGE.md)，本地只保留运行必需内容及正在使用的工作集。私人数据和学校受限资料不会因项目开源而自动公开。
+GitHub holds source, documentation, public tests and releases. Large development datasets and historical materials follow the [cloud storage policy](CLOUD_STORAGE.md); local storage holds the active working set and runtime essentials. Open source does not make private data or restricted university materials public.
 
-学校云目录用于开发大文件归档，不是插件的成果保存要求。正常成果交付到用户选定的位置；浏览器自动下载受限与软件执行、宿主文件交付分别验收。
+The university cloud folder is a development archive, not a required destination for plugin results. Deliver to the user's chosen location. Assess automated browser download restrictions separately from native execution and host file delivery.
 
-## 当前模块
+## Current module
 
-- [Origin Companion](README.md)：面向 Origin 2026 SR1 与 2026b SR2 的自然语言分析、绘图和工程编辑插件。
-- [Origin 产品范围与验收标准](origin-agent/docs/EDINBURGH_PRODUCT.md)
-- [当前开发路线](origin-agent/docs/ROADMAP.md)
+- [Origin Companion](README.md): natural-language analysis, plotting and project editing for Origin 2026 SR1 and 2026b SR2.
+- [Origin product scope and acceptance criteria](origin-agent/docs/EDINBURGH_PRODUCT.md)
+- [Development roadmap](origin-agent/docs/ROADMAP.md)

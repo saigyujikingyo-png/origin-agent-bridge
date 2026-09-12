@@ -1,47 +1,47 @@
-# Chembridge 云存储约定
+# Chembridge development storage
 
-更新：2026-09-12。用户指定自己的爱大 OneDrive 私有 `Chembridge` 文件夹作为整个 Chembridge 项目的大文件存储位置。已通过学校登录会话创建该目录，并在网页中确认显示“私密”。这不是学校共享站点，也不自动向同学、教授或公共 GitHub 开放。
+Updated: 2026-09-12. The user selected their private University of Edinburgh OneDrive `Chembridge` folder for large development files across Chembridge. The folder was created through the university sign-in session and its private status was confirmed in the web interface. It is not a university shared site and is not automatically accessible to classmates, professors or public GitHub visitors.
 
-本约定服务于开发资料归档和本地磁盘节省。插件正常运行及成果交付不要求使用爱大 OneDrive；用户可选择本地文件夹、Work/其他宿主附件或其他获准位置。自动下载受学校、组织或浏览器策略限制时，单独记录该下载方式的限制，使用正式且获准的替代交付方式，不把上传 OneDrive 或解除组织限制列为所有用户必须完成的验收步骤。
+This policy concerns development archives and local disk use. Plugin operation and result delivery do not require university OneDrive. Users may choose local folders, Work/other host attachments or another authorised destination. Record school, organisational or browser restrictions on automated downloads separately, and use an official authorised delivery route. Uploading to OneDrive or removing organisational restrictions is not a universal acceptance prerequisite.
 
-## 内容放在哪里
+## Where files belong
 
-| 位置 | 保存内容 |
+| Location | Contents |
 | --- | --- |
-| GitHub | 源码、依赖锁定、文档、小型公开测试、脱敏验收记录和可分发的发行包 |
-| 私有 OneDrive / Chembridge / datasets / 插件名 | 大型输入、公共来源的下载副本以及经用户授权存放的私人数据 |
-| 私有 OneDrive / Chembridge / validation / 插件名 / 版本 | 完整图像、原生工程、视频及较大的验收材料 |
-| 私有 OneDrive / Chembridge / archives / 插件名 | 需要保留的旧构建、迁移与历史归档 |
-| 本机非同步目录 | 活跃源码检出、运行版本、虚拟环境、锁、数据库、正在执行的作业和有界工作缓存 |
+| GitHub | Source, dependency locks, documentation, small public tests, sanitised acceptance records and distributable releases |
+| Private OneDrive / Chembridge / datasets / plugin | Large inputs, downloaded public data and private data authorised for storage |
+| Private OneDrive / Chembridge / validation / plugin / version | Full images, native projects, videos and larger acceptance materials |
+| Private OneDrive / Chembridge / archives / plugin | Retained old builds, migration packages and historical archives |
+| Local directory outside sync | Active checkouts, installed runtimes, virtual environments, locks, databases, running jobs and bounded caches |
 
-路径表是统一约定，子目录按需创建。个人云目录地址及机器路径只写入本机配置或忽略的回执，不提交公共仓库。云盘不代替 Git 版本历史，也不作为 Origin、SQLite 或构建系统的实时工作目录。
+Create subdirectories as needed. Keep personal cloud URLs and machine-specific paths in local configuration or ignored receipts, not the public repository. Cloud storage does not replace Git history and is not a live working directory for Origin, SQLite or builds.
 
-当前 Origin 源码继续在 `C:\Projects\origin-companion`；执行端继续使用 `%USERPROFILE%\.origin-agent`。OneDrive 的旧会话兼容入口保持原用途，不恢复为构建目录。
+The current maintainer checkout remains `C:\Projects\origin-companion`; the runtime remains under `%USERPROFILE%\.origin-agent`. The old OneDrive conversation entrypoint stays a compatibility entry, not a build directory.
 
-## 归档与释放本机空间
+## Archive and free local space
 
-1. 盘点明确属于项目的冷数据，排除当前安装、当前构建、活动作业、连接凭据和至少一个可用回滚版本。
-2. 为选中的内容制作归档，记录相对路径、文件大小和 SHA-256；本机先验证归档可读且文件内容一致。
-3. 上传至指定私有目录；等待服务端完成，再实际下载核对归档字节数和 SHA-256。仅看到上传按钮、进度条或文件名不算完成。
-4. 将验证回执与恢复方法保留在本机；公开仓库只保留适合公开的摘要。
-5. 验证成功后再释放对应本地冷副本。同步目录使用 OneDrive 的“释放空间”，不得用“删除”冒充只清理本机缓存；删除会传播到云端。遇到学校保留规则或无法核验时，保留原件并明确记录。
+1. Identify cold project files, excluding the current installation/build, active jobs, credentials and at least one usable rollback version.
+2. Archive selected content and record relative paths, sizes and SHA-256 hashes. Verify readability and file equality locally first.
+3. Upload to the designated private folder, wait for completion, then download it again and compare byte count and SHA-256. A progress indicator or listed filename is not sufficient.
+4. Retain verification receipts and recovery instructions locally; publish only suitable sanitised summaries.
+5. Release the corresponding local cold copies after verification. In synced folders use OneDrive's **Free up space**, not **Delete**, which propagates to the cloud. Retain originals and record the reason if retention rules or incomplete verification prevent cleanup.
 
-大型文件按需取回，执行前校验摘要；同一内容可复用本地缓存，任务结束后按容量和最近使用情况整理。恢复时先下载到临时本地目录，核验后进入工作目录，避免边同步边计算。当前没有安装常驻云同步守护程序或新增云端计费服务。
+Retrieve large files on demand and check their hashes before use. Reuse cached content within capacity/recency limits. Restore to a temporary local folder, verify it, then move it into the working directory rather than computing while syncing. No additional resident sync daemon or paid cloud service was installed for this workflow.
 
-## 数据和权限
+## Data and permissions
 
-私人实验、作业、受限软件与许可证不会随着公开发行上传 GitHub。凭据留在宿主的凭据存储中，不放进归档。项目默认不变更云目录分享权限；将具体成果分享给指定接收者是另一项用户操作。
+Private experiments, coursework, restricted software and licences are not published with releases. Keep credentials in the host's credential store, outside archives. Do not change sharing permissions by default; sharing a particular artifact with named recipients is a separate user action.
 
-云端保留期限及账户实际额度按学校与当前账户为准。学校当前页面区分 A5 的 1 TB 和 A1 的 100 GB，不能仅凭“爱大学生账号”认定实际额度。毕业或离校前应按学校规定导出需长期保留的材料。[学校 OneDrive 说明](https://information-services.ed.ac.uk/computing/comms-and-collab/office365/onedrive-for-business)
+Retention and storage quota depend on university policy and the actual account. The university page checked for this record distinguished 1 TB for A5 and 100 GB for A1; student status alone does not establish quota. Export materials needed long term before leaving the university, following its rules. [University OneDrive guidance](https://information-services.ed.ac.uk/computing/comms-and-collab/office365/onedrive-for-business)
 
-OneDrive 适合个人文件；需要团队共同维护时再选择明确的 SharePoint 团队位置。现阶段使用用户明确指定的私有目录。[学校云文件存储说明](https://information-services.ed.ac.uk/computing/desktop-personal/off-site-working/cloud-based-file-storage)
+OneDrive suits personal files. Choose an explicit SharePoint team location if shared maintenance becomes necessary; the current location is the user's requested private folder. [University cloud file storage guidance](https://information-services.ed.ac.uk/computing/desktop-personal/off-site-working/cloud-based-file-storage)
 
-## 当前实测记录
+## Recorded observations
 
-2026-09-12，本机 Origin 历史构建目录共有 26 个子目录，约 3.335 GiB；已安装版本合计约 0.641 GiB。此盘点不是已经释放的空间。学校私有 Chembridge 目录已创建；实际迁移数量和释放空间以逐批核验回执为准。
+On 2026-09-12, the local Origin historical build area contained 26 subdirectories, approximately 3.335 GiB; installed versions totalled approximately 0.641 GiB. This inventory is not a claim of space already freed. Actual migration and reclaimed space are recorded per verified batch.
 
-首批已完成：将一个 0.1.0 旧构建的 482 个文件归档至私有 Chembridge/archives，重新下载的 100,917,106 字节 ZIP 与上传前 SHA-256 完全一致，归档内每个文件与原件一致。之后删除该非同步旧构建及两份临时 ZIP，释放原构建 171,823,182 字节（约 163.9 MiB）。当前构建、运行版本和回滚版本未被处理。详见[脱敏回执](origin-agent/verification/cloud-archive-2026-09-12.json)。
+The first batch archived 482 files from an old 0.1.0 build to private `Chembridge/archives`. The downloaded 100,917,106-byte ZIP matched its original SHA-256, and each archived file matched the source. The old build outside sync and two temporary ZIPs were then removed, freeing 171,823,182 bytes (about 163.9 MiB) of original build content. The current build, runtime and rollback version were preserved. See the [sanitised receipt](origin-agent/verification/cloud-archive-2026-09-12.json).
 
-私有云中已建立 archives、datasets、validation；本次账户网页显示总额度 1 TB。其余冷数据尚未批量搬迁。本轮由 Agent 完成归档、上传、下载校验和整理，尚未启用自动空间回收策略。
+The private folder now contains `archives`, `datasets` and `validation`; the account page showed 1 TB at that time. Remaining cold data has not been bulk-migrated. An agent completed this archive/upload/read-back/cleanup batch; no automatic reclamation policy has been enabled.
 
-用户已把学校 OneDrive 的 Chembridge 设置为 Codex 主资料工作区。已加入 AGENTS.md 与 START_HERE.md，指明云资料入口与各设备本地源码的职责。归档文件的 Windows 元数据显示 Offline 与 RecallOnDataAccess，当前保持按需下载。这个工作区设置不自动限制 Codex 缓存、依赖或工作副本容量；本轮没有声称启用了全局自动清理。
+The user selected the university OneDrive Chembridge folder as the main Codex materials workspace. Its `AGENTS.md` and `START_HERE.md` distinguish cloud materials from each device's local source checkout. Archived files showed Windows `Offline` and `RecallOnDataAccess` metadata, consistent with Files On-Demand. This workspace setting does not automatically limit Codex caches, dependencies or working-copy sizes, and is not evidence of global automatic cleanup.

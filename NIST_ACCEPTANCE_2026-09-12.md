@@ -1,27 +1,27 @@
-# NIST 真实观测数据验收（2026-09-12）
+# NIST observed-data acceptance: 2026-09-12
 
-本轮在首台电脑的已安装 Origin Companion 0.2.7 上，通过 MCP 调用正版 Origin 2026b SR2（10.350243，64 位普通版、非 Demo）。数据来自 NIST 的四份公开 **Observed Data**，共 299 个观测值。独立计算用 Python 标准库完成，拟合、图形和工程由真实 Origin 生成。本记录不替代第二台 SR1 电脑、0.2.8 或其他宿主的独立验收。
+The first device used installed Origin Companion **0.2.7** through MCP with licensed standard Origin 2026b SR2 (10.350243), x64, non-Demo. Four public NIST **Observed Data** sets supplied 299 observations. Independent calculations used the Python standard library; actual Origin produced fits, figures and projects. This record does not replace SR1, 0.2.8 or other-host acceptance.
 
-| 数据与原始研究 | 行数 | 原生处理与核对 |
-|---|---:|---|
-| [Norris](https://www.itl.nist.gov/div898/strd/lls/data/Norris.shtml)：臭氧测量仪器校准 | 36 | 自由截距、非加权线性拟合；斜率 1.0021168180204543、截距 −0.26232307377398456、RSS 26.617398529423433，与认证值及独立 OLS 一致 |
-| [Misra1a](https://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml)：吸附实验 | 14 | ExpAssoc1，固定 TD=0、Yb=0；A=238.942129216123、Tau=1817.66483561682，RSS 0.12455138894440412 |
-| [Eckerle4](https://www.itl.nist.gov/div898/strd/nls/data/eckerle4.shtml)：干涉滤光片透射率 | 35 | Gauss，固定 y0=0；xc=451.541218169202、w=8.17766491630347、A=3.89625980462372，RSS 0.0014635887487304512；由拟合宽度得到 FWHM=9.628464633228877 |
-| [Chwirut1](https://www.itl.nist.gov/div898/strd/nls/data/chwirut1.shtml)：超声校准 | 214 | 注册唯一命名的用户 FDF，用 exp(−b1·x)/(b2+b3·x) 原生非线性拟合；RSS 2384.477149865835；原生统计 n=214、均值 30.26149532710281、样本 SD=23.67979265052397 |
+| Dataset and original study | Rows | Native processing and checks |
+| --- | ---: | --- |
+| [Norris](https://www.itl.nist.gov/div898/strd/lls/data/Norris.shtml): ozone instrument calibration | 36 | Free-intercept, unweighted fit; slope 1.0021168180204543, intercept -0.26232307377398456, RSS 26.617398529423433; matched certified values and independent OLS |
+| [Misra1a](https://www.itl.nist.gov/div898/strd/nls/data/misra1a.shtml): adsorption experiment | 14 | ExpAssoc1 with TD=0, Yb=0; A=238.942129216123, Tau=1817.66483561682, RSS 0.12455138894440412 |
+| [Eckerle4](https://www.itl.nist.gov/div898/strd/nls/data/eckerle4.shtml): interference-filter transmittance | 35 | Gauss with y0=0; xc=451.541218169202, w=8.17766491630347, A=3.89625980462372, RSS 0.0014635887487304512; derived FWHM=9.628464633228877 |
+| [Chwirut1](https://www.itl.nist.gov/div898/strd/nls/data/chwirut1.shtml): ultrasonic calibration | 214 | Uniquely named user FDF for exp(-b1*x)/(b2+b3*x); RSS 2384.477149865835; native n=214, mean=30.26149532710281, sample SD=23.67979265052397 |
 
-非线性参数按测试前确定的相对容差 1e−4、绝对容差 1e−8 检查，RSS 相对容差为 1e−5。通过表示满足这些容差，不表示恢复了 NIST 公布参数的全部有效位。Misra 模型采用 Tau=1/b2；Eckerle 的 Origin 参数映射为 A=b1√(2π)、w=2b2。FWHM 是从模型宽度计算的派生量，不是独立峰分析模块的验收。
+Predeclared nonlinear parameter tolerances were relative 1e-4 and absolute 1e-8; RSS relative tolerance was 1e-5. Passing does not mean recovering every published significant digit. Misra maps Tau=1/b2; Eckerle maps A=b1√(2π), w=2b2. FWHM is derived from model width, not acceptance of an independent peak-analysis module.
 
-原始文件以 y,x 排列，导入时转换为 x,y，完整保留行序。下载的 StRD 文件没有给出计量单位，图上明确标注 units unspecified；没有补写假定单位、SD 误差棒或拟合权重。Chwirut 同 x 分组的样本散布只作为描述统计，不当作测量不确定度。
+Original files order columns y,x; import changed them to x,y while preserving every row. StRD files supplied no measurement units, so figures say units unspecified. No assumed units, SD error bars or weights were added. Chwirut scatter grouped at common x is descriptive, not measurement uncertainty.
 
-四份源数据均完成 OPJU 保存后重开，逐值核对 x/y。另在已保存的非线性工程上开启持续会话、修改标题并关闭，再用新 Origin 实例重开，核对数据和修改仍存在。相同请求返回同一作业；过期会话版本被拒绝，修订号不变。连续编辑的原生步骤用时 0.938 秒，不能把它当成云端模型总耗时。
+All four projects were saved/reopened and x/y checked value by value. A saved nonlinear project was opened in a persistent session, retitled and closed, then reopened in a new Origin instance; data and the edit persisted. Identical requests reused the same job; stale revisions were rejected without revision change. The native continued-edit step took 0.938 seconds, not the total cloud-model time.
 
-选定的四张最终图共 12 个 PNG/PDF/SVG 文件均与清单哈希一致。PNG 实际解码并检查；PDF 每份一页，另外用独立渲染器生成图像检查；SVG 解析通过。初次非线性图题与图例布局存在问题，调整后重新导出并复核。下面展示的是最后确认的图，不代表每张自动分析报告图都经过视觉检查。
+The four selected final figures produced 12 PNG/PDF/SVG files with matching manifest hashes. PNGs were decoded and viewed; each one-page PDF was independently rendered/viewed; SVG parsed successfully. Initial nonlinear title/legend layout issues were corrected and exports rechecked. The figures below are the final reviewed selections, not proof that every automatic report graph was visually reviewed.
 
-![Norris 原生线性拟合](origin-agent/verification/nist-figures/Norris.png)
-![Misra1a 原生非线性拟合](origin-agent/verification/nist-figures/Misra1a.png)
-![Eckerle4 原生高斯拟合](origin-agent/verification/nist-figures/Eckerle4.png)
-![Chwirut1 原生自定义函数拟合](origin-agent/verification/nist-figures/Chwirut1.png)
+![Native Norris linear fit](origin-agent/verification/nist-figures/Norris.png)
+![Native Misra1a nonlinear fit](origin-agent/verification/nist-figures/Misra1a.png)
+![Native Eckerle4 Gaussian fit](origin-agent/verification/nist-figures/Eckerle4.png)
+![Native Chwirut1 custom-function fit](origin-agent/verification/nist-figures/Chwirut1.png)
 
-测试中保留了两类失败：一次测试程序误把 WSheet.lt_exec 的 None 返回值当成布尔成功，修正断言后原生统计通过；一次会话输入路径按规则被拒绝，但 0.2.7 在宿主中显示为泛化的序列化错误，促成 0.2.8 的结构化错误修复。失败作业均进入终态，没有以持续轮询冒充恢复。
+Two failures are retained: a test incorrectly treated WSheet.lt_exec's None return as boolean success, then native statistics passed after correcting the assertion; a correctly rejected session input path appeared as a generic host serialization error in 0.2.7, prompting 0.2.8's structured-error fix. Failed jobs reached terminal states; polling was not presented as recovery.
 
-可核查的原始来源链接、SHA256、认证参数、容差、实际结果及文件验证数据见 [脱敏机器可读记录](origin-agent/verification/nist-observed-2026-09-12.json)。仅发布 NIST 公开数据相关结果，不包含课程文件、账号、连接密钥或学校私人下载链接。
+Sources, hashes, certified parameters, tolerances, results and artifact checks are in the [sanitised machine-readable record](origin-agent/verification/nist-observed-2026-09-12.json). Only results from public NIST data are published, without coursework, accounts, secrets or private university download links.

@@ -1,69 +1,65 @@
-# 指定 Origin 版本的完整 Agent 插件：代码实施方案
+# Implementation design for the specified Origin builds
 
-目标：个人可分享给同学和教授；运行端支持 Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64 普通版；分别记录原生验收，SR1 第二台设备资格验证进行中。用户表达实验/编辑目标，Agent 查找能力、执行并核验；不要求用户学习脚本或手改连接配置。
+Target: a personal sharing plugin for students and staff using standard Origin 2026 SR1 (10.300197) or 2026b SR2 (10.350243), Windows x64. Users describe scientific/editing goals; the agent discovers, executes and verifies operations without requiring script expertise or manual connection JSON. Record each build's acceptance separately; see the [current report](../../WORK_ACCEPTANCE_0.2.8.md).
 
-Codex 用于本项目的开发、调试和维护。发行后的调用方是云端 Work、本地 Work、Claude Desktop、WorkBuddy 等通用 Agent 工作环境；其支持状态按真实宿主验收分别记录。插件运行不依赖源码目录、开发终端或代码项目，Windows 执行端与开发会话生命周期分离。
+Codex is the development and maintenance environment. Runtime callers are cloud/local Work, Claude Desktop, WorkBuddy and other general agents. Execution is independent of a source directory, development terminal, code project and development-task lifetime.
 
-## 进程与模块
+## Processes and modules
 
 ```text
-云端 Work / 本地 Work / Claude Desktop / WorkBuddy / 其他 Agent
-                 │ MCP（已有本地 stdio / 可选云端 tunnel）
-                 ▼
-server.py ── capabilities.py（按需能力与文档检索）
-   │
-   ├─ 固定工作流 / 独立程序 → 已有快照、计划、产物
-   └─ sessions.py → 带 request_id / expected_revision 的会话操作
-                 │
-                 ▼
-jobs.py：单一 SQLite 队列、设备锁、超时、取消、幂等
-                 │ 本地原子文件信箱，不新增网络服务
-                 ▼
-session_native.py：单线程常驻工作进程 → 一个受管 Origin 实例
-   ├─ program_native.py：Python / LabTalk / X-Functions / Origin C
-   ├─ gui.py / gui_session.py：观察契约、GUI 事务与提交/撤回
-   ├─ gui_native.py / gui_accessibility.py：受管 PID 的 Win32/UIA 控件适配
-   └─ 检查点、回读、图像预览、失败恢复
+Cloud Work / Local Work / Claude Desktop / WorkBuddy / other agents
+                 | MCP: local stdio or supported cloud connection
+                 v
+server.py ---- capabilities.py: on-demand discovery and documentation
+   |
+   +-- fixed workflows / independent programs: snapshots, plans, artifacts
+   +-- sessions.py: request_id / expected_revision operations
+                 |
+                 v
+jobs.py: shared SQLite queue, device lock, timeout, cancellation, deduplication
+                 | atomic local-file mailbox; no extra network service
+                 v
+session_native.py: single-thread worker -> one managed Origin instance
+   +-- program_native.py: Python / LabTalk / X-Functions / Origin C
+   +-- gui.py / gui_session.py: observations and GUI transactions
+   +-- gui_native.py / gui_accessibility.py: managed-PID Win32/UIA adapters
+   +-- checkpoints, read-back, previews and recovery
 ```
 
-MCP 进程不导入 Origin COM。全部 Origin 调用在工作进程主线程串行执行。连续会话共享该进程；隐藏会话空闲时保存退出，可见会话留给用户继续操作。后续可从检查点恢复。旧的独立作业仍可用，同一设备队列负责切换，避免两个 Origin 执行端争抢。
+The MCP process does not import Origin COM. Native calls run serially on the worker's main thread. Sessions reuse that worker; hidden idle sessions save/exit, visible sessions remain for manual work, and checkpoints support later restoration. Independent jobs remain available and use the same device queue.
 
-采用本地文件信箱是因为队列和原子文件存储已存在：无需增加 HTTP 服务、端口、令牌分发、数据库服务或模型调用。分享包继续使用单个 Python 栈和冻结运行环境。上游候选的知识、对象适配与会话设计按实测结果选择性复用；未通过的分析封装不能进入默认路径。
+The local mailbox reuses existing atomic storage and queue infrastructure, avoiding extra HTTP servers, ports, token distribution, database services or inference calls. Packages retain one Python stack. Candidate knowledge/object/session designs are reused only after relevant tests; failed analysis wrappers do not enter default paths.
 
-## 会话接口与一致性
+## Session consistency
 
-- `origin_session`：创建、读取状态、检查点、恢复检查点、关闭；控制请求返回现有 job ID。
-- `origin_run_program` 增加 `session_id`、`expected_revision`；不传时保留独立程序行为。
-- 继续使用 `origin_get_job`、`origin_get_artifact`，避免另一套任务和文件协议。
-- 请求固定 `request_id`，重试相同请求返回同一任务；同一 ID 不同内容拒绝。
-- 修改必须携带上次返回的 `expected_revision`。版本过期在修改前拒绝；成功后递增。
-- 创建会话使用新的受管 Origin 实例或载入所选工程副本。用户可在这个实例中手工编辑；随后检查点会包含这些编辑。首版不自动接管其他已经打开且可能未保存的 Origin 窗口。
-- 每次修改前保存 OPJU 检查点；程序失败恢复此检查点。撤回只针对 Origin 工程，不能撤回通用程序写入的外部文件或网络副作用。
-- 连续编辑时不为验证而重开当前工程；清楚标注保存、数值回读和重新打开验证的区别。用户需要时可用独立校验作业检查保存文件。
+- `origin_session` opens, inspects, checkpoints, restores and closes, returning existing job IDs for control operations.
+- `origin_run_program` adds optional `session_id`/`expected_revision`; omission retains independent execution.
+- Reuse `origin_get_job` and `origin_get_artifact` rather than creating another task/file protocol.
+- A stable `request_id` returns the same job on retry; reusing it with different content is rejected.
+- Mutations carry the latest `expected_revision`, checked before writing. Success advances the revision.
+- New sessions create managed Origin or load a selected project copy. Manual changes in that instance enter later checkpoints. Do not automatically take over unrelated unsaved windows.
+- Save an immutable pre-change OPJU checkpoint; restore it on program failure. Recovery does not undo external file/network side effects.
+- Do not reopen a live project merely to verify each edit. Distinguish saving/read-back from reopening; use a separate validation job when needed.
 
-## GUI 与完整能力
+## GUI and coverage
 
-GUI 适配独立于科学算法，只服务受管 Origin 进程：观察窗口/对话框/控件 → 按唯一定位操作 → 再观察确认。优先 UI Automation/原生控件；定位不唯一或对话框阻塞时返回可诊断状态，不盲目重复点击。屏幕图像供 Agent 判断复杂图形和自绘控件。GUI 请求同样入队、检查版本并保留工程检查点。
+Observe managed windows/dialogs/controls, act on a unique target, then observe again. Prefer native controls/UIA; ambiguous targets or blocking dialogs return diagnostic states rather than blind repeated clicks. Screenshots support graph review and custom controls. GUI requests use the same queue, revisions and checkpoints.
 
-能力目录分为导入连接器、表格/矩阵、2D/3D/统计图、图形细节、拟合、统计、信号与峰、模板、Apps、工程/导出。每项分别记录“已发现接口”“已执行”“已验证结果”；不把任意脚本执行或目录数量等同于完整功能验收。Agent 按需获取参数和示例，相关操作合并执行，默认只返回小摘要和产物 ID。
+Categorise imports, sheets/matrices, 2D/3D/statistical graphs, graph details, fitting, statistics, signals/peaks, templates, Apps and projects/exports. Record discovery, execution and result verification separately. The agent loads relevant parameters/examples on demand, combines related operations and returns small summaries and artifact IDs.
 
-## 安装与交互
+## Installation and implementation sequence
 
-沿用冻结 ZIP/MCPB，增加选择 Agent 的安装入口：校验文件 → 检测指定 Origin → 生成本机绝对路径 → 备份并合并宿主配置 → 合成数据自检 → 给出可直接试用的自然语言任务。每人使用自己的账号与授权；云端连接采用已有受支持路线，不分发开发者密钥。无需额外收费的模型中间层。
+Continue with frozen ZIP/MCPB packages: verify files, detect target Origin, generate local paths, preserve/merge host configuration and perform a synthetic native self-test before completing the active installation switch. Supply a natural-language example. Users keep their own accounts/licences; cloud access uses supported personal connections, without packaged developer keys or an extra paid model layer.
 
-## 实施顺序与验收
+1. Persistent sessions: same PID, checkpoint/error/cancellation recovery, stale edits, cross-MCP continuation and idle wake-up.
+2. GUI observation/actions: target PID only, modal recognition/dismissal, menu/control evidence, blocking and bad-target tests.
+3. Sharing packages: no external Python/JSON work, configuration/rollback, non-ASCII and user paths, offline runtime and real host/model checks.
+4. Category coverage: native numbers, figures and editability for real research cases; convert failures into reproducible regressions.
 
-1. **持续会话**：同一 Origin PID 连续创建/修改；检查点恢复；过期修改拒绝；失败回滚；跨 MCP 连接继续；空闲保存和再次唤醒。先完成并原生验收。
-2. **GUI 观察与动作**：仅目标 PID；对话框识别和关闭；菜单/控件操作；前后状态证据；模拟阻塞和错误定位。
-3. **可分享安装包**：无需 Python/JSON；配置合并与回滚；路径含中文、不同用户目录、离线运行、宿主实际模型调用。
-4. **功能分类补齐**：基于真实项目验证上述每一类功能、数值、图形和可编辑性；把失败结果变成可重现回归案例。
+Measure cold startup, continued-edit time, calls, response size, memory and recovery. There is no established universal coverage or billed-token reduction percentage. A narrow build baseline and compact interfaces reduce compatibility/context work; session state, Origin resource use, custom controls and scientific judgement remain costs.
 
-性能记录冷启动、连续操作时间、调用次数、返回体大小、运行内存和失败恢复时间。当前没有证据可以承诺一个全功能覆盖率或账户 token 节省百分比。统一版本减少兼容工作；默认小接口和常驻会话降低等待及额度消耗。主要代价是会话状态管理更复杂、Origin 本身的资源占用、GUI 自绘控件适配，以及科学判断仍须由用户和 Agent 正确提供。
+## Implemented milestones
 
-## 本轮落地状态
+Persistent sessions, Win32/UIA/screenshot input, configuration backup/rollback and native installation self-tests are implemented. Frozen 0.2 acceptance covered fixed workflows, general programs, 24 session jobs and 43 GUI jobs. See [GUI.md](GUI.md), [VALIDATION.md](VALIDATION.md) and `origin_capabilities("coverage")`. Broad mechanisms do not certify every function, device or host model. Branding is Origin Companion with a blue open-circle icon.
 
-持续会话、Win32/UIA 与截图输入、配置备份/回滚和原生安装自检已实现。0.2 已通过冻结版的工作流、编程、24 个会话作业和 43 个 GUI 作业验收；架构与边界见 [GUI.md](GUI.md)，实际发行及安装证据见 [VALIDATION.md](VALIDATION.md)。功能分类可由 `origin_capabilities("coverage")` 查询。未把通用机制等同于每个功能已认证，第二台实体电脑及各宿主最终模型调用单独记录。显示名称与蓝色开放圆环为 Origin Companion。
-
-## 0.2.1：多模型适配层
-
-`agent_profiles.py` 在现有 MCP Server 上提供 full/economy 两种接口；不增加模型供应商客户端或第二套 Origin 内核。经济接口通过公开 `list_tools/call_tool` 方法延迟获取并校验全部操作参数。短参数配方重用 Workflow/plan/submit，所有写入依然遵循原任务去重、版本和 GUI 事务约束。`configure-model` 保存本机配置，也支持每个宿主命令行/环境覆盖；密钥留在宿主。`benchmark_profiles.py` 测工具定义字节，`verify_economy.py` 测真实 Origin 和文本分页，具体模型质量需另测。
+From 0.2.1, `agent_profiles.py` provides full/economy modes on the existing MCP server, with no provider client or second native core. Public `list_tools/call_tool` paths retrieve/validate arguments on demand. Recipes reuse Workflow/plan/submit and existing deduplication, revision and GUI constraints. `configure-model` saves a local profile with CLI/environment overrides; keys remain in the host. `benchmark_profiles.py` measures schema bytes and `verify_economy.py` checks native execution/pagination; real model quality needs separate evidence.

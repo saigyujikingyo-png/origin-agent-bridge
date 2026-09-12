@@ -1,27 +1,55 @@
 # Origin Companion
 
-属于 [Chembridge](CHEMBRIDGE.md)：面向爱大师生的便捷插件、专业软件插件与 Agent 自动化工作流总项目。
+<img src="origin-agent/assets/icon.svg" alt="Origin Companion blue open-circle icon" width="80" height="80">
 
-让师生在云端 Work、本地 Work、Claude、WorkBuddy 等通用 Agent 工作环境中，用自然语言完成本机 Origin 分析、绘图和工程编辑。
+**Your agent, your Origin.** Use natural language to import data, fit models, create figures and edit native Origin projects through a general-purpose agent.
 
-**Codex 用于本项目的开发、调试和维护。使用插件不要求进入代码开发环境、克隆源码仓库、安装 Git 或自行配置 Python。** 面向用户的流程是：安装插件 → 连接自己的 Agent → 提供研究数据和目标 → 查看图形、分析结果和可编辑工程。宿主需要资料目录时，使用研究文件夹即可，插件不要求它是 Git 仓库。
+Origin Companion is part of [Chembridge](CHEMBRIDGE.md), a collection of plugins for University of Edinburgh students, staff and researchers. It is an independent project, not an official university or OriginLab product.
 
-目标是供使用指定爱大授权 Origin 版本的同学、教授和研究人员个人分享使用。Origin 计算由 Windows 上的独立执行端完成；云端 Agent 经本人配置的安全连接调用，本地 Agent 经受支持的本机连接调用。常规任务优先批量原生操作，GUI 用于需要它的交互补充。
+## Download and start
 
-当前发行是 **[0.2.8 预览版](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8)**。学校 SR1 已在第二台电脑通过四套原生数据测试及 Terra max 云端 Norris 原生执行；SR2 已有真实云端附件接收核验。用户确认下载到自己的 Downloads 成功，不要求学校 OneDrive。第二设备四件成果的完整独立接收明细、本地 Work 与其他宿主模型调用仍需继续验收；当前不宣称所有功能和宿主全部通过。
+**[Download the 0.2.8 Windows preview](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8)**
 
-- [下载后的安装与连接](origin-agent/docs/INSTALL.md)
-- [自然语言试用示例](origin-agent/examples/README.md)
-- [产品定位与交付标准](origin-agent/docs/EDINBURGH_PRODUCT.md)
-- [云端文件交付修复与实际下载验收](WORK_DELIVERY_0.2.7.md)
-- [云端卡住问题修复与复测](WORK_RECOVERY_0.2.6.md)
-- [此前详尽 Work 验收](WORK_ACCEPTANCE_2026-09-11.md)
-- [0.2.8 云端 Work 验收](WORK_ACCEPTANCE_0.2.8.md)
-- [四套真实观测数据的原生核验](NIST_ACCEPTANCE_2026-09-12.md)
-- [Chembridge 云存储安排](CLOUD_STORAGE.md)
-- [所有 Chembridge 插件的统一开发准则](DEVELOPMENT_PRINCIPLES.md)
-- [GitHub 发行与便捷安装原则](PUBLIC_DISTRIBUTION.md)
-- [后续开发路线](origin-agent/docs/ROADMAP.md)
-- [开发者实现说明](origin-agent/README.md)
+1. Download the Windows x64 ZIP, extract it and double-click `Install.cmd`.
+2. Connect your own agent using the [installation guide](origin-agent/docs/INSTALL.md). The installer includes its runtime; you do not need Git, Python or a development environment. First-time cloud connections still require account-specific setup.
+3. Provide your data and describe the analysis or figure you need. Start with the [synthetic calibration example](origin-agent/examples/README.md).
+4. Review the results and collect PNG, PDF, SVG and editable OPJU files in your chosen location. Your Downloads folder is suitable; university OneDrive is not required.
 
-目标基线：Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64、普通 Origin。SR2 已有原生案例验收；SR1 已在第二台设备通过列出的四套公开数据原生测试及真实云端 Work 原生执行；该设备的附件下载和原工具宿主启动兼容仍在核验。项目不分发 Origin 或学校许可证。插件代码采用 MIT 许可；第三方库保持各自许可。
+Each Windows computer needs its own valid, activated **Origin 2026 SR1 (10.300197)** or **Origin 2026b SR2 (10.350243)**, x64, standard Origin edition. The plugin does not include Origin or a university licence, or unlock OriginPro and third-party App features.
+
+## What it can do
+
+- Import and inspect CSV, TSV and XLSX data; plot multiple series and supplied error bars.
+- Run linear regression and Beer–Lambert calibration with explicit intercept and weighting choices, plus independent numerical checks.
+- Use native Python, LabTalk, X-Functions and Origin C for broader analysis and editing tasks.
+- Continue working in managed Origin sessions, save checkpoints and recover project changes.
+- Use GUI controls when a task needs interaction beyond the native programming interfaces.
+- Return figures and native editable projects with verification records.
+
+Five compact tools, on-demand help and batch workflows make the interface suitable for economical models. **GPT-5.6 Terra with max reasoning** is the project's benchmark. Model presets also cover DeepSeek, Gemini, GLM, Kimi and ELM, but presets do not certify real model performance. See [model support and efficiency](origin-agent/docs/MODELS.md).
+
+## Compatibility and current evidence
+
+| Environment | Recorded result | Remaining limits |
+| --- | --- | --- |
+| Origin 2026b SR2 | Native acceptance cases and actual cloud Work receipt of PNG, PDF, SVG and OPJU | Every Origin function and App has not been verified |
+| Origin 2026 SR1, second device | Four NIST native datasets; Terra max cloud Work Norris fit and OPJU reopen | Complete independent receipt details for all four cloud artifacts and the original tool-host launch context remain unresolved |
+| Cloud Work | Real model workflows and a refreshed 0.2.8 status call | First-time connection setup and longer-term operation need further usability testing |
+| Local Work, Claude Desktop, WorkBuddy and other agents | Shared runtime, host configuration and protocol checks | Each actual host/model workflow requires its own acceptance |
+
+**0.2.8 is a preview, not a claim of complete Origin coverage or universal host compatibility.** The user confirmed a download to their own Downloads folder, but did not supply the device, full file list or hashes for that follow-up. See the [0.2.8 acceptance report](WORK_ACCEPTANCE_0.2.8.md) and [coverage matrix](origin-agent/docs/COVERAGE.md).
+
+## Guides and evidence
+
+- [Installation, connection, updates and recovery](origin-agent/docs/INSTALL.md)
+- [Troubleshooting cloud Work](origin-agent/docs/WORK_TROUBLESHOOTING.md)
+- [Product scope and acceptance criteria](origin-agent/docs/EDINBURGH_PRODUCT.md)
+- [Roadmap](origin-agent/docs/ROADMAP.md)
+- [Native NIST verification](NIST_ACCEPTANCE_2026-09-12.md)
+- [Earlier Work acceptance](WORK_ACCEPTANCE_2026-09-11.md), [workflow recovery](WORK_RECOVERY_0.2.6.md) and [file delivery](WORK_DELIVERY_0.2.7.md)
+- [Developer guide](origin-agent/README.md) and [architecture](origin-agent/docs/ARCHITECTURE.md)
+- [Shared Chembridge principles](DEVELOPMENT_PRINCIPLES.md), [GitHub distribution](PUBLIC_DISTRIBUTION.md) and [development storage](CLOUD_STORAGE.md)
+
+Codex is used to develop and maintain the plugin. Users work in their chosen agent environment; a source checkout or code project is not a runtime requirement. Public GitHub documentation is in English; natural-language requests can still be made in other languages supported by the selected agent.
+
+Plugin code is MIT-licensed. Third-party libraries retain their own licences.

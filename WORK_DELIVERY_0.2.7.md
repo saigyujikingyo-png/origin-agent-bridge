@@ -1,44 +1,40 @@
-# Origin Companion 0.2.7：云端文件交付验收
+# Origin Companion 0.2.7: cloud artifact delivery
 
-2026-09-11。状态：已在本机安装并完成真实云端 Work 验收，按预览版发布。目标基线仍是 Windows x64、普通 Origin 2026b SR2（10.350243）。
+Historical report, 2026-09-11. Installed locally and accepted through actual cloud Work as a preview for standard Origin 2026b SR2 (10.350243), Windows x64. See [0.2.8](WORK_ACCEPTANCE_0.2.8.md) for subsequent evidence.
 
-## 本次修复解决什么
+## What changed
 
-上一版能生成并核验本机图形和 OPJU，但云端只拿到资源入口，不能据此向用户交付可下载文件。本次增加通过现有私人 MCP 连接返回已核验二进制文件的能力。Work 若不会自动创建附件，可按需从插件帮助取得固定接收器，在自己的输出目录保存、校验并展示文件。接收器不依赖浏览器全局函数或持续终端输入，避免本次复测中实际遇到的两类失败。
+Earlier versions generated and verified local files but returned resource references without establishing downloadable cloud artifacts. This version transfers verified binary files over the existing private MCP connection. If Work does not create attachments automatically, the plugin supplies an on-demand fixed receiver to save, verify and expose files in the host output directory. It avoids browser globals and persistent terminal input, two failure modes observed during retesting.
 
-图题及坐标中的数字上下标转换为 Origin 富文本，修复化学式和负指数单位出现方框的问题。原有失败终态、停止轮询和恢复建议保留。
+Numeric Unicode superscripts/subscripts in titles and axes are converted to Origin rich text to prevent missing-glyph boxes. Terminal failure, stop-polling and recovery guidance remain in place.
 
-## 实测证据
+## Evidence
 
-| 检查 | 结果 |
-|---|---|
-| 本机自动测试 | 132 项通过、1 项跳过；跳过原因是当前 Windows 不允许创建符号链接。Ruff 与格式检查通过 |
-| 最终冻结执行端 | 去除开发运行时 PATH 后，合成数据导入、原生拟合、数值独立核对、工程重开及四种二进制下载通过；工作流 14.594 秒 |
-| 故意缺少模块 | 8.540 秒进入失败终态，明确停止轮询并给出恢复建议；含成功与故障测试共 23.531 秒 |
-| 真实数据入口 | 本轮经 Google Drive 读取用户授权的原始测试数据和说明，独立检查数据提取与统计；私有源文件不随代码发布 |
-| 真实 Work 模型 | GPT-5.6 Sol，界面“轻度” |
-| Work 原生执行 | 复用本轮已核对数据集，固定配方完成原生拟合，作业 12.386 秒，其中执行及验证 10.672 秒 |
-| Work 实际交付 | PNG、PDF、SVG、可编辑 OPJU 均成为真实下载附件；四个文件大小及 SHA-256 与本机产物逐一匹配 |
-| 数值和视觉核对 | 使用统一分析波长、自由截距、非加权 OLS；原生报告与独立计算相符；OPJU 重开回读数据和标签通过；PNG 预览及 Work 中的 PDF 实际打开检查通过 |
-| 已安装插件独立提供接收器 | 最终安装后，由 Work 直接调用插件按需帮助取回接收器，再成功下载并校验 OPJU，未依赖用户复制代码 |
-| 宿主配置 | Claude Desktop、WorkBuddy、Codex 缓存的实际启动命令返回 0.2.7、5 个经济接口；这不等同于三个宿主内的模型调用验收 |
-| 连接及安装一致性 | 既有私人隧道运行 0.2.7，云端目录刷新后显示 download；306 个声明安装文件与发行包一致 |
-| 分发 | ZIP/MCPB 各约 31.55 MiB，官方 MCPB manifest 校验通过，无新增运行时依赖 |
+| Check | Result |
+| --- | --- |
+| Local tests | 132 passed, one skipped for Windows symlink permissions; Ruff lint/format passed |
+| Final frozen runtime | Without development-runtime PATH, synthetic import, native fit, independent numbers, reopen and four binary downloads passed; workflow 14.594 seconds |
+| Deliberate missing module | Terminal failure in 8.540 seconds with recovery guidance; success/fault suite 23.531 seconds |
+| Data retrieval | Authorised original test data and instructions retrieved from Google Drive and independently checked; private sources not published |
+| Actual Work model | GPT-5.6 Sol, light effort |
+| Native Work execution | Reused the verified dataset; fixed native recipe job 12.386 seconds, execution/verification 10.672 seconds |
+| Actual delivery | PNG, PDF, SVG and editable OPJU became real attachments; each size/SHA-256 matched the local artifact |
+| Numbers and figures | Common analysis wavelength, free intercept, unweighted OLS; native report matched independent calculations; reopened data/labels passed; PNG and cloud PDF visually opened |
+| Installed receiver discovery | Work requested the receiver from installed-plugin help and then downloaded/verified OPJU without user-copied code |
+| Host configuration | Actual Claude Desktop, WorkBuddy and Codex cache launch commands returned 0.2.7 and five tools; not three host/model certifications |
+| Runtime/package consistency | Existing private tunnel on 0.2.7, refreshed cloud metadata advertised download, all 306 installed files matched |
+| Distribution | ZIP/MCPB about 31.55 MiB each; official MCPB manifest passed; no new runtime dependency |
 
-Work 完成重新生成和四文件交付的一轮，界面显示 3 分 6 秒，任务时间戳相差 188.888 秒。**该轮复用了此前取回的数据，不包含首次 Drive 检索时间**，也不是性能上限或普遍时延承诺。文件接收所需编排与宿主执行仍计入 Work 的总耗时。
+The regenerate-and-deliver turn showed 3 minutes 6 seconds in Work; task timestamps differed by 188.888 seconds. **It reused previously retrieved data and excludes initial Drive retrieval.** This is neither a performance ceiling nor a universal latency claim. Host receiving/orchestration remains part of total Work time.
 
-界面上的光程值仅为测试假设；原始数据没有重复测量时不生成虚构误差棒。作业数据、私人对话链接、Drive 标识及账号资料均不包含在公开验收记录中。
+The displayed path length was a test assumption. No error bars were invented for data without replicates. Public records exclude coursework data, private conversation/Drive identifiers and account information.
 
-## 轻量化与使用边界
+## Efficiency and limits
 
-经济模式仍只展示 5 个工具，完整模式为 14 个。紧凑工具定义 JSON 从 22,327 字节减为 5,125 字节，减少 77.05%；这不代表实际计费 token、费用或模型成功率的下降比例。接收器只在需要交付文件时加载，二进制内容不作为模型正文输出。
+Economy still exposed five tools, full mode 14. Compact tool JSON was 22,327 bytes full versus 5,125 economy, a 77.05% size reduction, not a billed-token, cost or success-rate reduction. The receiver loads only for delivery; binary contents are not printed into the model's text context.
 
-本次通过的是已复现问题的修复及目标版本上的真实云端案例。仍不宣称所有 Origin 功能、第二台实体电脑、所有模型、长期无人值守、本地 Work 或其他宿主自然语言流程已全部验收。当前单文件 MCP 二进制传输限制为 32 MiB，宿主需要能保存文件，或具备接收器所用的文件执行能力。Origin 许可证由各使用者自行持有，本项目不分发 Origin 或学校授权。
+This accepted the reproduced fixes and a real cloud case on the target build. It did not certify all Origin functions, a second physical device, all models, long unattended operation, local Work or other hosts' natural-language workflows. Binary MCP transfer is limited to **32 MiB per file**; the host needs file-saving support or the receiver's execution capability. Each user supplies their own Origin licence.
 
-安装说明的版本路径也已同步为 0.2.7；文档修订后的包与前述已验证执行程序逐字节相同，并重新通过安装完整性及本机原生自检。
+Installation paths were updated to 0.2.7. Documentation revisions preserved the verified executable bytes; installation integrity and the local native self-test passed again.
 
-- [安装与连接](origin-agent/docs/INSTALL.md)
-- [云端文件接收说明](origin-agent/skills/origin-workflow/references/FILE_DELIVERY.md)
-- [可复现冻结端验收脚本](origin-agent/scripts/verify_cloud_workflow.py)
-- [脱敏机器可读记录](origin-agent/verification/release-0.2.7.json)
-- [此前复杂功能与 GUI 范围](WORK_ACCEPTANCE_2026-09-11.md)
+[Installation](origin-agent/docs/INSTALL.md) · [File receiver](origin-agent/skills/origin-workflow/references/FILE_DELIVERY.md) · [Reproduction script](origin-agent/scripts/verify_cloud_workflow.py) · [Machine-readable record](origin-agent/verification/release-0.2.7.json) · [Earlier GUI/function coverage](WORK_ACCEPTANCE_2026-09-11.md)

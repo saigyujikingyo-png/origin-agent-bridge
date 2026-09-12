@@ -1,56 +1,56 @@
-# Origin Companion GUI 通道
+# Origin Companion GUI channel
 
-此通道补充 Python、LabTalk、X-Functions 与 Origin C，复用同一 MCP 服务、队列和常驻 Origin 会话。批量计算仍优先调用原生程序；Agent 仅在需要界面交互时获取控件摘要或截图。用户表达任务目标，不必学习菜单路径或编写代码。
+This channel complements Python, LabTalk, X-Functions and Origin C using the same MCP service, queue and persistent Origin sessions. Prefer native programs for batches. Retrieve control summaries or screenshots only when interaction is needed; users describe goals without learning menu paths or writing code.
 
-## 接口与执行
+## Interface and execution
 
-`origin_gui(session_id, expected_revision, request_id, gui)` 支持：
+`origin_gui(session_id, expected_revision, request_id, gui)` supports:
 
-| 动作 | 行为 |
-|---|---|
-| `begin` | 保存不可变 OPJU 检查点，再切回可写 working 工程，显示受管 Origin |
-| `observe` | 读取窗口、控件和菜单；`query` 过滤；`screenshot` 按需生成 PNG |
-| `invoke` | 调用最近观察中的菜单/按钮，或 UIA 的 Invoke、Expand、Legacy 默认动作 |
-| `set_text` | 修改标准可写 Edit 或 UIA Value，并回读完整输入 |
-| `select / toggle / expand / collapse` | 调用观察到的 UIA 模式；返回选择、勾选、展开和数值状态 |
-| `click / drag / scroll` | 在最新截图内使用归一化坐标，校验窗口与鼠标落点所属进程 |
-| `keys / type_text` | 受管窗口快捷键和 Unicode 文本，不使用剪贴板 |
-| `dismiss` | 向最近观察的弹出窗口发送 Escape，随后观察它是否关闭 |
-| `commit` | 弹窗关闭后保存 OPJU、更新工程索引、结束 GUI 事务 |
-| `rollback` | 恢复 begin 检查点；必要时重启本会话拥有的 Origin 实例 |
+| Action | Behaviour |
+| --- | --- |
+| `begin` | Save an immutable OPJU checkpoint, return to a writable working project and show managed Origin |
+| `observe` | Inspect windows, controls and menus; filter with `query`; optionally capture PNG |
+| `invoke` | Use a recently observed menu/button or UIA Invoke, Expand or Legacy default action |
+| `set_text` | Set a writable native Edit/UIA Value and read back the full input |
+| `select / toggle / expand / collapse` | Use observed UIA patterns and report selection, toggle, expansion and value states |
+| `click / drag / scroll` | Use normalised coordinates in the latest screenshot, checking window and pointer-target process |
+| `keys / type_text` | Send managed-window shortcuts and Unicode text without using the clipboard |
+| `dismiss` | Send Escape to the observed popup and inspect whether it closed |
+| `commit` | Once popups close, save OPJU, update the project index and finish the transaction |
+| `rollback` | Restore the begin checkpoint, restarting only the session-owned Origin instance if necessary |
 
-每次成功操作，包括 observe，都递增会话 revision。重复 request_id 复用已有作业。每次输入绑定最近一次 observation_id 与 target_id，重新检查 PID、进程创建时间、全部顶层窗口、控件状态及唯一性；观察超过 120 秒或上下文变化即拒绝输入。
+Every successful action, including observation, advances the session revision. Duplicate `request_id` values reuse the job. Input is bound to the latest `observation_id` and `target_id`, with PID/creation-time, top-level window, control-state and uniqueness checks. Observations older than 120 seconds or changed contexts reject input.
 
-模态窗口中不调用 Origin 保存/读取 COM 接口。原生程序、独立批处理、工程切换在 GUI 事务结束前被拒绝。只返回当前弹出窗口的目标，避免在 MFC 未正确禁用主窗口时操作后台控件。错误后的会话 revision 应通过 inspect 获取；输入结果不确定时先观察，不能自动重放。
+Do not call Origin COM save/read functions inside modal dialogs. Native programs, standalone batches and project switching are rejected until the transaction ends. Expose only the active popup's targets, even if MFC has not correctly disabled the main window. Inspect the current revision after errors; if input outcome is uncertain, observe instead of automatically replaying it.
 
-## 模块和代价
+## Modules and overhead
 
-- `gui.py`：小型协议模型、陈旧/重复目标校验、公开摘要。
-- `gui_session.py`：事务、检查点、状态、截图工件与失败恢复。
-- `gui_native.py`：Win32 窗口/菜单/Button/Edit，进程身份约束，单窗口截图。
-- `gui_accessibility.py`：Origin MFC 菜单的 UI Automation 缓存观察与动作。
-- `gui_input.py`：截图、DPI 与客户区坐标绑定，前台/鼠标落点检查，Windows SendInput；中断时释放按键。
-- `origin_runtime.py`：Origin 连接；已终止进程的 originpro 1.1.15 失效引用释放。
+- `gui.py`: compact models, stale/duplicate-target validation and summaries.
+- `gui_session.py`: transactions, checkpoints, state, screenshot artifacts and recovery.
+- `gui_native.py`: Win32 windows/menus/Button/Edit, process identity and single-window captures.
+- `gui_accessibility.py`: cached UI Automation observations/actions for Origin MFC menus.
+- `gui_input.py`: screenshot/DPI/client coordinates, foreground/pointer checks and Windows SendInput; release keys after interruption.
+- `origin_runtime.py`: connection management, including stale originpro 1.1.15 references after process termination.
 
-新增依赖仅 Windows 的 `comtypes==1.4.16`，用于 UI Automation。它加入 OriginExt 使用的 MTA 线程模型；不增加 HTTP 服务或模型调用。依赖自身的压缩 wheel 约 289 KiB，最终冻结包增量仍须打包实测。控件摘要最多 160 项，枚举有数量/时间预算；默认不返回截图，详细工件留在本地按需读取。这些措施控制上下文体积，尚未测得实际模型额度节省比例。
+The added dependency is Windows-only `comtypes==1.4.16` for UI Automation, using OriginExt's MTA threading model. It adds no HTTP or model service. Its compressed wheel was about 289 KiB; actual frozen-package growth must be measured. Summaries contain at most 160 controls, enumeration has time/count budgets, screenshots are opt-in, and full artifacts remain available on demand. These bound context but do not establish billed-token savings.
 
-实际适配处理了 MFC 空 Runtime ID、零面积/重复可访问节点、对话框消失时的短暂读取错误，以及同一 Worker 内强制回滚后的失效连接。旧式菜单默认动作可能留下菜单窗口，Agent 可对观察到的窗口使用 dismiss 再核对结果。只对观察做有限重试，输入不会自动重放。截图读取失败单独返回 screenshot_error，不将已完成的保存误报为失败；需要视觉判断时仍须重新观察取得有效图片。来源：[Windows UI Automation](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomation)、[Origin detach](https://docs.originlab.com/originpro/namespaceoriginpro_1_1utils.html)。
+Adapters handle empty MFC Runtime IDs, zero-area/duplicate accessibility nodes, disappearing dialogs and invalid connections after forced rollback. Legacy default menu actions may leave a menu open; dismiss an observed window and check again. Only observations receive bounded retries, never input replay. Capture failure returns `screenshot_error` without falsely failing a completed save; obtain a valid new image before a visual decision. Sources: [Windows UI Automation](https://learn.microsoft.com/en-us/windows/win32/api/uiautomationclient/nn-uiautomationclient-iuiautomation), [Origin detach](https://docs.originlab.com/originpro/namespaceoriginpro_1_1utils.html).
 
-## 能解决什么，尚未解决什么
+## Benefits and remaining limits
 
-原生接口承担数据、分析和批量绘图，GUI 通道承担必要的菜单/属性操作。这样可以减少找菜单、重复填表和在多个对话框之间切换的摩擦。保存可编辑 OPJU、保留检查点并回读结果，使用户能继续检查与修改。
+Native interfaces handle data, analysis and batch plotting; GUI handles required menu/property operations. This reduces menu discovery, repeated form entry and dialog switching. Editable OPJU, checkpoints and read-back support continued review and revision.
 
-0.2 已加入截图内点击、拖动、滚轮、快捷键和 Unicode 输入，用于补充不暴露可用 UIA 模式的自绘控件。坐标限定为最新截图内的 x/y 比例 [0,1)，目标必须为 capture.window_id；不能输入任意桌面坐标或操作其他程序。实例已验证文字拖选、下拉选项、中文输入与保存回读。每个复杂图形编辑器、App 和对话框仍须按任务核验，不能据通用输入机制推定全部功能通过。模型、权重、单位和数据处理仍需科学依据。
+Screenshot clicks, drags, scrolls, shortcuts and Unicode input extend access to custom controls without useful UIA patterns. Coordinates are x/y fractions in [0,1) within the latest capture and target `capture.window_id`, not arbitrary desktop coordinates or other applications. Cases cover text selection, dropdowns, Chinese input and saved read-back. Every complex editor, App and dialog still needs task-level acceptance; model, weighting, unit and processing choices need scientific evidence.
 
-GUI 事务只恢复工程，不能撤销外部文件写入、网络行为或全局设置。会话只管理它启动的 Origin，不接管用户其他未保存窗口。GUI 需要交互式 Windows 桌面；锁屏、远程断连和其他语言界面还没有验收。
+Transactions restore the managed Origin project only, not external files, network effects or global settings. They do not take over other unsaved windows. GUI needs an interactive Windows desktop; locked/disconnected remote desktops and other interface languages have not been accepted.
 
-## 复现验收
+## Reproduce native acceptance
 
-在指定版本、已激活的交互式 Windows 桌面运行：
+On an activated target build and interactive Windows desktop:
 
 ```powershell
 uv run python scripts/verify_gui.py --home C:\OriginCompanionTests\gui-new-run
 uv run python scripts/verify_gui.py --extended --home C:\OriginCompanionTests\gui-extended-new-run
 ```
 
-目录必须是空的新目录。脚本通过真实 stdio MCP 创建合成工作簿，打开 Window → Properties，修改 Long name，提交后回读名称和 `[1,2,3]`；再在属性窗口内修改并回滚，检查名称和数据恢复。另验证陈旧观察、事务内程序/批处理以及弹窗内提交均被拒绝。截图、OPJU、每步耗时和完整结果写入本地；最终关闭测试工程。宿主模型与第二台电脑的验收独立记录，不能从此脚本推定通过。
+Use empty new directories. Real stdio MCP creates a synthetic workbook, opens Window → Properties, edits Long name, commits and rereads the name and `[1,2,3]`. A second uncommitted edit is rolled back and checked. Stale observations, programs/batches during transactions and commit with an open modal are expected refusals. Screenshots, OPJU, step times and complete results are retained locally, then the test project closes. This script does not substitute for host/model or second-device acceptance.

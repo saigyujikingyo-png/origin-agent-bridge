@@ -1,52 +1,45 @@
-# 开发路线与阶段验收
+# Roadmap and acceptance gates
 
-范围：个人分享给使用相同爱大授权版本的同学和教授。兼容范围为 Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64 普通版。SR2 已有案例验收，SR1 需完成第二台设备的独立验收。每人使用自己的 Origin 授权和 Agent 账号。功能只在有实际证据后标记通过。
+Scope: personal sharing with classmates and staff using licensed Origin 2026 SR1 (10.300197) or 2026b SR2 (10.350243), Windows x64, standard edition. Each person uses their own Origin licence and agent account. Mark capabilities passed only with actual evidence. Current device/host results are in the [0.2.8 report](../../WORK_ACCEPTANCE_0.2.8.md); the stages below preserve their original test scope.
 
-| 阶段 | 用户获得的能力 | 验收门槛 | 状态 |
-|---|---|---|---|
-| 0 · 版本与通用执行 | 检测指定版本；查找本机函数；Python、LabTalk、Origin C；可编辑 OPJU | 原生拟合数值、文件重开、图像导出、目标版本拒绝检查 | 已通过已记录案例；非全功能验收 |
-| 1 · 持续会话 | 连续修改同一工程；恢复和多工程切换 | 同 PID、去重、版本冲突、Save 后失败回滚、取消恢复、空闲恢复、跨 MCP 连接 | 已完成；45 项测试及 24 个原生作业符合预期 |
-| 2A · 基础 GUI 通道 | 观察受管窗口；Win32/UIA 菜单、按钮、文本；截图；弹窗退出 | 陈旧目标拒绝；模态期间隔离 COM；提交及回滚后工程回读 | 基础案例已通过；本轮 62 项测试，23 个原生作业符合预期 |
-| 2B · 复杂界面通道 | UIA 选择/勾选/展开/折叠；截图内鼠标、快捷键与中文输入 | 控件状态、截图和提交/回滚后的工程回读 | 已实现；源码及冻结版各 43 个作业符合预期，非所有自绘编辑器认证 |
-| 3 · 分享与宿主安装 | 无需 Python/JSON；选择 Agent 后配置；原生自检与配置回滚 | 仅系统 PATH、中文/空格路径、真实宿主命令 | 安装机制、替代路径和回滚已通过；本机宿主记录见 VALIDATION；第二台实体电脑及各宿主模型另列 |
-| 4 · 功能记录与交付 | 分类查询实测能力和缺口；ZIP/MCPB、哈希与恢复路径 | 冻结版科研工作流、程序、会话、GUI；官方包格式校验 | 已建立分类矩阵和发行验收；完整功能逐项认证仍未达成 |
+| Stage | User capability | Gate | Recorded status |
+| --- | --- | --- | --- |
+| 0: version and native execution | Exact build detection, local discovery, Python/LabTalk/Origin C, editable OPJU | Numerical fits, reopen, exports, unsupported-version rejection | Recorded cases passed; not complete coverage |
+| 1: persistent sessions | Continue the same project, recover and switch projects | Same PID, deduplication, revision conflicts, error after Save, cancellation/idle recovery, cross-MCP access | 45 tests and 24 native jobs met expectations |
+| 2A: basic GUI | Managed-window observation, Win32/UIA menus/buttons/text, screenshots and dismissal | Stale-target refusal, modal COM isolation, commit/rollback read-back | 62 tests and 23 native jobs met expectations |
+| 2B: complex input channel | UIA select/toggle/expand/collapse, screenshot mouse input, shortcuts and Chinese text | Control states, screenshots, commit/rollback project read-back | Source and frozen builds each completed 43 expected jobs; not every custom editor |
+| 3: sharing and host installation | Bundled runtime, host selection, self-test and configuration rollback | System-only PATH, spaces/Chinese paths, actual host startup commands | Installation mechanisms, alternate paths and rollback passed; physical devices and real host models recorded separately |
+| 4: coverage and delivery | Query tested capabilities/gaps; ZIP/MCPB, hashes and recovery | Frozen workflows, programs, sessions, GUI and official package validation | Matrix and release acceptance exist; complete function certification remains open |
+| 5: model profiles, from 0.2.1 | Five-tool economy interface, recipes, short errors, pagination and on-demand skills | Protocol/configuration tests, then real model quality and usage | Interface checks passed; a full cross-provider cost/success benchmark remains open |
 
-新增阶段 5（0.2.1）：多模型能力配置、5 工具经济接口、短参数配方、简短错误反馈、文本分页和按需技能说明。实现及协议校验已完成；真实模型成功率/计费 token 必须按具体提供商另测。见 [MODELS.md](MODELS.md) 和 [ELM.md](ELM.md)。
+The selected identity is **Origin Companion with a blue open-circle icon**, retaining internal connection ID `origin-agent`. SVG/PNG branding and a bundled runtime are included; actual installed versions are recorded in [VALIDATION.md](VALIDATION.md).
 
-品牌：**Origin Companion＋蓝色开放圆环**，中文说明为 Origin 工作助手。保留 `origin-agent` 连接 ID。0.2 包包含独立运行时及 SVG/PNG 图标，正式安装与宿主版本以 [验收记录](VALIDATION.md) 为准。
+Coverage categories are imports, sheets/matrices, 2D/3D/statistical plots, axes/legends/layout, linear/nonlinear fitting, statistical tests, signals/peaks, templates, Apps, project management and export. Discovery, execution and result acceptance are separate states; tool count is not coverage.
 
-功能矩阵按导入连接器、工作表/矩阵、2D/3D/统计绘图、坐标/图例/版式、线性/非线性拟合、统计检验、信号/峰、模板、Apps、工程管理与导出组织。“发现接口”“执行成功”“结果验收”分别记录，不能以接口数量代替覆盖率。
+## Next delivery gates: real agent environments
 
-## 下一阶段：面向实际 Agent 工作环境交付
+Codex is the development tool. Release acceptance uses the work entrypoints students and staff actually use.
 
-Codex 是开发维护工具；发布验收以师生使用的云端 Work、本地 Work、Claude Desktop、WorkBuddy 等工作入口为准。以下是待完成的交付门槛，不改写前述历史测试结果。
+| Priority | User experience to verify | Current evidence or gap |
+| --- | --- | --- |
+| Independent installation/startup | Start in the user's own agent on a new device/account without developer paths, repository, terminal or account | Packaged/local and second-device normal-user runtime evidence exist; original second-device tool-host startup and different-user coverage remain open |
+| Cloud Work | Supply data, generate figures, continue editing and receive OPJU after the development terminal exits | Real 0.2.5–0.2.8 cases; SR2 file receipt; SR1 Terra max native execution; first-connection guidance, full SR1 receipt details, reboot and long-term operation need more work |
+| Local Work | Complete the same task through local Work, using a research folder if needed | Independent acceptance pending; Codex CLI/MCP clients are not substitutes |
+| Other agents | Actual Claude Desktop, WorkBuddy and other host models complete the workflow | Configuration/protocol checks exist; real host/model workflows require acceptance |
+| Economical models and usability | Terra max first, then available alternatives; record first-attempt success, corrections, total time and available usage | Sol/light and Terra/max Work cases exist; comprehensive model comparison remains open |
 
-| 优先项 | 要验证的用户体验 | 当前证据或缺口 |
-|---|---|---|
-| 独立安装和启动 | 新电脑/不同用户安装后，在自己的 Agent 里开始任务；不使用开发者仓库、终端、路径或账号 | 已有打包和本机安装证据；第二台电脑及不同用户待验收 |
-| 云端 Work | 连接自己的本机执行端，提交数据、出图、连续修改、取回可编辑工程；开发终端退出后仍可工作 | 0.2.5 有真实 Work 案例；首次连接引导、重启和长期运行仍需补齐 |
-| 本地 Work | 从本地 Work 用户入口独立完成同一任务；需要文件夹时使用研究资料目录 | 待独立验收；不以 Codex CLI/MCP 客户端测试代替 |
-| 其他通用 Agent | Claude Desktop、WorkBuddy 等实际模型完成同一工作流 | 已有配置和协议测试；真实宿主模型流程待验收 |
-| 经济模型与低摩擦 | 优先 Terra max，再按实际宿主可选模型测试；记录首次成功、人工纠正、端到端时间和可取得的用量 | 本轮实际 Work 模型为 GPT-5.6 Sol；接口预设不是模型调用证据 |
+Prefer recipes/batches → general native programs → necessary GUI interaction. The agent/plugin handles API selection, execution and recovery. Ask users for information affecting the science. Requiring users to debug generated code or maintain development processes remains a usability defect.
 
-默认路线是常用配方/批处理 → 通用原生程序 → 必要的 GUI 补操作。API 选择、脚本执行和状态恢复由插件与 Agent 承担，用户只需提供影响科学结论的必要信息。若错误处理最终仍要求用户调试代码或维护开发进程，作为体验缺陷保留。
+## GUI boundaries
 
-## 本阶段的具体边界
+A GUI transaction spans calls: save a checkpoint, observe, perform one action, observe again, then commit after modal windows close. Do not call potentially blocking Origin COM save/read operations while a modal window is open. Native programs, project switching and batches cannot interleave with an unfinished transaction.
 
-GUI 操作是跨多次工具调用的事务：开始前保存工程 → 观察 → 一次控件操作 → 再观察 → 关闭模态窗口后提交。对话框打开时不调用可能阻塞的 Origin 保存/读取 COM 接口。原生程序、工程切换和批处理不能穿插进尚未结束的 GUI 事务。
+Use IDs from the latest observation and recheck process/window identity and state. Visual input is bound to the latest screenshot, client coordinates, DPI and foreground window. Project rollback cannot undo external files, network effects or global settings. General input supports custom controls, but individual tasks still need verification.
 
-每次操作使用最近观察返回的目标 ID，并重新核对进程、窗口身份与状态。视觉输入绑定最新截图、客户区坐标、DPI 和前台窗口。GUI 事务只管理 Origin 工程，不能撤销外部文件、网络或应用全局设置。通用输入机制补充自绘控件，但每个具体任务仍需核验。
+## Distribution, quality and efficiency
 
-## GitHub 发行与非开发者安装
+Use [GitHub distribution](../../PUBLIC_DISTRIBUTION.md) with English public documentation and one Windows x64 package for both builds. Make host selection and self-test clear; reuse personal configuration/keys on upgrade. Identify first-time account steps accurately. Repeat installation, reconnect and rollback are user acceptance cases, not just packaging features.
 
-2026-09-12 用户明确维持 GitHub 发布，暂不推进公共插件商店。一个 Windows x64 包支持两个指定 Origin 构建；无需开发环境，双击安装、清楚选择 Agent、自动检测和自检，升级复用本人的配置与已有加密密钥。首次云端服务商登录/权限步骤如实列出，不把脚本接入称为全程一键。重复安装、连接恢复和失败回滚也纳入用户验收。详见 [发行与便捷安装原则](../../PUBLIC_DISTRIBUTION.md)。
+Reuse MCP, SQLite, device locks, artifact checks and existing Windows facilities. Add dependencies only for a demonstrated need. Prefer native batches, text summaries and on-demand screenshots. Measure calls, startup, execution and response size; verify quota savings from actual host usage. Keep core/protocol, native and host/model evidence separate.
 
-## 质量与效率要求
-
-- 复用 MCP、SQLite 队列、设备锁与工件校验，避免第二套服务。
-- 先使用已有依赖和 Windows 原生能力；新增依赖必须有明确用途。
-- 批量原生计算优先；GUI 仅补接口缺口。默认文本摘要，按需截图。
-- 记录工具调用次数、冷/热启动耗时和输出大小；额度节省以实际宿主用量验证。
-- 核心/协议测试、真实 Origin 验收和实际宿主模型验收分开记录。
-
-技术细节：[实施方案](IMPLEMENTATION_PLAN.md)、[GUI 架构](GUI.md)。已有证据：[验收记录](VALIDATION.md)。
+See [implementation design](IMPLEMENTATION_PLAN.md), [GUI architecture](GUI.md), [model profiles](MODELS.md), [ELM](ELM.md) and [validation history](VALIDATION.md).

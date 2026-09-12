@@ -1,55 +1,57 @@
-# 多模型与额度效率
+# Model support and efficient use of quota
 
-Origin Companion 0.2.2 按模型能力调整 MCP 接口。模型仍由 Claude、Codex、WorkBuddy 或其他宿主选择；插件没有内置模型 API 客户端，不保存模型密钥，不发起额外付费推理。预设不是模型检测，也不能让不支持工具调用的聊天界面获得 MCP 能力。
+Origin Companion adapts its MCP interface to model capabilities. Claude, Codex, WorkBuddy or another host still selects the model. The plugin has no built-in model API client, stores no model key and initiates no extra paid inference. A preset is neither model detection nor a way to give MCP support to a chat interface without tools.
 
-本机主用配置为 **GPT-5.6 Terra + max 推理**，按用户已确认的使用成本保留 max。额度优化集中于工具定义、按需说明、批量原生执行和减少 GUI 往返。模型推理设置由宿主应用执行，插件预设只向 Agent 提供此偏好；其他模型仍按实际能力选择接口与视觉配置。
+The primary preference is **GPT-5.6 Terra + max reasoning**, retaining max at the user's confirmed cost preference. Optimisation focuses on tool definitions, on-demand guidance, batched native execution and fewer GUI round trips. The host applies reasoning settings; the plugin only communicates the preference. Other models use profiles suited to their actual tool and vision capabilities.
 
-## 两种接口，同一个 Origin 内核
+## Two interfaces, one Origin core
 
-| 模式 | 面向模型的工具 | 使用场景与代价 |
+| Mode | Tools visible to the model | Use and trade-off |
 | --- | --- | --- |
-| `economy` | 5 个：状态、短参数配方、按需说明、通用调用、文件/预览 | 常规任务、较小模型、额度紧张；首次使用复杂操作需要查询一次参数说明 |
-| `full` | 14 个，完整类型化参数直接列出 | 连续复杂编程、宿主不擅长 JSON 字符串调用；初始工具上下文更大 |
+| `economy` | Five: status, simple recipe, on-demand help, general call, artifact/preview | Routine tasks, smaller models and limited quota; unfamiliar complex operations require a help lookup |
+| `full` | Fourteen tools with typed arguments exposed directly | Repeated complex programming, or hosts that handle JSON-string arguments poorly; larger initial tool context |
 
-经济模式通过 `origin_call(operation, arguments_json)` 访问完整模式的全部操作，复用相同的 Pydantic 校验、任务去重、版本保护、检查点与单进程 Origin 执行队列。通用调用按具有写入和外部访问能力标记，宿主不会误认为它是只读工具。固定绘图/线性拟合使用直接的 `origin_recipe` 工具，不要求模型编写 JSON 字符串或 Python。
+Economy mode accesses every full-mode operation through `origin_call(operation, arguments_json)`, using the same Pydantic validation, deduplication, revision checks, checkpoints and serial Origin queue. The generic call is annotated for writes and external access, not as read-only. The direct `origin_recipe` tool handles standard plots and linear fits without generated Python or a JSON string.
 
-配方只接受已经检查过的数据集与列名；拟合必须明确截距及权重。`action=run` 一次完成校验和提交，不新增审批轮次。错误会返回简短字段提示，不自动修复 JSON、不自动重放 GUI，也不自动切换昂贵模型。复杂多面板、误差棒、Beer–Lambert、非线性拟合继续使用完整工作流/程序入口。保存的文件不被摘要裁剪；文本读取按页返回 `next_offset`。
+Recipes require an inspected dataset and exact column names. Fits require explicit intercept and weighting. `action=run` validates and submits in one call without another approval round. Errors give short field guidance; the plugin does not silently repair JSON, replay GUI input or switch to an expensive model. Complex panels, error-bar configurations and nonlinear fits use the full workflow/program route; Beer–Lambert gained a simplified recipe in 0.2.6. Summaries do not truncate saved files; paginated text returns `next_offset`.
 
-2026-09-11 的本地协议测量：完整模式工具定义 **19,514 UTF-8 字节**，经济模式 **4,372 字节**，减少 **77.60%**。测量是紧凑 JSON 的工具定义，不包含聊天、技能、动态说明和图片；**不是实际计费 token 或费用降低比例**。运行 `scripts/benchmark_profiles.py --output <report.json>` 可复核。不同操作组合可能让完整模式更省调用次数，不能保证经济模式每次都更便宜。
+A local measurement on 2026-09-11 recorded **19,514 UTF-8 bytes** of full-mode tool definitions and **4,372 bytes** for economy, a **77.60%** reduction. This is compact tool-definition JSON, excluding conversation, skills, dynamic guidance and images. It is **not a billed-token or price reduction**. Later interfaces have their own version-specific measurements. Reproduce with `scripts/benchmark_profiles.py --output <report.json>`. Full mode may need fewer calls for some tasks; economy is not guaranteed to cost less every time.
 
-## 能力配置
+## Configure capabilities
 
 ```powershell
 $originInstall = Get-Content -Raw "$env:USERPROFILE\.origin-agent\install.json" | ConvertFrom-Json
 & $originInstall.executable configure-model gpt-terra --profile economy --vision auto
 ```
 
-该命令只更新 `.origin-agent/agent-profile.json`，保留一次旧配置备份；重连 MCP 后生效。指定 `--profile full` 即可恢复直接工具接口。也可为每个宿主分别使用 `serve --profile economy --model-preset deepseek --vision off`，或设置 `ORIGIN_AGENT_PROFILE`、`ORIGIN_AGENT_MODEL_PRESET`、`ORIGIN_AGENT_VISION`。优先级是命令行 > 环境变量 > 本机配置 > 默认完整模式。
+This updates `.origin-agent/agent-profile.json`, keeping one backup. Reconnect MCP to apply it. Use `--profile full` to restore direct tools. A host can instead use `serve --profile economy --model-preset deepseek --vision off`, or `ORIGIN_AGENT_PROFILE`, `ORIGIN_AGENT_MODEL_PRESET` and `ORIGIN_AGENT_VISION`. Precedence is command line → environment → local configuration → default full mode.
 
-`vision=off` 在工具入口拒绝图片预览和截图驱动输入，保留 Origin 原生程序、UIA 文本控件、菜单与数值回读。`auto` 要求 Agent 自行确认当前模型和宿主能读取图片；`on` 表示操作者已经选择支持图片的组合，两者都不是视觉能力实测。截图操作仍需最新观察、目标窗口及前台校验。视觉能力不是某一品牌所有型号的共同属性。
+`vision=off` rejects image previews and screenshot-driven input while retaining native programs, text-based UIA controls, menus and numerical read-back. With `auto`, the agent must confirm that its current model and host can read images; `on` records an operator-selected visual configuration. Neither is a vision benchmark. Screenshot actions still require a fresh observation, correct window and foreground checks. Vision support is not shared by every model of a brand.
 
-| 预设 | 推荐起点 | 宿主必须处理的差异 |
+| Preset | Starting point | Host responsibilities |
 | --- | --- | --- |
-| `deepseek` | economy；纯文本型号用 off | 使用兼容的工具调用适配器；严格模式对 JSON Schema 子集另有要求，不把任意 MCP Schema 直接标成 strict |
-| `gpt-terra` | economy + max 推理；复杂连续编辑可比较 full | 宿主选择 `gpt-5.6-terra` 和 `max`；保留用户主用推理强度，优化工具上下文和往返，插件不改变账户设置 |
-| `gemini` | economy + auto | 保留完整调用 ID、工具结果及 thought signatures；不手工丢弃签名 |
-| `glm` | economy；文本型号 off | 交错思考时保留 `reasoning_content`，正确组装流式参数；视觉型号单独确认 |
-| `kimi` | economy；多模态型号 auto | 明确步骤、提供操作样例、保留宿主要求的工具上下文；历史文本型号不假设有视觉 |
-| `elm` | economy；先检查账户可用型号 | 在支持自定义 ELM API 和 MCP 的宿主接入；ELM 网页聊天不自动等于本地 MCP Agent |
+| `deepseek` | economy; off for text-only models | Use a compatible tool adapter; provider strict mode accepts a specific JSON Schema subset, not every MCP schema automatically |
+| `gpt-terra` | economy + max reasoning; compare full for repeated complex edits | Select `gpt-5.6-terra` and `max`; preserve the user's effort setting and optimise context/round trips, without changing account settings |
+| `gemini` | economy + auto | Preserve complete call IDs, tool results and required thought signatures |
+| `glm` | economy; off for text models | Preserve `reasoning_content` during interleaved thinking and assemble streamed arguments correctly; verify visual models separately |
+| `kimi` | economy; auto for multimodal models | Use explicit steps/examples and retain required tool context; do not assume older text models support vision |
+| `elm` | economy; check account models first | Use a host supporting both a custom ELM API and MCP; ELM web chat is not automatically a local MCP agent |
 
-这些是接口配置和宿主要求，**不是上述模型已完成真实 API 测评的声明**。配置七种预设后的本地协议校验、短参数工作流、全部操作的 Schema 可达性和文字模式限制均有自动测试；模型选择正确率、科学判断与实际 token 费用必须用具体账户/型号另测。
+These are interface presets and host requirements, **not certifications of real API performance for every listed model**. Automated tests cover seven presets, local protocol, recipes, schema reachability and text-only restrictions. Model selection accuracy, scientific judgement and actual token costs require account/model-specific testing.
 
-## 模型测评门槛
+## Benchmark gates and recorded evidence
 
-使用同一组合任务比较 economy/full：CSV 散点图、自由截距校准、明确零截距校准、单位缺失的追问、非线性拟合、继续编辑 OPJU、过期 GUI 观察恢复、模型不支持图像的降级。输入只用合成数据。记录成功率、Origin 数值回读、项目可重开、工具错误/重试次数、时间、提供商实际输入/缓存/输出/推理 token 及实际价格。
+Compare economy/full on the same tasks: CSV scatter plots, free/zero-intercept calibration, missing-unit clarification, nonlinear fitting, continued OPJU editing, recovery from stale GUI observations and text-only operation. Use synthetic or authorised public data. Record success rate, native numerical read-back, reopen results, errors/retries, time and available actual provider input/cache/output/reasoning usage and charges.
 
-不能用工具调用返回成功替代图像/科学质量评审；不能在额度比较中省略失败重试、工具说明和截图。任务变更时才扩展测评。当前未使用任何人的模型额度进行上述跨提供商实测，也没有自动上传实验数据。
+A successful tool call does not replace figure/scientific review. Include retries, guidance and screenshots in quota comparisons; extend testing when the task or implementation changes.
 
-## 官方依据（核对日期：2026-09-11）
+The initial profile work did not conduct a cross-provider API benchmark. Later cloud Work evidence records **GPT-5.6 Sol with light reasoning** and a second-device **GPT-5.6 Terra with max reasoning** Norris workflow. Those cases do not establish a full cross-model success/cost comparison. See the [0.2.8 report](../../WORK_ACCEPTANCE_0.2.8.md). The plugin does not automatically upload experimental data for benchmarking.
 
-- [DeepSeek 工具调用与严格模式](https://api-docs.deepseek.com/guides/tool_calls/)：工具执行由应用完成；严格模式由提供商适配层选择。
-- [OpenAI GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra)：支持工具调用、结构化输出与图像输入；定位于智能和成本平衡。
-- [Gemini 工具调用签名](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures)：使用该 API 时按原样保留所需签名；其他 API 应遵循各自规则。
-- [GLM 思考模式](https://docs.bigmodel.cn/cn/guide/capabilities/thinking-mode)：交错工具调用需要保留推理上下文，思考设置由宿主控制。
-- [Kimi 提示最佳实践](https://platform.moonshot.ai/docs/guide/prompt-best-practice)：明确步骤、样例、相关说明按需使用。
-- [ELM 模型及额度边界](ELM.md)。
+## Sources checked on 2026-09-11
+
+- [DeepSeek tool calls and strict mode](https://api-docs.deepseek.com/guides/tool_calls/): application-side tool execution and provider-adapter strict settings.
+- [OpenAI GPT-5.6 Terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra): tool calling, structured output and image input; verify current availability with the host.
+- [Gemini thought signatures](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures): preserve signatures required by that API; other APIs have their own contracts.
+- [GLM thinking mode](https://docs.bigmodel.cn/cn/guide/capabilities/thinking-mode): interleaved tool reasoning context and host-managed thinking settings.
+- [Kimi prompting guidance](https://platform.moonshot.ai/docs/guide/prompt-best-practice): explicit steps, examples and relevant on-demand instructions.
+- [ELM model and quota boundaries](ELM.md).

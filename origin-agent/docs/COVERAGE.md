@@ -1,21 +1,21 @@
-# 0.2 功能覆盖与交付边界
+# Capability coverage and delivery limits
 
-兼容范围：Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64、普通 Origin、非 Demo。**下表原有案例来自 SR2；SR1 另有四套 NIST 原生测试与 Terra max 云端 Norris 原生执行证据，云端附件接收仍待核验。SR1 不继承 SR2 其他功能的通过记录。**插件可以通过原生编程和界面输入访问该许可允许的功能；没有证据证明每个功能、App 和对话框都已经完成验收。`full_functionality_verified` 因此保持 false。
+Baseline: Origin 2026 SR1 (10.300197) and 2026b SR2 (10.350243), Windows x64, standard edition, activated and non-Demo. **The original cases below are from SR2. SR1 has separate four-dataset NIST and Terra max cloud Norris evidence; complete cloud receipt details remain open. SR1 does not inherit SR2's other pass results.** Native programming and GUI input expose licensed capabilities, but every function, App and dialog has not been accepted. `full_functionality_verified` remains false.
 
-Agent 可用 `origin_capabilities(query="coverage")` 读取随包提供的分类记录，再按具体任务查找本机接口。完整机器可读记录在 `src/origin_agent/data/coverage.json`，不把接口数量用作覆盖率。
+Use `origin_capabilities(query="coverage")` to read packaged categories, then discover local interfaces for the actual task. The machine-readable matrix is `src/origin_agent/data/coverage.json`; interface count is not a coverage percentage.
 
-| 功能组 | 已有真实案例 | 仍须按任务核验 |
-|---|---|---|
-| 导入和工作表 | CSV/TSV/XLSX、多列数据、列运算、名称与数据回读；4×5 矩阵创建及保存后数值回读 | 全部连接器及其余矩阵与表格转换 |
-| 绘图和图形细节 | 2D 散点/线/多 Y/误差棒、拟合曲线、轴文字、可见及长标题、矩阵 3D 曲面、OPJU 继续编辑 | 其余 3D、全部统计图和复杂版式 |
-| 拟合 | 自由/固定截距线性拟合、Beer–Lambert、ExpDec1 参数恢复 | 其他模型、权重和专用对话框 |
-| 统计、信号和峰 | 求和与回归诊断、计数/均值/样本标准差、32 点正弦信号的原生 FFT（3 Hz、幅度 1） | 假设检验、ANOVA、其余信号/峰等逐项验证 |
-| 模板和 Apps | 原生默认图形模板 | 用户模板、分析模板、每个第三方 App |
-| 工程和导出 | OPJU 保存/重开、PNG/PDF/SVG、会话、检查点、恢复与多工程切换 | 其余导出格式和工程组合 |
-| GUI 机制 | 菜单/按钮/Edit、UIA 选择/勾选/展开/折叠/数值、点击/拖选/滚轮/快捷键/中文输入、事务回读 | 所有自绘编辑器、全部模态流程、锁屏/断开的远程桌面 |
+| Category | Recorded real cases | Further task-level acceptance |
+| --- | --- | --- |
+| Import and worksheets | CSV/TSV/XLSX, multiple columns, column calculations, names/data read-back; 4×5 matrix creation and saved-value read-back | All connectors and remaining sheet/matrix transformations |
+| Plotting and details | 2D scatter/line/multi-Y/error bars, fit curves, axis text, visible/long titles, matrix 3D surface, continued OPJU editing | Other 3D/statistical graphs and complex layouts |
+| Fitting | Free/fixed-intercept linear fits, Beer–Lambert, ExpDec1 parameter recovery | Other models, weights and specialist dialogs |
+| Statistics, signals and peaks | Totals/regression diagnostics, count/mean/sample SD; native FFT of 32 sine samples, 3 Hz peak and amplitude 1 | Hypothesis tests, ANOVA and remaining signal/peak analyses |
+| Templates and Apps | Native default graph templates | User/analysis templates and each third-party App |
+| Projects and exports | OPJU save/reopen, PNG/PDF/SVG, sessions, checkpoints, recovery and project switching | Other formats and project combinations |
+| GUI mechanisms | Menus/buttons/Edit, UIA selection/toggle/expand/collapse/value, click/drag-select/scroll/shortcuts/Chinese input, transaction read-back | Every custom editor/modal flow, locked or disconnected remote desktops |
 
-源码复杂 GUI 验收为 43 个作业：39 个成功、4 个预期拒绝，总耗时 111.718 秒。原始记录只包含合成工程，位于开发机 `.local/gui-extended-acceptance-03/acceptance-gui.json`。发布包的安装及冻结运行时证据另见 [VALIDATION.md](VALIDATION.md)，不能用源码通过代替安装通过。
+Source extended-GUI acceptance completed 43 jobs: 39 successes and four expected refusals, in 111.718 seconds. Synthetic-only raw evidence is retained at the maintainer's `.local/gui-extended-acceptance-03/acceptance-gui.json`. [VALIDATION.md](VALIDATION.md) separately records frozen runtime and installation evidence; source success does not establish installed-package success.
 
-实际收益是让 Agent 承担找功能、写原生程序、批量执行、界面补操作和输出核验。用户仍需提供有科学依据的模型、单位、权重等决定。原生批处理减少 GUI 步骤；GUI 分步观察更耗时，也需要模型具备图像理解能力。未测量实际账户 token 节省比例。
+The practical benefit is that the agent discovers functions, prepares native programs, batches work, handles necessary GUI steps and checks results. Scientific models, units and weights still need evidence. Native batches reduce GUI steps; repeated GUI observations take time, and screenshot-driven work requires vision support. No actual account token-saving percentage is established.
 
-跨电脑通过每机安装生成本机路径实现，每个人仍使用自己的 Origin 许可及 Agent 账号。第二台实体电脑、每个宿主内的最终模型调用不能由本机协议或替代路径测试推定通过。插件本身使用 MIT 许可，没有额外模型中间层收费。
+Each device's installation generates its local paths; users retain their own Origin licences and agent accounts. Local protocol or alternate-path tests do not certify all other devices or host models. The plugin is MIT-licensed and adds no paid model intermediary. See [current Work acceptance](../../WORK_ACCEPTANCE_0.2.8.md).

@@ -2,7 +2,7 @@
 
 Read DEVELOPMENT_PRINCIPLES.md before planning, implementing, testing, or releasing. It contains the user's shared Chembridge requirements and applies to this entire repository. Read CHEMBRIDGE.md for scope and CLOUD_STORAGE.md for storage; retain plugin-specific requirements and evidence boundaries.
 
-Shared defaults: GitHub distribution; simple installation for non-developers; multiple general Agent hosts and model capabilities; GPT-5.6 Terra with max reasoning as the default benchmark; verified University of Edinburgh requirements; lightweight, responsive execution and efficient use of model quota. Do not make users repeat these decisions in each development task.
+Shared defaults: GitHub distribution with English public documentation and release notes; simple installation for non-developers; multiple general Agent hosts and model capabilities; GPT-5.6 Terra with max reasoning as the default benchmark; verified University of Edinburgh requirements; lightweight, responsive execution and efficient use of model quota. Do not make users repeat these decisions in each development task.
 
 Codex is the development environment. Users run plugins in Work cloud/local, Claude, WorkBuddy and other supported general Agent work environments. Target support and actual acceptance are separate. Do not claim all functions, hosts or models are verified from protocol tests alone.
 
