@@ -54,6 +54,12 @@ After the existing private tunnel restarted on the installed 0.2.9 core:
 - Chat, UI label Instant: a new status call returned **0.2.9**. Its actual request and response were inspected in the tool-call panel.
 - A fresh Codex Terra max attempt mistakenly called the browser state tool and stopped without calling Origin. This is a model tool-selection failure, not an Origin execution failure. It used 42,436 input tokens (29,184 cached), 1,030 output tokens and 918 reasoning output tokens; charges were unavailable. A corrected prompt explicitly selecting the connected app was then tested separately: exactly one real `codex_apps` call to `origin_companion.origin_status` succeeded with **0.2.9**. The returned server metadata included the English title/description and blue icon URL. The retry used 62,090 input tokens (38,400 cached), 331 output tokens and 208 reasoning output tokens. Count the earlier failure and correction when assessing first-attempt reliability; these mixed host-context runs are not an isolated quota-saving benchmark.
 
+## Publication verification
+
+The public v0.2.9 preview contains both archives and the checksum file. GitHub's asset digests match the recorded SHA-256. The ZIP was downloaded back from the public release and independently verified at 33,089,607 bytes with the same digest. All 309 files covered by the installed bundle's checksum manifest also match.
+
+Documentation erratum: the bundled advanced generic-MCP example retains the older `host-configs/0.2.8` path. For 0.2.9 use `host-configs/0.2.9/generic-mcp.json`; the online installation guide and release note are corrected. Runtime-generated configurations already use the correct version. Published archive bytes were preserved.
+
 ## Remaining limits
 
 The runtime is still an independent personal-sharing preview for the two stated Origin builds. Previous native/NIST and cloud artifact results remain in [0.2.8 acceptance](WORK_ACCEPTANCE_0.2.8.md). These connection checks do not replace complete workflow and artifact acceptance in each host. Local Work, broader models/agents, complete SR1 artifact receipt and complete Origin coverage remain separately tracked.

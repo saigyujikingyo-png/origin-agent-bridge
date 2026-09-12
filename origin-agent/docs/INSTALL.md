@@ -9,7 +9,7 @@ Codex is used to develop and maintain this project. Students and staff install t
 | Environment | Connection and evidence |
 | --- | --- |
 | Chat, cloud Work and Codex | Choose `openai` and use **Connect-OpenAI.cmd** to reuse one registered Origin Companion. Actual connection tests passed in all three surfaces. Initial tunnel/account setup remains separate. |
-| Local Work | Select that same registered Origin Companion in a fresh local Work task. Its independent desktop UI acceptance is still pending; Codex and browser Work do not certify it. |
+| Local Work | The same registered entry is intended for local Work. Actual desktop attempts are currently blocked by the host project-sync error described in [UNIFIED_PLUGIN.md](UNIFIED_PLUGIN.md); Codex and browser Work do not certify this surface. |
 | Claude Desktop / WorkBuddy | Use the matching installer options below. Local configuration and protocol have been checked; actual host/model workflows are recorded separately. |
 
 Once connected, describe the analysis, figure or project edit and review returned images and editable projects. Maintenance commands below are for troubleshooting or advanced setup, not every use.
@@ -50,7 +50,7 @@ Native diagnostics:
 - **Claude Desktop:** select `claude` to merge configuration automatically, or import the `.mcpb` directly. It includes its runtime and uses the default local data directory. Automatic skill loading depends on the host; compact tool guidance is also served by the plugin.
 - **WorkBuddy:** select `workbuddy` to merge `~/.workbuddy/mcp.json` and install the workflow skill. The package's `workbuddy` folder includes connector metadata and the blue open-circle icon.
 - **Local Work:** this is a separate user entrypoint requiring acceptance. Codex development setup is not a substitute for its installation instructions.
-- **Other MCP agents:** use `.origin-agent/host-configs/0.2.8/generic-mcp.json` through the host's supported configuration flow. Hosts have different connection/plugin formats but share the runtime and workflow contract; actual host acceptance is still needed.
+- **Other MCP agents:** use `.origin-agent/host-configs/0.2.9/generic-mcp.json` through the host's supported configuration flow. Hosts have different connection/plugin formats but share the runtime and workflow contract; actual host acceptance is still needed.
 
 <details>
 <summary>Development and optional compatibility: Codex / Claude Code</summary>
@@ -92,7 +92,7 @@ The bridge is MIT-licensed and adds no paid model intermediary. Origin, agent ho
 
 ## Updates and result delivery
 
-After updating, reconnect the local plugin or refresh the cloud connection's tool list, then start a new conversation if the old one retains cached tools. The current local runtime and a refreshed cloud Work status call were verified as 0.2.8 in the [refresh receipt](../verification/local-refresh-0.2.8.json).
+After updating, reconnect the local plugin or refresh the cloud connection's tool list, then start a new conversation if the old one retains cached tools. The installed runtime and actual Chat, cloud Work and fresh Codex calls returned 0.2.9; see the [current acceptance record](https://github.com/saigyujikingyo-png/origin-agent-bridge/blob/codex/origin-companion-release/WORK_ACCEPTANCE_0.2.9.md). Local Work remains separately blocked by host project synchronisation.
 
 Save results to your Downloads folder or another chosen authorised location. University OneDrive is not required. Native execution, host file receipt and a particular browser's automated download route are separate checks. See [Work troubleshooting](WORK_TROUBLESHOOTING.md).
 

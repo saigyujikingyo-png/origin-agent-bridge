@@ -6,7 +6,7 @@ Decision date: 2026-09-12. The user chose GitHub distribution, with no current w
 
 Maintain one repository, one Origin Companion version line and one Windows x64 package. Detect **Origin 2026 SR1 (10.300197)** and **Origin 2026b SR2 (10.350243)** at runtime. Record each build, host and model's acceptance separately; do not create permanent branches for the two Origin builds or distribute Origin and university licences.
 
-**[v0.2.8](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8) is the current public preview.** The earlier qualification archive remains a separate unpublished draft. Releases include packages, SHA-256 information, compatibility, known issues, installation instructions and acceptance evidence. Retain older releases for rollback and use a new plugin version for runtime fixes or features. See the [0.2.8 Work report](WORK_ACCEPTANCE_0.2.8.md).
+**[v0.2.9](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.9) is the current public preview.** The earlier qualification archive remains a separate unpublished draft. Releases include packages, SHA-256 information, compatibility, known issues, installation instructions and acceptance evidence. Retain older releases for rollback and use a new plugin version for runtime fixes or features. See the [0.2.9 acceptance report](WORK_ACCEPTANCE_0.2.9.md).
 
 GitHub downloads with individual connection setup, workspace sharing and listing in a public plugin directory are distinct distribution routes. Open source does not automatically create a ChatGPT directory listing.
 
@@ -21,7 +21,7 @@ GitHub downloads with individual connection setup, workspace sharing and listing
 - Preserve other plugins' configuration, recoverable backups, research files and OPJU projects.
 - Verify new-device installation, upgrade, repeat execution, paths containing spaces and Chinese characters, recovery and real agent calls before claiming them supported.
 
-0.2.8 includes a bundled runtime, package checks, native self-test, configuration merging and rollback. Initial host selection still uses text input; first-time cloud setup still includes scripts and official account settings. A complete graphical installation/cloud wizard has not been delivered, so the entire flow must not be advertised as one click.
+0.2.9 includes a bundled runtime, package checks, native self-test, configuration merging, rollback and a graphical window for reusing one existing OpenAI plugin connection. Initial host selection still uses text input; first-time cloud setup still includes scripts and official account settings. The entire flow must not be advertised as one click. Actual local Work acceptance remains blocked by the tested desktop project-sync issue; the other verified connections do not certify that surface.
 
 ## Public-directory research: deferred
 
