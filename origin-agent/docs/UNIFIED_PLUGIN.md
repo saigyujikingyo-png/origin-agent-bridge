@@ -22,7 +22,7 @@ The setup window remains responsive while the bounded connection check runs. It 
 - Removes a legacy direct `origin-agent` Codex MCP entry only when its executable and arguments identify an installation owned by this runtime. Unexpected entries are preserved for review.
 - Preserves other personal plugins, global agent settings, Claude/WorkBuddy adapters, the local plugin source folder, private connection credentials, data, jobs and sessions.
 - Backs up modified files and refuses to overwrite concurrent edits. If the old cache is in use, configuration is restored and consolidation reports failure; close old Origin Companion tasks and retry.
-- Publishes the same English name, description and blue open-circle icon in portable metadata and MCP initialization. A host may cache or ignore MCP icon metadata; this does not create a second connection.
+- Publishes the same English name, description and blue open-circle icon in portable metadata and MCP initialization. ChatGPT's registered listing has a separate uploaded icon; server metadata alone does not populate that listing.
 
 To restore configuration, use the installation receipt with `origin-agent rollback-install RECEIPT_ID`. If the old local plugin cache was removed, reinstall `origin-agent@personal` with the official Codex plugin command after restoring its catalog entry. This restores the old two-registration setup; it is a rollback path, not the recommended everyday setup.
 
@@ -38,4 +38,12 @@ Status/help tests establish connection availability, not every Origin operation 
 
 The desktop message **"Could not use this project for a local chat"** can occur before the plugin is called. In the investigated case, an existing Work session held the project cache directory open, and Windows refused the application's directory replacement during project synchronisation.
 
-A projectless task can help isolate the issue, but it did not resolve the reported case: the desktop still attempted project synchronisation. Finish existing project tasks, fully exit and restart the desktop app, then try a new local Work task and request `origin_status`. This recovery has not yet been verified for the affected session. Do not delete project files or recreate the Origin connection to address this message. The plugin cannot patch the host application's synchronisation behavior.
+A projectless task can help isolate the issue, but it did not resolve the reported case: the desktop still attempted project synchronisation. A full desktop restart and update to 26.908.4834.0 were subsequently checked: the same filesystem-stage failure and Windows sharing violation remained. Restart is therefore a failed recovery attempt for this session, not a confirmed fix. Do not delete project files or recreate the Origin connection to address this message. The plugin cannot patch the host application's synchronisation behavior.
+
+## Registered ChatGPT icon
+
+The ChatGPT creation form accepts PNG files up to 10 KB and recommends at least 256 x 256 pixels. Use [`assets/icon-chatgpt.png`](../assets/icon-chatgpt.png): the existing vector artwork exported at 256 x 256 pixels, 7,666 bytes. The full-size `icon.png` remains for other hosts and exceeds the ChatGPT form's limit.
+
+Upload the small PNG when registering a new personal connection. Reuse an existing entry's icon editor if the host provides one. In the inspected account, the existing entry offered only name and description editing; refreshing its MCP metadata left the default listing icon unchanged. If replacement is necessary, obtain the owner's approval to create/connect the replacement and retire the old registration, reuse the existing private tunnel and key, verify the new connection and saved image, then retain one final entry. This is a listing repair, not an Origin or credential reinstall.
+
+After replacement, update the account-local link with **Connect-OpenAI.cmd**. Refresh the registered plugin in ChatGPT settings and start a fresh task. Old conversations and generated tool catalogs can temporarily retain the retired identity or temporary name, causing `Unknown tool`; verify that the refreshed catalog points to the retained registration before retesting. Do not recreate credentials or hand-edit cached tool names. Verify fresh Chat, cloud Work and local Work separately with the retained identity; a pre-retirement pass is not evidence that an old conversation automatically migrated. The desktop project-sync failure above is a separate issue.

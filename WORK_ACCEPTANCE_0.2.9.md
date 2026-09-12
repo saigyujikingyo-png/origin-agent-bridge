@@ -29,7 +29,7 @@ Private app IDs, account URLs, credentials, machine identifiers and detailed loc
 
 The user reported **"Could not use this project for a local chat"**. The desktop log recorded `ChatGPT project context sync failed` at `stage=filesystem`, with zero source files and no Origin call. A read-only directory-access check returned Windows sharing violation 32 for the project root, while its instruction file and sources directory allowed access. Four existing desktop tool processes had that project directory as their current working directory; related tasks were active. Those tasks and files were preserved.
 
-This establishes a host project-cache replacement conflict, rather than a missing Origin operation. The user then retried a projectless local Work task and reported the same message; new filesystem-stage log failures were present. The first workaround therefore failed. After confirming the related task had completed, four idle helper processes were reset once; the host immediately recreated them with the same project working directory, and the sharing violation remained. No repeated process killing, proprietary application patch, cache deletion or Origin credential replacement was performed. Local Work UI acceptance on this machine remains blocked by the host project-sync behavior; a new application session or host fix must be verified separately.
+This establishes a host project-cache replacement conflict, rather than a missing Origin operation. The user then retried a projectless local Work task and reported the same message; new filesystem-stage log failures were present. The first workaround therefore failed. After confirming the related task had completed, four idle helper processes were reset once; the host immediately recreated them with the same project working directory, and the sharing violation remained. No repeated process killing, proprietary application patch, cache deletion or Origin credential replacement was performed. The user subsequently fully restarted the desktop client, which updated to 26.908.4834.0. Fresh logs still recorded the same filesystem-stage failure and a read-only root check still returned sharing violation 32. Restart is a failed recovery attempt for this session. Local Work UI acceptance on this machine remains blocked by the host project-sync behavior; it has not been repaired by replacing the plugin registration.
 
 ## 0.2.9 validation
 
@@ -54,11 +54,33 @@ After the existing private tunnel restarted on the installed 0.2.9 core:
 - Chat, UI label Instant: a new status call returned **0.2.9**. Its actual request and response were inspected in the tool-call panel.
 - A fresh Codex Terra max attempt mistakenly called the browser state tool and stopped without calling Origin. This is a model tool-selection failure, not an Origin execution failure. It used 42,436 input tokens (29,184 cached), 1,030 output tokens and 918 reasoning output tokens; charges were unavailable. A corrected prompt explicitly selecting the connected app was then tested separately: exactly one real `codex_apps` call to `origin_companion.origin_status` succeeded with **0.2.9**. The returned server metadata included the English title/description and blue icon URL. The retry used 62,090 input tokens (38,400 cached), 331 output tokens and 208 reasoning output tokens. Count the earlier failure and correction when assessing first-attempt reliability; these mixed host-context runs are not an isolated quota-saving benchmark.
 
+## Registered icon replacement follow-up
+
+The user approved replacing the iconless account registration and deleting the old registration after acceptance. ChatGPT's creation form required a PNG no larger than 10 KB and recommended at least 256 x 256 pixels; the existing 512 px PNG exceeded that limit. The existing vector artwork was exported as `origin-agent/assets/icon-chatgpt.png` (256 x 256, 7,666 bytes). PNG structure, chunk checksums and the saved listing image were checked. No runtime dependency was added.
+
+The replacement reused the existing private tunnel and encrypted credentials. It was connected and tested under a temporary verification name, then the old registration was deleted through the official UI and the replacement renamed **Origin Companion**. The account-local link was updated with a reversible receipt. A fresh personal-catalog search showed exactly one Origin Companion; its blue icon remained visible after reopening the page. The runtime stayed at **0.2.9**. The listing's generic 1.0.0 metadata is not the execution-core version.
+
+| Post-retirement surface | Actual check | Evidence and result |
+| --- | --- | --- |
+| Chat, UI label Instant | One `origin_status` | Passed, 0.2.9; actual request and response inspected and mapped to the retained registration |
+| Cloud Work, GPT-5.6 Terra max | `origin_status`, then `origin_help` for `origin_import_table` | Passed, 0.2.9; response and activity observed, UI 24 seconds; raw Work tool-response payload not exposed in the inspected UI |
+| Fresh Codex CLI, GPT-5.6 Terra max, first attempt | One `origin_status` | Failed with `Unknown tool` while generated tool metadata still contained the retired registration and the temporary replacement name |
+| Fresh Codex CLI, GPT-5.6 Terra max, after refresh | One `origin_status` | Passed, `isError: false`, 0.2.9; actual event stream inspected; complete process 20.39 seconds |
+| Local Work desktop 26.908.4834.0 | User retry after full restart | Still blocked before any Origin call by the project-sync error described above |
+
+After the final registered metadata refresh, the official app-server MCP reload/list check advertised exactly five Origin tools under the final name, all pointing to the retained registration. The old identity was absent. No tool-cache JSON or application binary was manually rewritten. The successful Codex retry followed this check; existing conversation aliases are not certified to migrate automatically.
+
+The failed Codex attempt used 63,140 input tokens (39,424 cached), 869 output tokens and 713 reasoning output tokens. The successful retry used 41,172 input tokens (18,176 cached), 715 output tokens and 533 reasoning output tokens. Charges and Chat/Work usage were unavailable. These include the configured host context and are not an isolated efficiency comparison. The pre-retirement Work status pass (15 seconds) was a separate check and was not substituted for post-retirement acceptance.
+
+No scientific jobs or user datasets were processed for the icon repair. Earlier native workflow checks remain the scientific evidence for the unchanged executable; these new checks validate the replacement connection only.
+
 ## Publication verification
 
 The public v0.2.9 preview contains both archives and the checksum file. GitHub's asset digests match the recorded SHA-256. The ZIP was downloaded back from the public release and independently verified at 33,089,607 bytes with the same digest. All 309 files covered by the installed bundle's checksum manifest also match.
 
 Documentation erratum: the bundled advanced generic-MCP example retains the older `host-configs/0.2.8` path. For 0.2.9 use `host-configs/0.2.9/generic-mcp.json`; the online installation guide and release note are corrected. Runtime-generated configurations already use the correct version. Published archive bytes were preserved.
+
+The separate `icon-chatgpt.png` and `icon-chatgpt.sha256` release assets were subsequently uploaded and downloaded back for verification. The PNG is 7,666 bytes, SHA-256 `d0f86b5a84a96ff2a4aff67680f7aea860071d639d9f7a2335174a4ff84c7ae7`. Both original archive digests and the original `SHA256SUMS.json` digest were checked unchanged. The image is a separate listing asset, not a replacement runtime bundle.
 
 ## Remaining limits
 

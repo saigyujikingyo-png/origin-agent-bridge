@@ -55,7 +55,7 @@ Native diagnostics:
 <details>
 <summary>Development and optional compatibility: Codex / Claude Code</summary>
 
-- **Codex:** selecting `codex` requires the local Codex CLI. The installer configures MCP and a global skill through `mcp add`. If the same plugin is already installed through a personal marketplace, update that plugin instead of adding a duplicate MCP connection. The development-machine plugin card/icon is not a general user prerequisite.
+- **Codex:** the recommended `openai` setup uses the same registered connection as Chat and Work. The legacy `codex` selection routes to that setup. Advanced offline users can deliberately choose `codex-direct` for a local MCP command; enabling both routes is outside the single-entry setup. See [UNIFIED_PLUGIN.md](UNIFIED_PLUGIN.md).
 - **Claude Code:** the packaged `.claude-plugin`, `plugin.json` and `skills` can be used for development, debugging or optional compatibility.
 
 </details>
@@ -69,6 +69,8 @@ The installer does not reset an existing tunnel, account association or key. Rec
 ```powershell
 .\Connect-ChatGPT.ps1 -TunnelId <your-tunnel-id> -TunnelClient <official-client-path> -Run
 ```
+
+When creating the personal ChatGPT entry, upload [`assets/icon-chatgpt.png`](../assets/icon-chatgpt.png) in the optional icon field before saving. It is the blue open-circle design at 256 x 256 pixels and under 10 KB. The larger local icon and MCP icon metadata do not set the remote listing artwork. For an existing entry without an icon editor, see the [replacement guidance](UNIFIED_PLUGIN.md#registered-chatgpt-icon). The small PNG is provided separately with the 0.2.9 release; previously published ZIP/MCPB archives are unchanged.
 
 Keep the key on your computer, not in source or chat. Existing users reconnect with their own launcher; do not share the developer's tunnel configuration, account or key. The Windows computer must be on and the tunnel client online. Chat attachments do not automatically appear on Windows; the agent needs a local copy or a supported transfer route before using them.
 
