@@ -11,12 +11,12 @@ if (-not $StateRoot) { $StateRoot = Join-Path $UserHome '.origin-agent' }
 $StateRoot = [IO.Path]::GetFullPath($StateRoot)
 if ($ConfigureClaude -and -not $Hosts) { $Hosts = 'claude' }
 if (-not $NonInteractive -and -not $Hosts) {
-    Write-Host 'Origin Companion - choose local agents (comma-separated):'
-    Write-Host 'claude, workbuddy, codex  (Enter installs the engine and generated configurations only)'
+    Write-Host 'Origin Companion - choose agents (comma-separated):'
+    Write-Host 'openai (Chat / Work / Codex), claude, workbuddy  (Enter installs the engine only)'
     $Hosts = Read-Host 'Agents'
 }
-if ($Hosts -and ($Hosts.Split(',').Trim() | Where-Object { $_ -notin @('claude','workbuddy','codex') })) {
-    throw 'Supported local hosts: claude, workbuddy, codex. ChatGPT uses Connect-ChatGPT.ps1.'
+if ($Hosts -and ($Hosts.Split(',').Trim() | Where-Object { $_ -notin @('openai','claude','workbuddy','codex','codex-direct') })) {
+    throw 'Supported hosts: openai, claude, workbuddy. codex-direct is an optional local MCP adapter.'
 }
 $checksums = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $bundleRoot 'checksums.json') | ConvertFrom-Json
 function Test-Bundle([string]$Root) {
@@ -74,7 +74,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Host configuration failed; see the installation receipt for rollback status.' }
     $result
     Write-Host ('Installed Origin Companion ' + $version + '. Restart selected agents to load the new tools.')
-    Write-Host 'ChatGPT: reconnect the existing tunnel, or run Connect-ChatGPT.ps1 with your own account.'
+    Write-Host 'OpenAI: use Connect-OpenAI.cmd for one plugin across Chat, Work and Codex.'
+    if (-not $NonInteractive -and $Hosts -and ($Hosts.Split(',').Trim() | Where-Object { $_ -in @('openai','codex') })) {
+        & (Join-Path $Destination 'Connect-OpenAI.ps1')
+    }
 } finally {
     $env:ORIGIN_AGENT_HOME = $previousHome
 }

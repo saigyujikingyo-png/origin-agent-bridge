@@ -34,9 +34,20 @@ def main():
     doctor.add_argument("--native", action="store_true")
     integrate = sub.add_parser("integrate", help="Back up and configure local agent hosts")
     integrate.add_argument("bundle", type=Path)
-    integrate.add_argument("--hosts", default="", help="Comma-separated claude,workbuddy,codex")
+    integrate.add_argument(
+        "--hosts",
+        default="",
+        help="Comma-separated openai,claude,workbuddy; codex-direct is an optional local MCP adapter",
+    )
     integrate.add_argument("--user-home", type=Path)
     integrate.add_argument("--appdata", type=Path)
+    connection = sub.add_parser(
+        "connect-openai", help="Use one registered OpenAI plugin in Chat, Work and Codex"
+    )
+    connection.add_argument("--url", help="Your personal Origin Companion plugin details link")
+    connection.add_argument(
+        "--retire-local", action="store_true", help="Retire the duplicate personal local plugin"
+    )
     rollback = sub.add_parser("rollback-install", help="Restore a host-configuration installation receipt")
     rollback.add_argument("receipt_id")
     inspect = sub.add_parser("inspect")
@@ -100,6 +111,14 @@ def main():
                 [h.strip() for h in args.hosts.split(",") if h.strip()],
                 user_home=args.user_home,
                 appdata=args.appdata,
+            )
+        elif args.command == "connect-openai":
+            from .openai_connection import connect_openai, connection_info
+
+            result = (
+                connect_openai(store.root, args.url, retire_local=args.retire_local)
+                if args.url
+                else connection_info(store.root)
             )
         elif args.command == "rollback-install":
             from .installation import rollback

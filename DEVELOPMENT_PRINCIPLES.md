@@ -1,12 +1,13 @@
 # Chembridge development and delivery principles
 
-Rule version: **2026-09-12.3**. These requirements were explicitly requested by the user and apply to all Chembridge university convenience plugins, specialist software plugins and agent workflow automation plugins, not only Origin Companion. New plugins start with these defaults; users should not have to repeat them in each task. New task-specific user instructions take precedence.
+Rule version: **2026-09-12.4**. These requirements were explicitly requested by the user and apply to all Chembridge university convenience plugins, specialist software plugins and agent workflow automation plugins, not only Origin Companion. New plugins start with these defaults; users should not have to repeat them in each task. New task-specific user instructions take precedence.
 
 ## 1. GitHub distribution
 
 - Manage source, dependency locks, documentation, public tests, sanitised acceptance records and distributable packages through GitHub.
 - Use **English for public GitHub content**: repository descriptions, README files, installation and usage guides, release notes and issue/PR templates. Preserve exact technical identifiers and quoted source/UI evidence. This does not restrict the language users may use with their agents.
 - The default route is GitHub Releases. A public plugin store, official university distribution, campus SSO or a hosted public platform is not a prerequisite.
+- Prefer one user-facing plugin entry per product across local/cloud agent surfaces. Reuse the account connection and execution core; do not ask users to select between same-named local and cloud products. Respect platform limitations and verify each actual surface separately.
 - Keep a clear version line and download entrypoint for each product. Do not permanently fork a shared platform package by model, agent or minor software version; detect capabilities at runtime and record support and acceptance separately in a compatibility matrix.
 - Include installation instructions, checksums, compatibility, known issues, update and recovery steps. Label previews and stable releases accurately; retain earlier releases for rollback.
 - Do not publish private materials, original course documents, restricted software, account configuration, licences or secrets. Prefer public, synthetic or explicitly authorised academic test data.

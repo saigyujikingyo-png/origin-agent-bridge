@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 from origin_agent import __version__
+from origin_agent.product import DESCRIPTION, WEBSITE
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,7 +49,7 @@ def main():
                 "composerIcon": "./assets/icon.svg",
                 "logo": "./assets/icon.svg",
                 "logoDark": "./assets/icon.svg",
-                "shortDescription": "Use your licensed Origin through an agent.",
+                "shortDescription": DESCRIPTION,
                 "longDescription": "Discover installed functions, use Python/LabTalk/Origin C, "
                 "or run scientific workflows. Continue editing managed projects and use native GUI controls. "
                 "Independent personal project for the specified licensed Origin version.",
@@ -60,6 +61,18 @@ def main():
                     "Fit my calibration and export an editable project.",
                 ],
             },
+        },
+    )
+    overlay = json.loads((ROOT / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+    write(
+        "plugin.json",
+        {
+            "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+            **identity,
+            "author": author,
+            "license": "MIT",
+            "homepage": WEBSITE,
+            "extensions": {"com.openai": {"interface": overlay["interface"]}},
         },
     )
     shim = (

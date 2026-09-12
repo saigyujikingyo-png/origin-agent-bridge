@@ -4,11 +4,13 @@ import argparse
 import asyncio
 import json
 import os
+import shutil
 from pathlib import Path
 
 from mcp import Client, StdioServerParameters
 
 from origin_agent import __version__
+from origin_agent.openai_connection import connection_info, registered_app
 
 
 async def main():
@@ -18,8 +20,12 @@ async def main():
         "--codex-plugin",
         type=Path,
     )
+    parser.add_argument("--hosts", default="claude_desktop,workbuddy,openai")
     args = parser.parse_args()
-    if args.codex_plugin is None:
+    selected = args.hosts.split(",")
+    if set(selected) - {"claude_desktop", "workbuddy", "openai", "codex_plugin"}:
+        parser.error("Unknown host; use claude_desktop,workbuddy,openai,codex_plugin")
+    if "codex_plugin" in selected and args.codex_plugin is None:
         candidates = []
         root = home / ".codex/plugins/cache/personal/origin-agent"
         for manifest in root.glob("*/.codex-plugin/plugin.json"):
@@ -32,10 +38,23 @@ async def main():
     paths = {
         "claude_desktop": Path(os.environ["APPDATA"]) / "Claude/claude_desktop_config.json",
         "workbuddy": home / ".workbuddy/mcp.json",
-        "codex_plugin": args.codex_plugin / ".mcp.json",
     }
+    if args.codex_plugin is not None:
+        paths["codex_plugin"] = args.codex_plugin / ".mcp.json"
     result = {}
+    if "openai" in selected:
+        profile = connection_info(home / ".origin-agent")
+        command = shutil.which("codex")
+        if not profile["configured"] or not command:
+            raise ValueError("Connect the registered OpenAI app first, or select only local adapters")
+        result["openai"] = {
+            **registered_app(profile["app_id"], command),
+            "host_model_invocation_tested": False,
+            "runtime_version_verified": False,
+        }
     for host, path in paths.items():
+        if host not in selected:
+            continue
         config = json.loads(path.read_text(encoding="utf-8-sig"))["mcpServers"]["origin-agent"]
         async with Client(
             StdioServerParameters(command=config["command"], args=config["args"], env=config.get("env"))

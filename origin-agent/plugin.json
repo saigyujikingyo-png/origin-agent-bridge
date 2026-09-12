@@ -1,7 +1,34 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "origin-agent",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
-  "license": "MIT"
+  "author": {
+    "name": "Origin Companion contributors"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/saigyujikingyo-png/origin-agent-bridge",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Origin Companion",
+        "brandColor": "#183C69",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/icon.svg",
+        "logoDark": "./assets/icon.svg",
+        "shortDescription": "Use your licensed Origin through an agent.",
+        "longDescription": "Discover installed functions, use Python/LabTalk/Origin C, or run scientific workflows. Continue editing managed projects and use native GUI controls. Independent personal project for the specified licensed Origin version.",
+        "developerName": "Origin Companion contributors",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "defaultPrompt": [
+          "Inspect my CSV and create an Origin graph.",
+          "Fit my calibration and export an editable project."
+        ]
+      }
+    }
+  }
 }

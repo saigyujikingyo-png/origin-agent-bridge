@@ -128,6 +128,8 @@ def main():
         "Install.ps1",
         "Install.cmd",
         "Connect-ChatGPT.ps1",
+        "Connect-OpenAI.ps1",
+        "Connect-OpenAI.cmd",
         "Enable-ChatGPT-Tunnel-Startup.ps1",
         "Run-ChatGPT-Tunnel.ps1",
     ):

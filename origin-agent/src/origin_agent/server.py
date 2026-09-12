@@ -11,6 +11,7 @@ from mcp_types import (
     BlobResourceContents,
     CallToolResult,
     EmbeddedResource,
+    Icon,
     ImageContent,
     ResourceLink,
     TextContent,
@@ -33,6 +34,7 @@ from .jobs import TERMINAL, cancel, get_job, submit
 from .models import Workflow
 from .native import artifact_bytes, artifact_path
 from .planning import plan_workflow
+from .product import DESCRIPTION, ICON_URL, WEBSITE
 from .programs import OriginProgram, prepare_program
 from .sessions import SessionCommand, prepare_session, read_session
 from .storage import Store, read_json, sha256
@@ -45,6 +47,9 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
     mcp = AgentMCPServer(
         "origin-agent",
         title="Origin Companion",
+        description=DESCRIPTION,
+        website_url=WEBSITE,
+        icons=[Icon(src=ICON_URL, mimeType="image/png")],
         version=__version__,
         instructions="Use inspect → plan → run → get_job(wait_seconds=20). Reuse IDs. "
         "When a device is specified, compare origin_status.device.computer_name before submitting work. "
@@ -366,7 +371,7 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
                 raise ValueError("Preview requires a PNG <=8 MiB")
             content.append(
                 ImageContent(
-                    type="image", data=base64.b64encode(path.read_bytes()).decode(), mime_type="image/png"
+                    type="image", data=base64.b64encode(path.read_bytes()).decode(), mimeType="image/png"
                 )
             )
         elif mode == "text":

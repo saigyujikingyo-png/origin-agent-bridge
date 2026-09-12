@@ -39,6 +39,8 @@ Try a complete natural-language workflow using the [synthetic example](examples/
 
 ## Recent changes
 
+- **0.2.9:** one registered OpenAI connection for Chat, Work and Codex, a graphical account-link setup, guarded consolidation of old local entries, and consistent English name/icon metadata. See [unified setup](docs/UNIFIED_PLUGIN.md). Local Work desktop acceptance remains separate.
+
 - **0.2.8:** accepts the two explicit Origin builds, reports the execution computer for routing, and returns bounded structured errors for correctable input, plan and syntax problems. Native and actual Work evidence is recorded by device; complete coverage remains unverified.
 - **0.2.7:** adds verified binary downloads over the existing private MCP connection. Hosts that do not create files from embedded resources can request the built-in receiver on demand; it saves and verifies bytes without browser globals or a persistent terminal. Numeric Unicode superscripts/subscripts use Origin rich text to avoid missing-glyph boxes. No added runtime dependency or model API. See [file delivery](skills/origin-workflow/references/FILE_DELIVERY.md).
 - **0.2.6:** adds direct CSV/TSV text import and a simpler Beer–Lambert recipe. Failed jobs explicitly stop polling and provide recovery guidance. Standard fits reuse the verified native workflow without temporary Python or NumPy. Economy mode retains five tools; full mode has 14.

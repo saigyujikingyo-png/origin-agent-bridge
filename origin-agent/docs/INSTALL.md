@@ -1,4 +1,4 @@
-# Install Origin Companion 0.2.8
+# Install Origin Companion 0.2.9
 
 Supported baseline: **Origin 2026 SR1 (10.300197)** or **Origin 2026b SR2 (10.350243)**, Windows x64, standard Origin edition, activated and non-Demo. Install and activate one of these builds on each computer first. SR2 has recorded native and cloud acceptance; SR1 has second-device native and Terra max cloud execution evidence, with delivery details and a tool-host startup issue still open. Version detection alone is not acceptance. The plugin does not distribute Origin or university licences, or unlock OriginPro/third-party App features.
 
@@ -8,20 +8,22 @@ Codex is used to develop and maintain this project. Students and staff install t
 
 | Environment | Connection and evidence |
 | --- | --- |
-| Cloud Work | Install the runtime on the Windows computer with Origin, then configure your own secure connection. Actual cloud acceptance is recorded. First-time account/tunnel setup still requires the steps below; there is no complete graphical wizard yet. |
-| Local Work | Use the plugin/local connection facility supported by that host. The local Work user flow needs independent acceptance; the `codex` installer option and Codex CLI checks do not certify it. |
+| Chat, cloud Work and Codex | Choose `openai` and use **Connect-OpenAI.cmd** to reuse one registered Origin Companion. Actual connection tests passed in all three surfaces. Initial tunnel/account setup remains separate. |
+| Local Work | Select that same registered Origin Companion in a fresh local Work task. Its independent desktop UI acceptance is still pending; Codex and browser Work do not certify it. |
 | Claude Desktop / WorkBuddy | Use the matching installer options below. Local configuration and protocol have been checked; actual host/model workflows are recorded separately. |
 
 Once connected, describe the analysis, figure or project edit and review returned images and editable projects. Maintenance commands below are for troubleshooting or advanced setup, not every use.
 
+See [One Origin Companion](UNIFIED_PLUGIN.md) for the single-entry design, safe consolidation and rollback. The older `codex` installer choice now means the unified OpenAI route. `codex-direct` is an optional advanced local MCP adapter; it is not needed alongside the registered app.
+
 ## Download, extract and install
 
-1. Get `origin-agent-0.2.8-windows-x64.zip` from the [release page](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8), check the supplied SHA-256 and extract to an ordinary local folder.
-2. Double-click `Install.cmd`. Enter the hosts to configure, such as `claude,workbuddy`. Pressing Enter installs the engine and generates configuration only. Cloud Work users then set up their own secure connection below. Dedicated local Work installation and entrypoint acceptance remain open.
+1. Get `origin-agent-0.2.9-windows-x64.zip` from the [release page](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.9), check the supplied SHA-256 and extract to an ordinary local folder.
+2. Double-click `Install.cmd`. Enter `openai` for Chat/Work/Codex, or other hosts such as `claude,workbuddy`. Pressing Enter installs the engine only. The OpenAI option opens the account-link window after installation. Reuse the existing private connection; first-time users still complete the secure-connection steps below.
 3. The installer verifies the complete file set, copies the bundled runtime, starts Origin with synthetic data and checks the build and numerical read-back. It merges host configuration and switches the active version only after these checks pass. Reopen the selected agent.
 4. Ask the agent to check Origin Companion status before submitting a real analysis, plotting or editing task.
 
-There is no separate Python, Node, uv or compiler requirement. The default runtime is `%USERPROFILE%\.origin-agent\app\0.2.8`; research outputs and sessions live under `%USERPROFILE%\.origin-agent`. Origin installation/licensing is unchanged. The engine installation does not register startup by default; cloud users can enable the private-tunnel login task below. Packages do not have a commercial code signature: a hash verifies transfer integrity, not publisher identity.
+There is no separate Python, Node, uv or compiler requirement. The default runtime is `%USERPROFILE%\.origin-agent\app\0.2.9`; research outputs and sessions live under `%USERPROFILE%\.origin-agent`. Origin installation/licensing is unchanged. The engine installation does not register startup by default; cloud users can enable the private-tunnel login task below. Packages do not have a commercial code signature: a hash verifies transfer integrity, not publisher identity.
 
 For an unattended upgrade of an existing installation:
 
@@ -32,13 +34,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractiv
 The installer preserves other MCP/host settings, old runtime versions and research data. Each installation returns a `receipt_id`, with backups under `.origin-agent\installations\<receipt_id>`. A failed upgrade restores modified configuration automatically; if the user has subsequently edited a file, rollback reports the conflict and preserves that edit. To request rollback:
 
 ```powershell
-& "$env:USERPROFILE\.origin-agent\app\0.2.8\server\origin-agent.exe" rollback-install <receipt_id>
+& "$env:USERPROFILE\.origin-agent\app\0.2.9\server\origin-agent.exe" rollback-install <receipt_id>
 ```
 
 Native diagnostics:
 
 ```powershell
-& "$env:USERPROFILE\.origin-agent\app\0.2.8\server\origin-agent.exe" doctor --native
+& "$env:USERPROFILE\.origin-agent\app\0.2.9\server\origin-agent.exe" doctor --native
 ```
 
 `doctor` alone checks discovery; `--native` creates a synthetic project and verifies native read-back. Finish or roll back an open GUI transaction before installation. GUI interaction needs an unlocked interactive Windows desktop. Sleep, closing the lid or shutdown can interrupt local jobs; read job/session status before resuming.

@@ -75,3 +75,18 @@ def test_partial_install_is_reversible(tmp_path, monkeypatch):
         integrate(source, tmp_path / "state", ["workbuddy"], user_home=tmp_path / "profile")
     assert not (tmp_path / "profile/.workbuddy/mcp.json").exists()
     assert not (tmp_path / "state/install.json").exists()
+
+
+def test_openai_and_legacy_codex_selection_do_not_add_a_duplicate_mcp(tmp_path, monkeypatch):
+    source = bundle(tmp_path)
+
+    def forbidden(*args):
+        raise AssertionError("OpenAI must reuse the connected app, not add a local Codex MCP")
+
+    monkeypatch.setattr(Changes, "codex", forbidden)
+    for host in ("openai", "codex"):
+        home = tmp_path / host
+        result = integrate(source, tmp_path / (host + "-state"), [host], user_home=home)
+        assert result["hosts"] == ["openai"]
+        assert not (home / ".codex/config.toml").exists()
+        assert not (home / ".agents/skills").exists()

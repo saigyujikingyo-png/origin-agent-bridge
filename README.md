@@ -8,10 +8,10 @@ Origin Companion is part of [Chembridge](CHEMBRIDGE.md), a collection of plugins
 
 ## Download and start
 
-**[Download the 0.2.8 Windows preview](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.8)**
+**[Download the 0.2.9 Windows preview](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.9)**
 
 1. Download the Windows x64 ZIP, extract it and double-click `Install.cmd`.
-2. Connect your own agent using the [installation guide](origin-agent/docs/INSTALL.md). The installer includes its runtime; you do not need Git, Python or a development environment. First-time cloud connections still require account-specific setup.
+2. For Chat, Work and Codex, use **Connect-OpenAI.cmd** to reuse one registered Origin Companion. Connect other agents using the [installation guide](origin-agent/docs/INSTALL.md). The installer includes its runtime; you do not need Git, Python or a development environment. First-time cloud connections still require account-specific setup.
 3. Provide your data and describe the analysis or figure you need. Start with the [synthetic calibration example](origin-agent/examples/README.md).
 4. Review the results and collect PNG, PDF, SVG and editable OPJU files in your chosen location. Your Downloads folder is suitable; university OneDrive is not required.
 
@@ -34,13 +34,14 @@ Five compact tools, on-demand help and batch workflows make the interface suitab
 | --- | --- | --- |
 | Origin 2026b SR2 | Native acceptance cases and actual cloud Work receipt of PNG, PDF, SVG and OPJU | Every Origin function and App has not been verified |
 | Origin 2026 SR1, second device | Four NIST native datasets; Terra max cloud Work Norris fit and OPJU reopen | Complete independent receipt details for all four cloud artifacts and the original tool-host launch context remain unresolved |
-| Cloud Work | Real model workflows and a refreshed 0.2.8 status call | First-time connection setup and longer-term operation need further usability testing |
+| Chat, cloud Work and Codex | Same registered app passed status/help in all three; Work/Codex used Terra max | Connection acceptance is separate from each complete scientific workflow |
 | Local Work, Claude Desktop, WorkBuddy and other agents | Shared runtime, host configuration and protocol checks | Each actual host/model workflow requires its own acceptance |
 
-**0.2.8 is a preview, not a claim of complete Origin coverage or universal host compatibility.** The user confirmed a download to their own Downloads folder, but did not supply the device, full file list or hashes for that follow-up. See the [0.2.8 acceptance report](WORK_ACCEPTANCE_0.2.8.md) and [coverage matrix](origin-agent/docs/COVERAGE.md).
+**0.2.9 is a preview, not a claim of complete Origin coverage or universal host compatibility.** The user confirmed a download to their own Downloads folder, but did not supply the device, full file list or hashes for that follow-up. See the [0.2.8 acceptance report](WORK_ACCEPTANCE_0.2.8.md) and [coverage matrix](origin-agent/docs/COVERAGE.md).
 
 ## Guides and evidence
 
+- [One plugin across OpenAI surfaces](origin-agent/docs/UNIFIED_PLUGIN.md) and [0.2.9 acceptance](WORK_ACCEPTANCE_0.2.9.md)
 - [Installation, connection, updates and recovery](origin-agent/docs/INSTALL.md)
 - [Troubleshooting cloud Work](origin-agent/docs/WORK_TROUBLESHOOTING.md)
 - [Product scope and acceptance criteria](origin-agent/docs/EDINBURGH_PRODUCT.md)

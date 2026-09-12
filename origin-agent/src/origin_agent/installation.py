@@ -137,9 +137,9 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
     bundle, state_root = Path(bundle).resolve(), Path(state_root).resolve()
     user_home = Path(user_home or Path.home()).resolve()
     appdata = Path(appdata or os.environ.get("APPDATA", user_home / "AppData/Roaming")).resolve()
-    hosts = list(dict.fromkeys(hosts))
-    if set(hosts) - {"claude", "workbuddy", "codex"}:
-        raise ValueError("Supported local hosts: claude, workbuddy, codex")
+    hosts = list(dict.fromkeys("openai" if h == "codex" else h for h in hosts))
+    if set(hosts) - {"claude", "workbuddy", "openai", "codex-direct"}:
+        raise ValueError("Supported hosts: openai, claude, workbuddy, codex-direct")
     executable = bundle / "server/origin-agent.exe"
     manifest = read_json(bundle / "manifest.json")
     if manifest["version"] != __version__ or not executable.is_file():
@@ -159,7 +159,7 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
         if host in destinations:
             target = destinations[host]
             plans.append((target, host_config(target, entry)))
-        if host in ("workbuddy", "codex"):
+        if host in ("workbuddy", "codex-direct"):
             skill_root = user_home / (".workbuddy/skills" if host == "workbuddy" else ".agents/skills")
             for source in sorted((bundle / "skills").rglob("*")):
                 if source.is_file():
@@ -181,7 +181,7 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
     try:
         for path, data in plans[:-1]:
             changes.put(path, data)
-        if "codex" in hosts:
+        if "codex-direct" in hosts:
             if user_home != Path.home().resolve() or os.environ.get("CODEX_HOME"):
                 raise ValueError("Codex automatic setup requires its default user profile")
             changes.codex(executable, state_root, user_home)
@@ -198,7 +198,8 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
         "receipt_id": changes.root.name,
         "executable": str(executable),
         "restart_hosts": True,
-        "chatgpt": "Existing tunnel configuration is preserved; reconnect to load the new engine.",
+        "chatgpt": "Use Connect-OpenAI.cmd for the same registered plugin in Chat, Work and Codex. "
+        "Existing tunnel configuration is preserved; reconnect to load the new engine.",
     }
 
 

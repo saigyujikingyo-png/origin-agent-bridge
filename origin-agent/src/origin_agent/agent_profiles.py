@@ -166,14 +166,18 @@ def guard_vision(profile, operation, arguments):
 
 
 def make_economy_server(full, store, profile):
-    from mcp_types import CallToolResult, ToolAnnotations
+    from mcp_types import CallToolResult, Icon, ToolAnnotations
 
     from . import __version__
+    from .product import DESCRIPTION, ICON_URL, WEBSITE
 
     mcp = EconomyMCPServer(
         full,
         "origin-agent",
         title="Origin Companion",
+        description=DESCRIPTION,
+        website_url=WEBSITE,
+        icons=[Icon(src=ICON_URL, mimeType="image/png")],
         version=__version__,
         log_level="WARNING",
         instructions="Economy mode: status once; help(operation) before an unfamiliar call. "
