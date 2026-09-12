@@ -1,0 +1,184 @@
+{
+  "version": "0.2.8",
+  "date": "2026-09-12",
+  "status": "FIRST_DEVICE_WORK_AND_SECOND_DEVICE_NATIVE_PASSED_REMOTE_WORK_PENDING",
+  "source_commit": "ef7a1c994871da8ba46f648ac84c3dab423425b9",
+  "candidate_sha256": "54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77",
+  "target_scope": [
+    "Origin 2026 SR1 10.300197",
+    "Origin 2026b SR2 10.350243"
+  ],
+  "checks": {
+    "local_pytest_passed": 150,
+    "local_pytest_skipped": 1,
+    "skip_reason": "Windows symlink privilege unavailable",
+    "windows_ci_passed": 151,
+    "linux_ci_passed": 151,
+    "ci_run": 34686061188,
+    "lint_and_format": true,
+    "installed_files": 306,
+    "installed_checksum_mismatches": 0,
+    "installed_version": "0.2.8",
+    "codex_plugin_cache_version": "0.2.8"
+  },
+  "frozen_protocol": {
+    "actual_cloud_model": false,
+    "isolated_home": true,
+    "development_runtime_removed_from_path": true,
+    "structured_input_error_preserves_isError": true,
+    "no_session_created_on_rejection": true,
+    "device_identity_matches_process": true,
+    "native_workflow_seconds": 14.281,
+    "total_seconds": 23.141,
+    "project_reopen": true,
+    "binary_downloads": [
+      {
+        "name": "panel-01.png",
+        "sha256": "b21150416e9af4a42e17f933c09cc5b96dba186830316cef64ea8dac57b93ac4",
+        "bytes": 21478
+      },
+      {
+        "name": "panel-01.pdf",
+        "sha256": "959fd8545dec3106b91bbf988ed4bab36f0d9d25ae8c6d27273147f100970725",
+        "bytes": 4569
+      },
+      {
+        "name": "panel-01.svg",
+        "sha256": "85e9cbde09187885b2063e3420814314bb9ab29a5337ef716e69d134ef2dd17d",
+        "bytes": 25356
+      },
+      {
+        "name": "project.opju",
+        "sha256": "0803ab6be2b92b8e6fdb3bae002faa5ebb8a17772e906414fc10901bf8cb1169",
+        "bytes": 130478
+      }
+    ],
+    "deliberate_failure_terminal": true
+  },
+  "actual_cloud_work": {
+    "model_shown": "GPT-5.6 Sol",
+    "reasoning_shown": "light",
+    "plugin_version": "0.2.8",
+    "engine": {
+      "OriginExt": "1.2.5",
+      "bitness": 64,
+      "demo": 0,
+      "edition": "Origin",
+      "originpro": "1.1.15",
+      "version": 10.350243
+    },
+    "tools": [
+      "origin_status",
+      "origin_help",
+      "origin_call",
+      "origin_recipe",
+      "origin_get_artifact"
+    ],
+    "device_field_present": true,
+    "negative_case": {
+      "operation": "origin_plan_workflow",
+      "input": "empty workflow object",
+      "isError": true,
+      "structured_error": "validation",
+      "issue": "workflow.panels required",
+      "text_json_and_structured_match": true,
+      "no_job_created": true
+    },
+    "dataset": "NIST Norris observed data",
+    "rows": 36,
+    "raw_bytes": 2688,
+    "raw_sha256": "5ab6906c68a9c4b2eb1661c0cd7d2a09f5a469a6d4e05b6b691f190f5f7b944f",
+    "intercept": "free",
+    "weighting": "none",
+    "slope": 1.0021168180204543,
+    "intercept_value": -0.26232307377398456,
+    "rss": 26.617398529423433,
+    "r_squared": 0.9999937458837117,
+    "job_seconds": 13.196,
+    "ui_turn_duration_seconds": 223,
+    "verification": {
+      "data_roundtrip": true,
+      "graph_text_roundtrip": true,
+      "graphs_reopened": 1,
+      "native_reports_reopened": 1,
+      "png_decoded": true,
+      "project_reopened": true,
+      "seconds": 11.484,
+      "titles_reopened": 1,
+      "vendor_native": true,
+      "visual_review": "preview should be reviewed by the agent/user"
+    },
+    "png_reviewed": true,
+    "four_download_links_visible": true,
+    "pdf_actually_opened_in_cloud_ui": true,
+    "received_files": [
+      {
+        "name": "panel-01.png",
+        "bytes": 23418,
+        "sha256": "be3543dfd0c478d2ee4927587529446f4c2238dc0b28d85d96edcb11c3e5e942",
+        "cloud_receipt_matches_local_artifact": true
+      },
+      {
+        "name": "panel-01.pdf",
+        "bytes": 4058,
+        "sha256": "6b8107fc2f21721faad537eaaeda26ad2b0824d8eb6ae47357cd531a0b53b2ba",
+        "cloud_receipt_matches_local_artifact": true
+      },
+      {
+        "name": "panel-01.svg",
+        "bytes": 40326,
+        "sha256": "867a8e0730953235cd1ec3c133f1f35c21a2554be6604a6552bc37bfccc388a3",
+        "cloud_receipt_matches_local_artifact": true
+      },
+      {
+        "name": "project.opju",
+        "bytes": 136216,
+        "sha256": "9810e070b3e4be7a1f1e1a91ea8ba4dd36a3655fe0bbac0c6df596540de1ad4f",
+        "cloud_receipt_matches_local_artifact": true
+      }
+    ]
+  },
+  "limitations": [
+    "Second-device SR1 passed four listed native cases; that device's cloud Work and tool-host startup context remain open",
+    "No claim of every Origin function or every host/model being validated",
+    "Computer name is a routing aid, not cryptographic attestation",
+    "Plugin update needs host tool catalog refresh where cached",
+    "Raw unexpected exceptions are not all converted into correctable input errors"
+  ],
+  "evidence_policy": "Public NIST data, sanitized values and file digests only. No account, computer name, local path, licence, tunnel or task identifiers.",
+  "second_device": {
+    "plugin_version": "0.2.8",
+    "engine": {
+      "product": "Origin",
+      "release": "2026 SR1",
+      "native_version": 10.300197,
+      "bitness": 64,
+      "demo": 0,
+      "licence_or_origin_installation_changed": false
+    },
+    "native_cases": [
+      {
+        "name": "Norris",
+        "status": "PASS_LOCAL_NATIVE"
+      },
+      {
+        "name": "Misra1a",
+        "status": "PASS_LOCAL_NATIVE"
+      },
+      {
+        "name": "Eckerle4",
+        "status": "PASS_LOCAL_NATIVE"
+      },
+      {
+        "name": "Chwirut1",
+        "status": "PASS_LOCAL_NATIVE"
+      }
+    ],
+    "binary_resource_receipt": "PASS",
+    "artifact_count": 16,
+    "actual_cloud_work": "NOT_RUN",
+    "host_startup_context_issue": "OPEN",
+    "receipt": "remote-sr1-0.2.8.json",
+    "receipt_time": "2026-09-12T10:07:20.602Z"
+  }
+}

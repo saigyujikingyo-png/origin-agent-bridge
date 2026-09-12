@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "archive": "origin-build-501619038ffd4514814d8466addb3575.zip",
+  "archive_bytes": 100917106,
+  "archive_sha256": "8adcec4d3ee6df473880aa371b0b26b6f47de8d8ccc797261a1acebdf7127a6a",
+  "source_build": "501619038ffd4514814d8466addb3575",
+  "source_files": 482,
+  "source_bytes": 171823182,
+  "archive_members_verified": true,
+  "cloud_download_verified": true,
+  "local_source_removed": true,
+  "elapsed_seconds": 8.0,
+  "source_unchanged_verified": true,
+  "cloud_location": "Chembridge/archives",
+  "private_permission_seen": true,
+  "date": "2026-09-12",
+  "temporary_zip_copies_removed": true
+}

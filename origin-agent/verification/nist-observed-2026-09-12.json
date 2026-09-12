@@ -1,0 +1,422 @@
+{
+  "version": "0.2.7",
+  "date": "2026-09-12",
+  "status": "LOCAL_NATIVE_PASSED_REMOTE_QUALIFICATION_SEPARATE",
+  "target": {
+    "version": "2026b SR2",
+    "build": 10.350243,
+    "edition": "Origin",
+    "platform": "Windows x64"
+  },
+  "execution": {
+    "local": "Installed frozen MCP runtime invoked by Codex; no development-runtime fitting",
+    "remote": "Separate second-device SR1 qualification; not certified by this first-device report",
+    "cloud_work_retested_in_this_record": false
+  },
+  "sources": {
+    "Norris": {
+      "url": "https://www.itl.nist.gov/div898/strd/lls/data/LINKS/DATA/Norris.dat",
+      "n": 36,
+      "model": "b0+b1*x",
+      "parameters": [
+        -0.262323073774029,
+        1.00211681802045
+      ],
+      "rss": 26.6173985294224,
+      "x_label": "Reference instrument reading",
+      "y_label": "Ozone monitor reading",
+      "raw_sha256": "5ab6906c68a9c4b2eb1661c0cd7d2a09f5a469a6d4e05b6b691f190f5f7b944f",
+      "csv_sha256": "74ad6373719fea7bc97ddcafc9c1276705afed853a6e7bd1e61904997aa0fc3b",
+      "raw_columns": "y,x",
+      "csv_columns": [
+        "x",
+        "y"
+      ],
+      "source_kind": "observed",
+      "units": "not specified in the downloaded StRD file; do not invent units",
+      "independent_rss_at_certified_parameters": 26.617398529423344,
+      "r_squared": 0.9999937458837117,
+      "sample_mean_y": 419.8027777777778,
+      "sample_sd_y": 348.7111268543972,
+      "pass_tolerances": {
+        "parameter_relative": 0.0001,
+        "parameter_absolute": 1e-08,
+        "rss_relative": 1e-05
+      },
+      "independent_ols": {
+        "intercept": -0.26232307377398456,
+        "slope": 1.0021168180204545
+      }
+    },
+    "Misra1a": {
+      "url": "https://www.itl.nist.gov/div898/strd/nls/data/LINKS/DATA/Misra1a.dat",
+      "n": 14,
+      "model": "b1*(1-exp(-b2*x))",
+      "parameters": [
+        238.94212918,
+        0.00055015643181
+      ],
+      "rss": 0.12455138894,
+      "x_label": "Pressure",
+      "y_label": "Adsorbed volume",
+      "raw_sha256": "9d3194d537d9a6bbf92eb819504070923a1885d0191f40b6b3aaeedd130b98e2",
+      "csv_sha256": "e93f9a8ae8eeedafa12d40ce88e586a7c443e675726c6b1f0378d72cde0cf266",
+      "raw_columns": "y,x",
+      "csv_columns": [
+        "x",
+        "y"
+      ],
+      "source_kind": "observed",
+      "units": "not specified in the downloaded StRD file; do not invent units",
+      "independent_rss_at_certified_parameters": 0.12455138894440432,
+      "r_squared": 0.9999815801100362,
+      "sample_mean_y": 43.340714285714284,
+      "sample_sd_y": 22.80652385217397,
+      "pass_tolerances": {
+        "parameter_relative": 0.0001,
+        "parameter_absolute": 1e-08,
+        "rss_relative": 1e-05
+      }
+    },
+    "Chwirut1": {
+      "url": "https://www.itl.nist.gov/div898/strd/nls/data/LINKS/DATA/Chwirut1.dat",
+      "n": 214,
+      "model": "exp(-b1*x)/(b2+b3*x)",
+      "parameters": [
+        0.1902781837,
+        0.0061314004477,
+        0.010530908399
+      ],
+      "rss": 2384.4771393,
+      "x_label": "Metal distance",
+      "y_label": "Ultrasonic response",
+      "raw_sha256": "d9a055dfe5af71a8754c00f073ef00f8fed2e3fd1c6fd20cea8fd62d7cc3ed84",
+      "csv_sha256": "a6c84fc350bdd9b3a99be2713dfbe5800d64eab9782aaef87dde154b5e89a70d",
+      "raw_columns": "y,x",
+      "csv_columns": [
+        "x",
+        "y"
+      ],
+      "source_kind": "observed",
+      "units": "not specified in the downloaded StRD file; do not invent units",
+      "independent_rss_at_certified_parameters": 2384.47713930935,
+      "r_squared": 0.9800355307442135,
+      "sample_mean_y": 30.261495327102804,
+      "sample_sd_y": 23.67979265052397,
+      "pass_tolerances": {
+        "parameter_relative": 0.0001,
+        "parameter_absolute": 1e-08,
+        "rss_relative": 1e-05
+      },
+      "descriptive_distance_groups": 22,
+      "grouping_caution": "Pooled descriptive spread at the same x; not certified measurement uncertainty or fit weights."
+    },
+    "Eckerle4": {
+      "url": "https://www.itl.nist.gov/div898/strd/nls/data/LINKS/DATA/Eckerle4.dat",
+      "n": 35,
+      "model": "(b1/b2)*exp(-0.5*((x-b3)/b2)**2)",
+      "parameters": [
+        1.5543827178,
+        4.0888321754,
+        451.54121844
+      ],
+      "rss": 0.0014635887487,
+      "x_label": "Wavelength",
+      "y_label": "Transmittance",
+      "raw_sha256": "8ec2133b29a0a7cecbfccd51f7c61ee432f73c460bf5ce7106d672642e57a61e",
+      "csv_sha256": "097e011b344dde3e4e04a7904efb3de8eeb80dc6d174bd9075da71bc2a4bd261",
+      "raw_columns": "y,x",
+      "csv_columns": [
+        "x",
+        "y"
+      ],
+      "source_kind": "observed",
+      "units": "not specified in the downloaded StRD file; do not invent units",
+      "independent_rss_at_certified_parameters": 0.0014635887487274722,
+      "r_squared": 0.9970642690337252,
+      "sample_mean_y": 0.07581048571428571,
+      "sample_sd_y": 0.12109102229087385,
+      "pass_tolerances": {
+        "parameter_relative": 0.0001,
+        "parameter_absolute": 1e-08,
+        "rss_relative": 1e-05
+      },
+      "certified_peak_center": 451.54121844,
+      "derived_fwhm": 9.628463967399423
+    }
+  },
+  "local_results": {
+    "Norris": {
+      "rows": 36,
+      "slope": 1.0021168180204543,
+      "intercept": -0.26232307377398456,
+      "rss": 26.617398529423433,
+      "r_squared": 0.9999937458837117,
+      "native_report_independent_crosscheck": true,
+      "exact_xy_after_reopen": true
+    },
+    "Misra1a": {
+      "certified_parameters_mapped": {
+        "A": 238.94212918,
+        "Tau": 1817.6648352724455
+      },
+      "data_kind": "observed plus explicitly derived fit/residual columns",
+      "fixed": {
+        "TD": 0,
+        "Yb": 0
+      },
+      "function": "ExpAssoc1",
+      "n": 14,
+      "native_parameters": {
+        "A": 238.942129216123,
+        "Tau": 1817.66483561682
+      },
+      "passed": true,
+      "rss_certified": 0.12455138894,
+      "rss_independent": 0.12455138894440412,
+      "exact_xy_after_reopen": true
+    },
+    "Eckerle4": {
+      "certified_parameters_mapped": {
+        "A": 3.896259670035259,
+        "w": 8.1776643508,
+        "xc": 451.54121844
+      },
+      "data_kind": "observed plus explicitly derived fit/residual columns",
+      "fixed": {
+        "y0": 0
+      },
+      "function": "Gauss",
+      "n": 35,
+      "native_parameters": {
+        "A": 3.89625980462372,
+        "w": 8.17766491630347,
+        "xc": 451.541218169202
+      },
+      "passed": true,
+      "rss_certified": 0.0014635887487,
+      "rss_independent": 0.0014635887487304512,
+      "exact_xy_after_reopen": true,
+      "native_derived_fwhm": 9.628464633228877
+    },
+    "Chwirut1": {
+      "certified_parameters": {
+        "b1": 0.1902781837,
+        "b2": 0.0061314004477,
+        "b3": 0.010530908399
+      },
+      "dataset": "Chwirut1",
+      "n": 214,
+      "native_parameters": {
+        "b1": 0.190294269935728,
+        "b2": 0.00613148799087963,
+        "b3": 0.0105304998142089
+      },
+      "observation_order_preserved": true,
+      "passed": true,
+      "rss_certified": 2384.4771393,
+      "rss_independent": 2384.477149865835,
+      "weighting": "none",
+      "exact_xy_after_reopen": true
+    },
+    "descriptive_statistics": {
+      "actual": {
+        "mean": 30.26149532710281,
+        "n": 214.0,
+        "sd": 23.67979265052397,
+        "sum": 6475.959999999999
+      },
+      "independent_reference": {
+        "mean": 30.261495327102804,
+        "n": 214,
+        "sd": 23.67979265052397,
+        "sum": 6475.96
+      },
+      "passed": true
+    },
+    "project_continuation": {
+      "saved_source_opened": true,
+      "same_request_reuses_same_job": true,
+      "edit_seconds": 0.938,
+      "stale_revision_rejected": true,
+      "stale_revision_error": "Stale session revision: expected 1, current 2",
+      "revision_unchanged_after_rejection": true,
+      "close_revision": 3,
+      "session_closed": true,
+      "final_reopen": [
+        {
+          "dataset": "Misra1a",
+          "exact_xy_after_session_close_and_reopen": true,
+          "rows": 14
+        },
+        {
+          "dataset": "Eckerle4",
+          "exact_xy_after_session_close_and_reopen": true,
+          "rows": 35
+        }
+      ],
+      "edited_title_persisted_after_reopen": true
+    }
+  },
+  "exports": {
+    "Norris": {
+      "files": {
+        "png": {
+          "bytes": 23961,
+          "sha256": "f23050cf2f721e022b00381a0fac17888ff7aa12c34d427d52c96a8a16926072",
+          "manifest_match": true
+        },
+        "pdf": {
+          "bytes": 4065,
+          "sha256": "3342cf690a4b9deaa1314c21e61e8551ac5474843e2bcde58e9b6b15254f35ec",
+          "manifest_match": true
+        },
+        "svg": {
+          "bytes": 40337,
+          "sha256": "6f1b0915c9785802d55dc1b09d92ace077172b274c84c1df9bcbae41fc1e40b7",
+          "manifest_match": true
+        }
+      },
+      "png_dimensions": [
+        1200,
+        850
+      ],
+      "pdf_pages": 1,
+      "pdf_content_bytes": 12118,
+      "svg_parsed": true,
+      "pdf_render_dimensions": [
+        1200,
+        855
+      ],
+      "pdf_rendered": true
+    },
+    "Misra1a": {
+      "files": {
+        "png": {
+          "bytes": 38862,
+          "sha256": "e57b29605df0aebd82a2975047856ffde5b684b67220b78952cc454bbe0bdaf8",
+          "manifest_match": true
+        },
+        "pdf": {
+          "bytes": 10868,
+          "sha256": "b5265eb297f7e8b5f3d1cfb1cdb10ec720af48dc1faac1bdbdb16fccd541e4cb",
+          "manifest_match": true
+        },
+        "svg": {
+          "bytes": 40778,
+          "sha256": "15c6ab211668229ecb2380eaf05f4c5e3df374b3bffd2703908e71bbaadd339b",
+          "manifest_match": true
+        }
+      },
+      "png_dimensions": [
+        1600,
+        1134
+      ],
+      "pdf_pages": 1,
+      "pdf_content_bytes": 29107,
+      "svg_parsed": true,
+      "pdf_render_dimensions": [
+        1200,
+        854
+      ],
+      "pdf_rendered": true
+    },
+    "Eckerle4": {
+      "files": {
+        "png": {
+          "bytes": 40168,
+          "sha256": "ef34ce075ed3dccf74a0885ca4c27289d860e780a6421f7aaec795c0e928eb75",
+          "manifest_match": true
+        },
+        "pdf": {
+          "bytes": 11489,
+          "sha256": "b2194933547594d99deaaaa16f12ca48cb8bfa60b6fbe220c48a809b6eed552f",
+          "manifest_match": true
+        },
+        "svg": {
+          "bytes": 55396,
+          "sha256": "b7675f20eab4fd4bdc973d0268ad419bc5b5daffa811d5f92e8d7a5c1c2a7cd9",
+          "manifest_match": true
+        }
+      },
+      "png_dimensions": [
+        1600,
+        1134
+      ],
+      "pdf_pages": 1,
+      "pdf_content_bytes": 31399,
+      "svg_parsed": true,
+      "pdf_render_dimensions": [
+        1200,
+        854
+      ],
+      "pdf_rendered": true
+    },
+    "Chwirut1": {
+      "files": {
+        "png": {
+          "bytes": 38341,
+          "sha256": "43049859e4cc546042f44439b8b43e05937f1783a79f76da2e8378f934223433",
+          "manifest_match": true
+        },
+        "pdf": {
+          "bytes": 12240,
+          "sha256": "c40042b8f98ab088c1bf255c4d3de07b3eb4753f10ee8bf9b4f95971acfcd679",
+          "manifest_match": true
+        },
+        "svg": {
+          "bytes": 183536,
+          "sha256": "65aff8c0282b750a0ae3d2dece9bd208cdff4186155bdfa9fc491c25c2a1de2c",
+          "manifest_match": true
+        }
+      },
+      "png_dimensions": [
+        1600,
+        1134
+      ],
+      "pdf_pages": 1,
+      "pdf_content_bytes": 42438,
+      "svg_parsed": true,
+      "pdf_render_dimensions": [
+        1200,
+        854
+      ],
+      "pdf_rendered": true
+    }
+  },
+  "visual_review": {
+    "pngs": 4,
+    "independently_rendered_pdfs": 4,
+    "reviewed": true,
+    "title_and_legend_layout_corrected": true,
+    "scope": "Four named final observation/fit graphs only; not every automatically generated report graph"
+  },
+  "failed_attempts": [
+    {
+      "case": "statistics test harness",
+      "cause": "Test code asserted a return value from WSheet.lt_exec, whose documented return is None",
+      "job_terminal": true,
+      "corrected_harness_native_statistics_passed": true,
+      "core_source_changed": false
+    },
+    {
+      "case": "session source path",
+      "cause": "Generated job directory is outside configured input roots; host displayed a generic serialization error",
+      "successful_continuation": "origin_run_program project_artifact; managed session opened a verified copy in inbox",
+      "input_root_policy_unchanged": true,
+      "generic_host_error_not_claimed_fixed": true
+    }
+  ],
+  "remote": {
+    "scope": "Second-device qualification is documented separately; first-device results do not certify it"
+  },
+  "limitations": [
+    "Second physical machine not certified",
+    "This run does not certify every Origin function, model or host",
+    "NLS parameter acceptance uses declared tolerances, not certified digits at arbitrary precision",
+    "Downloaded StRD files omit units; none inferred",
+    "No false experimental error bars or fit weights added",
+    "These observation-data jobs ran through installed 0.2.7; subsequent 0.2.8 protocol, installation and device qualification evidence is separate."
+  ],
+  "evidence_policy": "Public NIST data only; local account, host name, private connector and task identifiers omitted."
+}

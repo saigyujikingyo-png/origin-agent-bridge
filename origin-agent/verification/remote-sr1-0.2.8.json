@@ -1,0 +1,622 @@
+{
+  "schema_version": 1,
+  "updated_at_utc": "2026-09-12T10:07:20.602Z",
+  "status": "LOCAL_NATIVE_ACCEPTANCE_PASS_HOST_ENVIRONMENT_AND_CLOUD_WORK_OPEN",
+  "package": {
+    "version": "0.2.8",
+    "advertised_commit": "ef7a1c9",
+    "archive_sha256": "54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77",
+    "archive_bytes": 33085772,
+    "sha256_verified": true,
+    "release_draft_verified": true
+  },
+  "engine": {
+    "product": "Origin",
+    "release": "2026 SR1",
+    "native_version": 10.300197,
+    "bitness": 64,
+    "demo": 0,
+    "licence_or_origin_installation_changed": false
+  },
+  "installation": {
+    "status": "PASS",
+    "exit_code": 0,
+    "selected_host": "codex",
+    "active_pointer_created": true,
+    "previous_0_2_7_runtime_preserved": true,
+    "previous_runtime_executable_unchanged": true,
+    "origin_executable_unchanged": true,
+    "native_selfcheck": {
+      "status": "PASS",
+      "native_readback": true,
+      "project_reopened": true,
+      "structure_roundtrip": true,
+      "independent_scientific_validation": false,
+      "elapsed_seconds": 7.781
+    },
+    "final_integrity": {
+      "checked_at_utc": "2026-09-12T10:04:18.5632641Z",
+      "active_version": "0.2.8",
+      "installed_executable_matches_verified_package": true,
+      "previous_runtime_preserved": true,
+      "origin_executable_unchanged": true
+    }
+  },
+  "diagnosis": {
+    "earlier_version": "0.2.7",
+    "earlier_failure": "SystemError: ApplicationBase_LT_execute returned a result with an exception set",
+    "earlier_stage": "starting_origin",
+    "windows_exception_code": "0xC0000409",
+    "independent_com_probe": {
+      "status": "PASS",
+      "bounded_elapsed_seconds": 4.137,
+      "timeout_seconds": 30,
+      "timed_out": false,
+      "com_create": true,
+      "labtalk_execute": true,
+      "native_version": 10.300197,
+      "bitness": 64,
+      "edition_flag": 0,
+      "demo_flag": 0
+    },
+    "root_cause": "NOT_FULLY_ISOLATED",
+    "actions": [
+      "Read-only COM registration and crash metadata checks",
+      "Independent COM startup and LabTalk variable checks",
+      "Installed the verified 0.2.8 candidate; native installation selfcheck passed",
+      "Compared identical minimal native readback through ordinary terminal MCP",
+      "Tested APPDATA alone, LOCALAPPDATA alone, and both together in child processes only; all three failed before executing program code",
+      "Completed the four public NIST cases and artifact verification in the passing ordinary terminal environment"
+    ],
+    "registry_or_licence_repair_performed": false,
+    "causal_fix_not_established": true,
+    "candidate_recipe_startup_failure_recurred": true,
+    "program_startup_failure_recurred_in_first_context": true,
+    "launch_context_comparison": {
+      "same_executable": true,
+      "same_working_directory": true,
+      "same_windows_session": true,
+      "both_non_elevated": true,
+      "first_context_missing_variables": [
+        "APPDATA",
+        "LOCALAPPDATA"
+      ],
+      "other_environment_differences_exist": true,
+      "normal_terminal_mcp_minimal_program": {
+        "status": "PASS",
+        "elapsed_seconds": 7.473,
+        "native_readback": true,
+        "project_reopened": true,
+        "version_readback_pass": true
+      },
+      "specific_causal_variable": "NOT_ISOLATED_APPDATA_AND_LOCALAPPDATA_ALONE_INSUFFICIENT",
+      "global_environment_changed": false,
+      "installed_binaries_modified": false
+    },
+    "original_test_client_replaced_environment": false,
+    "original_host_child_environment_missing_variables": true,
+    "single_variable_probes_status": "COMPLETED",
+    "single_variable_probes": [
+      {
+        "changed_environment_names": [
+          "APPDATA"
+        ],
+        "before_presence": {
+          "APPDATA": false,
+          "LOCALAPPDATA": false
+        },
+        "after_presence": {
+          "APPDATA": true,
+          "LOCALAPPDATA": false
+        },
+        "result": "failed",
+        "stage": "starting_origin",
+        "elapsed_seconds": 32.748,
+        "error_type": "SystemError",
+        "program_sha256": "fe432d5eb528892a00bad22b9b4a112b972864b4b382d5ee8bc489f999f7d213",
+        "started_at_utc": "2026-09-12T10:01:08.958Z",
+        "finished_at_utc": "2026-09-12T10:01:42.514Z"
+      },
+      {
+        "changed_environment_names": [
+          "LOCALAPPDATA"
+        ],
+        "before_presence": {
+          "APPDATA": false,
+          "LOCALAPPDATA": false
+        },
+        "after_presence": {
+          "APPDATA": false,
+          "LOCALAPPDATA": true
+        },
+        "result": "failed",
+        "stage": "starting_origin",
+        "elapsed_seconds": 33.152,
+        "error_type": "SystemError",
+        "program_sha256": "fe432d5eb528892a00bad22b9b4a112b972864b4b382d5ee8bc489f999f7d213",
+        "started_at_utc": "2026-09-12T10:03:24.854Z",
+        "finished_at_utc": "2026-09-12T10:03:58.992Z"
+      },
+      {
+        "changed_environment_names": [
+          "APPDATA",
+          "LOCALAPPDATA"
+        ],
+        "before_presence": {
+          "APPDATA": false,
+          "LOCALAPPDATA": false
+        },
+        "after_presence": {
+          "APPDATA": true,
+          "LOCALAPPDATA": true
+        },
+        "result": "failed",
+        "stage": "starting_origin",
+        "elapsed_seconds": 32.944,
+        "error_type": "SystemError",
+        "program_sha256": "fe432d5eb528892a00bad22b9b4a112b972864b4b382d5ee8bc489f999f7d213",
+        "started_at_utc": "2026-09-12T10:05:00.203Z",
+        "finished_at_utc": "2026-09-12T10:05:34.340Z"
+      }
+    ],
+    "appdata_and_localappdata_restoration_sufficient": false,
+    "confirmed_scope": "The original tool-host inherited environment fails startup; an ordinary terminal environment passes the same installed executable and minimal program, followed by all four NIST cases. No global or product repair was made.",
+    "windows_event_correlation": {
+      "window_start_utc": "2026-09-12T09:42:00.0000000Z",
+      "window_end_utc": "2026-09-12T10:07:19.8406007Z",
+      "new_related_application_crash_events": 0,
+      "no_matching_event_records_returned": true
+    },
+    "final_process_snapshot": {
+      "origin_gui_processes": 0,
+      "other_mcp_servers": 4,
+      "native_workers": 0,
+      "unrelated_processes_terminated": false,
+      "owned_terminal_client_exited_cleanly": true,
+      "owned_environment_probe_mcp_servers_exited_cleanly": true
+    }
+  },
+  "connection": {
+    "local_mcp_protocol": "PASS_IN_ORDINARY_TERMINAL_ENVIRONMENT",
+    "local_mcp_server_version": "0.2.8",
+    "target_device_match_verified_locally": true,
+    "codex_tools_after_host_restart": "NOT_VERIFIED",
+    "chatgpt_work_model_native_acceptance": "NOT_RUN",
+    "cloud_prerequisites": {
+      "tunnel_client_available": false,
+      "origin_profile_exists": false,
+      "origin_private_credential_exists": false,
+      "required_environment_credentials_present": false
+    },
+    "other_device_connector_used_for_native_jobs": false,
+    "tool_host_inherited_environment": "STARTUP_FAILED",
+    "cloud_prerequisites_checked_at_utc": "2026-09-12T09:36:44.8530054Z"
+  },
+  "nist": {
+    "test_kit_sha256": "ae61f09750c6f334c1857da728785a1b5b1d3bee2296025ebd035838aabf8665",
+    "source_hashes_verified": true,
+    "csv_checks": [
+      {
+        "dataset": "Norris",
+        "bytes": 405,
+        "sha256": "74ad6373719fea7bc97ddcafc9c1276705afed853a6e7bd1e61904997aa0fc3b",
+        "pass": true
+      },
+      {
+        "dataset": "Misra1a",
+        "bytes": 227,
+        "sha256": "e93f9a8ae8eeedafa12d40ce88e586a7c443e675726c6b1f0378d72cde0cf266",
+        "pass": true
+      },
+      {
+        "dataset": "Chwirut1",
+        "bytes": 3997,
+        "sha256": "a6c84fc350bdd9b3a99be2713dfbe5800d64eab9782aaef87dde154b5e89a70d",
+        "pass": true
+      },
+      {
+        "dataset": "Eckerle4",
+        "bytes": 879,
+        "sha256": "097e011b344dde3e4e04a7904efb3de8eeb80dc6d174bd9075da71bc2a4bd261",
+        "pass": true
+      }
+    ],
+    "cases": {
+      "Norris": {
+        "status": "PASS_LOCAL_NATIVE",
+        "first_context": {
+          "status": "FAILED",
+          "stage": "starting_origin",
+          "elapsed_seconds": 33.154,
+          "fit_executed": false
+        },
+        "terminal_context": {
+          "status": "PASS",
+          "elapsed_seconds": 10.089,
+          "parameters": {
+            "intercept": -0.26232307377398456,
+            "slope": 1.0021168180204543
+          },
+          "rss": 26.617398529423433,
+          "n": 36,
+          "weighting": "none",
+          "certified_parameter_check": true,
+          "certified_rss_check": true,
+          "project_reopened": true,
+          "data_roundtrip": true,
+          "native_report_reopened": true,
+          "graph_text_roundtrip": true
+        },
+        "artifacts": [
+          {
+            "name": "panel-01-fit-01.json",
+            "bytes": 1386,
+            "sha256": "528081549548ebd8610d1d9d8910e79c2d56207757a35fdd1ae189c95bf3ad2b"
+          },
+          {
+            "name": "panel-01-fit-01-residuals.csv",
+            "bytes": 1840,
+            "sha256": "78266ccfa873cf37782a1df56b9778d8ba0b6ce4f117377d550ee7fa8bf91afe"
+          },
+          {
+            "name": "panel-01.png",
+            "bytes": 23158,
+            "sha256": "06aa634869414e950e8758c84f10608184905fdb6f34614c61d7a29b1df8295d"
+          },
+          {
+            "name": "panel-01.pdf",
+            "bytes": 4031,
+            "sha256": "930c7a76acd7e7b84798c8711837d355f6a756308550a6a74ae2913c32a3d193"
+          },
+          {
+            "name": "panel-01.svg",
+            "bytes": 40324,
+            "sha256": "cb24f2152c5102770e4885d41e3603df68f4514726d3fa18f3126a01c6af444d"
+          },
+          {
+            "name": "project.opju",
+            "bytes": 130857,
+            "sha256": "753038f9afb36d17331fd451742c8da9445993c114c9eb94b71a59c02a0d0fcf"
+          }
+        ],
+        "visual_review": {
+          "png": "PASS",
+          "pdf": "PASS",
+          "svg_on_white_background": "PASS",
+          "title_axes_legend_readable": true,
+          "no_visible_clipping": true
+        }
+      },
+      "Misra1a": {
+        "status": "PASS_LOCAL_NATIVE",
+        "n": 14,
+        "model": "b1*(1-exp(-b2*x))",
+        "native_function": "ExpAssoc1",
+        "fixed_parameters": {
+          "TD": 0,
+          "Yb": 0
+        },
+        "native_parameters": {
+          "A": 238.942129216123,
+          "Tau": 1817.66483561682
+        },
+        "certified_parameter_mapping": [
+          {
+            "actual": 238.942129216123,
+            "certified": 238.94212918,
+            "relative_error": 1.5117885678084519e-10,
+            "passed": true
+          },
+          {
+            "actual": 0.0005501564317057674,
+            "certified": 0.00055015643181,
+            "relative_error": 1.8945992221634124e-10,
+            "passed": true
+          }
+        ],
+        "rss": 0.12455138894440412,
+        "certified_rss": 0.12455138894,
+        "rss_relative_error": 3.535994159582855e-11,
+        "parameter_and_rss_checks_passed": true,
+        "weighting": "none",
+        "project_reopened": true,
+        "original_xy_exact_after_reopen": true,
+        "derived_residuals_verified": true,
+        "visual_review": {
+          "png": "PASS",
+          "pdf": "PASS",
+          "svg_on_white_background": "PASS",
+          "initial_title_placement": "CORRECTED_IN_TEST_PROJECT_COPY",
+          "no_visible_clipping": true
+        },
+        "first_context": {
+          "status": "FAILED",
+          "stage": "starting_origin",
+          "fit_executed": false,
+          "elapsed_seconds": 33.356
+        },
+        "terminal_fit_elapsed_seconds": 16.322,
+        "terminal_reopen_elapsed_seconds": 12.089
+      },
+      "Eckerle4": {
+        "status": "PASS_LOCAL_NATIVE",
+        "n": 35,
+        "model": "(b1/b2)*exp(-0.5*((x-b3)/b2)**2)",
+        "native_function": "Gauss",
+        "fixed_parameters": {
+          "y0": 0
+        },
+        "native_parameters": {
+          "A": 3.89625980462372,
+          "w": 8.17766491630347,
+          "xc": 451.541218169202
+        },
+        "certified_parameter_mapping": [
+          {
+            "actual": 1.5543827714930274,
+            "certified": 1.5543827178,
+            "relative_error": 3.454299043775818e-08,
+            "passed": true
+          },
+          {
+            "actual": 4.088832458151735,
+            "certified": 4.0888321754,
+            "relative_error": 6.915219866831384e-08,
+            "passed": true
+          },
+          {
+            "actual": 451.541218169202,
+            "certified": 451.54121844,
+            "relative_error": 5.997193622892556e-10,
+            "passed": true
+          }
+        ],
+        "rss": 0.0014635887487304512,
+        "certified_rss": 0.0014635887487,
+        "rss_relative_error": 2.08057892518714e-11,
+        "parameter_and_rss_checks_passed": true,
+        "weighting": "none",
+        "project_reopened": true,
+        "original_xy_exact_after_reopen": true,
+        "derived_residuals_verified": true,
+        "visual_review": {
+          "png": "PASS",
+          "pdf": "PASS",
+          "svg_on_white_background": "PASS",
+          "initial_title_placement": "CORRECTED_IN_TEST_PROJECT_COPY",
+          "no_visible_clipping": true
+        },
+        "first_context": {
+          "status": "FAILED",
+          "stage": "starting_origin",
+          "fit_executed": false,
+          "elapsed_seconds": 33.356
+        },
+        "terminal_fit_elapsed_seconds": 16.322,
+        "terminal_reopen_elapsed_seconds": 12.089
+      },
+      "Chwirut1": {
+        "status": "PASS_LOCAL_NATIVE",
+        "n": 214,
+        "model": "exp(-b1*x)/(b2+b3*x)",
+        "native_function_kind": "user_defined_expression",
+        "native_parameters": {
+          "b1": 0.190294269935728,
+          "b2": 0.00613148799087963,
+          "b3": 0.0105304998142089
+        },
+        "certified_parameter_comparison": [
+          {
+            "actual": 0.190294269935728,
+            "certified": 0.1902781837,
+            "relative_error": 8.454062055469856e-05,
+            "passed": true
+          },
+          {
+            "actual": 0.00613148799087963,
+            "certified": 0.0061314004477,
+            "relative_error": 1.4277844087440662e-05,
+            "passed": true
+          },
+          {
+            "actual": 0.0105304998142089,
+            "certified": 0.010530908399,
+            "relative_error": 3.879862739461079e-05,
+            "passed": true
+          }
+        ],
+        "rss": 2384.477149865835,
+        "certified_rss": 2384.4771393,
+        "rss_relative_error": 4.431090942636707e-09,
+        "parameter_and_rss_checks_passed": true,
+        "weighting": "none",
+        "project_reopened": true,
+        "original_xy_exact_after_reopen": true,
+        "rss_after_reopen": 2384.477149865835,
+        "native_statistics": {
+          "status": "PASS",
+          "actual": {
+            "mean": 30.26149532710281,
+            "n": 214,
+            "sd": 23.67979265052397,
+            "sum": 6475.959999999999
+          },
+          "independent_reference": {
+            "mean": 30.261495327102804,
+            "n": 214,
+            "sd": 23.67979265052397,
+            "sum": 6475.96
+          }
+        },
+        "visual_review": {
+          "png": "PASS",
+          "pdf": "PASS",
+          "svg_on_white_background": "PASS",
+          "no_visible_clipping": true
+        },
+        "terminal_fit_elapsed_seconds": 13.695,
+        "terminal_reopen_elapsed_seconds": 8.69
+      }
+    },
+    "certified_tolerances": {
+      "parameter_relative": 0.0001,
+      "parameter_absolute": 1e-08,
+      "rss_relative": 1e-05
+    },
+    "acceptance_scope": "Four listed public observed datasets only; native program assertions and explicit oracle checks are separately recorded from runtime generic verification flags",
+    "native_program_generic_scientific_validation_flag": false
+  },
+  "scope": {
+    "local_protocol_acceptance_is_not_work_model_acceptance": true,
+    "business_code_changed": false,
+    "canonical_plugin_source_changed": false,
+    "release_published": false,
+    "secrets_in_report": false
+  },
+  "delivery": {
+    "scope": "Local stdio MCP binary resource receipt; not cloud Work delivery",
+    "status": "PASS",
+    "artifact_count": 16,
+    "total_bytes": 855314,
+    "artifacts": [
+      {
+        "dataset": "Norris",
+        "name": "panel-01.png",
+        "bytes": 23158,
+        "sha256": "06aa634869414e950e8758c84f10608184905fdb6f34614c61d7a29b1df8295d",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Norris",
+        "name": "panel-01.pdf",
+        "bytes": 4031,
+        "sha256": "930c7a76acd7e7b84798c8711837d355f6a756308550a6a74ae2913c32a3d193",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Norris",
+        "name": "panel-01.svg",
+        "bytes": 40324,
+        "sha256": "cb24f2152c5102770e4885d41e3603df68f4514726d3fa18f3126a01c6af444d",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Norris",
+        "name": "project.opju",
+        "bytes": 130857,
+        "sha256": "753038f9afb36d17331fd451742c8da9445993c114c9eb94b71a59c02a0d0fcf",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "graph-003.png",
+        "bytes": 38940,
+        "sha256": "70d8a96268b1f0b3739e3fb64cf403359b1305ad4eaf2eb3f7649bf5b811d983",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "graph-003.pdf",
+        "bytes": 10492,
+        "sha256": "d24f810d1e5b4cc4b0e7c8b575adcdf5333495f5511e4a10b748dcea3eefbeae",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "graph-003.svg",
+        "bytes": 39902,
+        "sha256": "c305416a3e925be1fe55d93dbe192de91f3b4b27353a9ab826e0488cbb7785dd",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "graph-006.png",
+        "bytes": 40027,
+        "sha256": "31bf22550951661b2960305d7ee9fed49e98f69951f4ee6f2014c39c32eec167",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "graph-006.pdf",
+        "bytes": 11035,
+        "sha256": "335ba71834ea39bab50c23a04541a3cda30df5ec35c488b760975be326e014ab",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "graph-006.svg",
+        "bytes": 54811,
+        "sha256": "2cbbe2b4a0bbec1efa6424718fc260c244a1e84d4552bc0e602aff6a0c8249bf",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Misra1a-Eckerle4",
+        "name": "project.opju",
+        "bytes": 143312,
+        "sha256": "2d2c1a8a25bf1fa7493701b3767fd25dad2b062118a99a728c3dbd582d9f1cf0",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Chwirut1",
+        "name": "graph-003.png",
+        "bytes": 38341,
+        "sha256": "09fc3d4681b3336b1ba423a97f8bc93633afbcc0d3b4c39e20d55f9ed398fda4",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Chwirut1",
+        "name": "graph-003.pdf",
+        "bytes": 12213,
+        "sha256": "606bb8ef624b188ea366470ee09168008f7be0b9f9c3a6c71a7c78b5cbe92fac",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Chwirut1",
+        "name": "graph-003.svg",
+        "bytes": 183536,
+        "sha256": "65aff8c0282b750a0ae3d2dece9bd208cdff4186155bdfa9fc491c25c2a1de2c",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Chwirut1",
+        "name": "project.opju",
+        "bytes": 83599,
+        "sha256": "2ad840fd9cacc4c07425c0eb179194fddfdd7db0954e0855409831f399b3e265",
+        "size_and_sha256_verified": true
+      },
+      {
+        "dataset": "Chwirut1",
+        "name": "custom-function.fdf",
+        "bytes": 736,
+        "sha256": "71dd74e349c203be56d50ad831b0f3ac560378b9b4f168035b381c4a0e1a4160",
+        "size_and_sha256_verified": true
+      }
+    ],
+    "pdf_pages_each": 1,
+    "pdf_encrypted": false,
+    "pdf_visual_review": "PASS",
+    "svg_xml_valid": true,
+    "svg_visual_review": "PASS_ON_WHITE_BACKGROUND",
+    "svg_background": "transparent",
+    "pdf_renderer_warnings": [
+      "Missing display font Symbol",
+      "Missing display font ArialUnicode"
+    ],
+    "reviewed_figure_text_legible": true
+  },
+  "remaining": [
+    {
+      "item": "Tool-host startup environment",
+      "status": "OPEN",
+      "reason": "Exact causal difference remains unisolated; restoring APPDATA and LOCALAPPDATA alone does not resolve the failure"
+    },
+    {
+      "item": "Actual local Work host model workflow",
+      "status": "NOT_VERIFIED"
+    },
+    {
+      "item": "Second-device cloud Work connection and model native acceptance",
+      "status": "NOT_RUN_MISSING_LOCAL_CONNECTION_PREREQUISITES"
+    }
+  ]
+}
