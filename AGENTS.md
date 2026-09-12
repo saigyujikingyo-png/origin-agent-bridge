@@ -11,3 +11,7 @@ The private university OneDrive is for development archives, not a required runt
 This repository implements Origin Companion; its Python package is origin-agent. Run commands from this checkout, with package commands under origin-agent when required. Machine-local runtime data and credentials stay outside the repository and cloud-sync working files. Preserve unrelated changes and existing working state.
 
 For any new Chembridge plugin created in a separate checkout, carry the current shared principles into that checkout and add an AGENTS.md entry requiring them. Keep the shared rule version and product-specific acceptance records clear. User instructions take precedence.
+
+## Confirmed external host issue
+
+The user confirmed the OpenAI local Work project-synchronisation problem as an OpenAI frontend bug and instructed us to stop attempting repairs. Do not resume investigation, cache manipulation or host patching for that issue unless the user explicitly reopens it. Record it as an external limitation; do not infer that the affected host passed. For the next plugin, read ORIGIN_DEVELOPMENT_RETROSPECTIVE.md and NEXT_PLUGIN_ASSESSMENT.md.

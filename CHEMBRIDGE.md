@@ -32,6 +32,11 @@ GitHub holds source, documentation, public tests and releases. Large development
 
 The university cloud folder is a development archive, not a required destination for plugin results. Deliver to the user's chosen location. Assess automated browser download restrictions separately from native execution and host file delivery.
 
+## Preparation for the next plugin
+
+- [Origin development retrospective](ORIGIN_DEVELOPMENT_RETROSPECTIVE.md): native execution, output quality, host delivery and lightweight implementation lessons.
+- [ChemDraw versus Mnova assessment](NEXT_PLUGIN_ASSESSMENT.md): current evidence, native feasibility gates and the recommended development sequence. ChemAIst remains an unaccepted prototype for the required drawing quality; it is not evidence that ChemDraw automation is complete.
+
 ## Current module
 
 - [Origin Companion](README.md): natural-language analysis, plotting and project editing for Origin 2026 SR1 and 2026b SR2.
