@@ -1,6 +1,6 @@
 # 0.2 功能覆盖与交付边界
 
-兼容范围：Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64、普通 Origin、非 Demo。**下表已有案例来自 SR2；SR1 第二台设备验收仍在进行，不继承 SR2 的通过记录。**插件可以通过原生编程和界面输入访问该许可允许的功能；没有证据证明每个功能、App 和对话框都已经完成验收。`full_functionality_verified` 因此保持 false。
+兼容范围：Origin 2026 SR1 10.300197 和 2026b SR2 10.350243、Windows x64、普通 Origin、非 Demo。**下表原有案例来自 SR2；SR1 另有四套 NIST 原生测试与 Terra max 云端 Norris 原生执行证据，云端附件接收仍待核验。SR1 不继承 SR2 其他功能的通过记录。**插件可以通过原生编程和界面输入访问该许可允许的功能；没有证据证明每个功能、App 和对话框都已经完成验收。`full_functionality_verified` 因此保持 false。
 
 Agent 可用 `origin_capabilities(query="coverage")` 读取随包提供的分类记录，再按具体任务查找本机接口。完整机器可读记录在 `src/origin_agent/data/coverage.json`，不把接口数量用作覆盖率。
 

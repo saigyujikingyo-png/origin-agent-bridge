@@ -1,7 +1,7 @@
 {
   "version": "0.2.8",
   "date": "2026-09-12",
-  "status": "FIRST_DEVICE_WORK_AND_SECOND_DEVICE_NATIVE_PASSED_REMOTE_WORK_PENDING",
+  "status": "TWO_DEVICE_CLOUD_NATIVE_PASSED_SECOND_DEVICE_DOWNLOAD_PENDING",
   "source_commit": "ef7a1c994871da8ba46f648ac84c3dab423425b9",
   "candidate_sha256": "54b6d61b8dc4d8a34724cc79cde051459a5c4c036bfae4c910f4f01379248f77",
   "target_scope": [
@@ -139,7 +139,7 @@
     ]
   },
   "limitations": [
-    "Second-device SR1 passed four listed native cases; that device's cloud Work and tool-host startup context remain open",
+    "Second-device SR1 passed four native cases and real Terra max cloud Norris native/reopen checks; browser file download and original tool-host startup context remain open",
     "No claim of every Origin function or every host/model being validated",
     "Computer name is a routing aid, not cryptographic attestation",
     "Plugin update needs host tool catalog refresh where cached",
@@ -176,12 +176,15 @@
     ],
     "binary_resource_receipt": "PASS",
     "artifact_count": 16,
-    "actual_cloud_work": "NOT_RUN",
+    "actual_cloud_work": "NATIVE_NORRIS_PASS_BINARY_RECEIPT_PENDING",
     "host_startup_context_issue": "OPEN: direct COM activation also timed out in the original context; observed token fields matched but full context equivalence is not established",
     "receipt": "remote-sr1-0.2.8.json",
     "receipt_time": "2026-09-12T10:25:25.744Z",
-    "cloud_connection": "OFFICIAL_CLIENT_READY_PERSONAL_LOGIN_PENDING",
-    "independent_received_figure_review": "remote-sr1-figure-review-0.2.8.json"
+    "cloud_connection": "DEDICATED_RUNTIME_CONNECTED_AND_ACTUAL_WORK_TOOLS_CALLED",
+    "independent_received_figure_review": "remote-sr1-figure-review-0.2.8.json",
+    "actual_cloud_work_receipt": "remote-sr1-cloud-work-0.2.8.json",
+    "connection_receipt_time": "2026-09-12T11:08:47.388Z",
+    "receipt_note": "The earlier native receipt remains a historical snapshot; use actual_cloud_work_receipt for later cloud progress"
   },
   "followup_documentation_ci": {
     "commit": "73534f6d14def93a1a0995ec4fd23dbefd37e0d6",

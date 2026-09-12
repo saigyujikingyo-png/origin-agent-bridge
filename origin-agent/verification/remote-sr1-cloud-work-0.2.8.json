@@ -1,0 +1,96 @@
+{
+  "version": "0.2.8",
+  "date": "2026-09-12",
+  "status": "NATIVE_PASS_CLOUD_LINKS_VISIBLE_BROWSER_DOWNLOAD_PENDING",
+  "source_receipt_time": "2026-09-12T11:08:47.388Z",
+  "source_receipt": "remote-sr1-028.json received from the qualification draft",
+  "surface": "Chrome ChatGPT Work user interface",
+  "model": "GPT-5.6 Terra",
+  "reasoning_effort": "max",
+  "plugin_tools_discovered": 14,
+  "target_device_match": true,
+  "engine": {
+    "version": 10.300197,
+    "bitness": 64,
+    "edition": "Origin",
+    "demo": 0
+  },
+  "preflight_native_readback": true,
+  "preflight_seconds": 7.61,
+  "dataset": "Public NIST Norris observed data",
+  "native_seconds": 8.422,
+  "measured": {
+    "coefficient_rss_crosscheck": true,
+    "intercept": -0.26232307377398456,
+    "intercept_mode": "free",
+    "n": 36,
+    "panel": 1,
+    "r_squared_origin": 0.9999937458837117,
+    "residual_sum_squares": 26.617398529423433,
+    "series": "y",
+    "slope": 1.0021168180204543,
+    "slope_se": 0.0004297968481999456,
+    "weighting": "none"
+  },
+  "certified": {
+    "intercept": -0.262323073774029,
+    "slope": 1.00211681802045,
+    "rss": 26.6173985294224
+  },
+  "parameter_tolerance_pass": true,
+  "rss_tolerance_pass": true,
+  "verification": {
+    "data_roundtrip": true,
+    "graph_text_roundtrip": true,
+    "graphs_reopened": 1,
+    "native_reports_reopened": 1,
+    "png_decoded": true,
+    "project_reopened": true,
+    "seconds": 8.422,
+    "titles_reopened": 1,
+    "vendor_native": true,
+    "visual_review": "preview should be reviewed by the agent/user"
+  },
+  "expected_artifacts": [
+    {
+      "bytes": 19603,
+      "mime_type": "image/png",
+      "name": "panel-01.png",
+      "sha256": "c997e06783f84ec81edb0be741178aa2b3557e4525959243826ca0125b4bce50"
+    },
+    {
+      "bytes": 3966,
+      "mime_type": "application/pdf",
+      "name": "panel-01.pdf",
+      "sha256": "097847b5b986571078adf33d689877ad14b5cf619d23515856e7ff7f1f753c17"
+    },
+    {
+      "bytes": 40276,
+      "mime_type": "image/svg+xml",
+      "name": "panel-01.svg",
+      "sha256": "807b0d0f40cdecae1fc9e499de94bcbd43b282018c894dc1aca7af1753e13efc"
+    },
+    {
+      "bytes": 130745,
+      "mime_type": "application/octet-stream",
+      "name": "project.opju",
+      "sha256": "85c98cfd45780f2e6297e1dc584ac5690786c827c370dfa26fc00bedcfb0f6a9"
+    }
+  ],
+  "browser_receipt": {
+    "four_attachment_links_visible": true,
+    "independent_files_verified": 0,
+    "status": "PENDING",
+    "reported_blocker": "Chrome blocked downloads; exact category under investigation",
+    "evidence": "Live remote task title observed after the numerical receipt; not a completed binary receipt",
+    "local_files_are_not_substituted_for_cloud_downloads": true
+  },
+  "limits": [
+    "No complete cloud delivery pass until actual received bytes and hashes are verified",
+    "Original tool-host startup context issue remains open",
+    "Local Work host not independently verified",
+    "Cross-window account/workspace equivalence not confirmed; the dedicated remote plugin was used",
+    "No every-function or every-model claim"
+  ],
+  "evidence_policy": "Public NIST numerical results and artifact hashes only; no device name, credentials, private data, local paths or task/tunnel/account identifiers."
+}
