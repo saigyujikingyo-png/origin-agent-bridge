@@ -81,9 +81,12 @@
     "four_attachment_links_visible": true,
     "independent_files_verified": 0,
     "status": "PENDING",
-    "reported_blocker": "Chrome blocked downloads; exact category under investigation",
+    "reported_blocker": "Chrome ERR_BLOCKED_BY_CLIENT; blocking component not identified",
     "evidence": "Live remote task title observed after the numerical receipt; not a completed binary receipt",
-    "local_files_are_not_substituted_for_cloud_downloads": true
+    "local_files_are_not_substituted_for_cloud_downloads": true,
+    "cloud_work_reported_verified_files": 4,
+    "cloud_work_report_evidence": "Remote task title reports Work 4/4; detailed final receiver records were not delivered by cross-task read tools",
+    "png_and_pdf_opened_by_remote_operator": true
   },
   "limits": [
     "No complete cloud delivery pass until actual received bytes and hashes are verified",
