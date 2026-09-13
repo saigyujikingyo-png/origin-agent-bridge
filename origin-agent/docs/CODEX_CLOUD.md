@@ -34,4 +34,24 @@ The setup stage can download dependencies even when agent internet access is dis
 
 If the desktop cloud entry remains unavailable after the environment is saved, check that the same account and repository are selected. The separately confirmed local Work project-sync frontend issue is outside this environment configuration and must not be treated as an Origin failure or repaired here.
 
+## Verified configuration: 13 September 2026
+
+The environment was saved as **Origin Companion**, and the Codex Web cloud task composer showed it as selected. The existing GitHub connection was reused; no new API keys or project secrets were added.
+
+| Check | Observed result |
+| --- | --- |
+| Repository and tested commit | `saigyujikingyo-png/origin-agent-bridge`, `d536599b7e90cbfa42f8c60cc94446dfbf447964` |
+| Container | `universal`, Ubuntu 24.04-based Linux image |
+| Python | `3.12.13` |
+| Initial setup | Passed; 39 packages prepared in 1.93 seconds and installed in 30 milliseconds |
+| Maintenance script | Passed; the same lockfile was resolved and 39 packages audited in 0.77 milliseconds |
+| `uv run ruff check .` | All checks passed |
+| `uv run ruff format --check .` | 81 files already formatted |
+| `uv run pytest -q` | **175 passed in 19.52 seconds** |
+| Environment save and selection | Saved successfully; selected in the cloud task composer |
+
+Container caching is enabled. Agent internet access is configured with the common-dependencies allowlist and `GET`, `HEAD`, and `OPTIONS`. Additional allowed domains are `originlab.com`, `www.originlab.com`, `developers.openai.com`, `learn.chatgpt.com`, `docs.astral.sh`, and `modelcontextprotocol.io`.
+
+Package timings above cover the reported `uv` phases, not complete cold-container startup or billed model usage. The verification ran in the environment's interactive terminal. It did not run a model-based cloud task, verify the desktop cloud-dispatch menu, or execute native Origin. Those are separate acceptance checks. This documentation-only receipt was added after verification; runtime code and the 0.2.9 release were unchanged.
+
 Official references: [Cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environment) and [internet access](https://learn.chatgpt.com/docs/cloud/internet-access).
