@@ -1,0 +1,522 @@
+{
+  "version": "0.2.10",
+  "date": "2026-09-13",
+  "status": "native_and_installed_connector_verified_for_preview",
+  "portable_tests": {
+    "passed": 185,
+    "initially_skipped": 1,
+    "skipped_receiver_rerun_passed": true
+  },
+  "native_runs": {
+    "source": {
+      "passed": true,
+      "calls": 23,
+      "end_to_end_seconds": 20.359,
+      "summary": [
+        {
+          "coefficient_rss_crosscheck": true,
+          "extrapolation": false,
+          "intercept": 0.012459999999999999,
+          "intercept_mode": "free",
+          "molar_absorptivity_L_mol_cm": 1496.7142857142856,
+          "n": 6,
+          "panel": 1,
+          "r_squared_origin": 0.9999445586264057,
+          "residual_sum_squares": 3.4777142857143785e-06,
+          "series": "absorbance",
+          "slope": 2993.428571428571,
+          "slope_se": 11.144688494195625,
+          "unknown_concentration_in_x_units": 6.265056791066145e-05,
+          "unknown_uncertainty": "not calculated: inverse-calibration uncertainty is not supported by this workflow",
+          "unknown_uncertainty_result": {
+            "method": null,
+            "reason": "inverse_calibration_uncertainty_not_supported",
+            "status": "not_calculated",
+            "value": null
+          },
+          "weighting": "none"
+        },
+        {
+          "coefficient_rss_crosscheck": true,
+          "extrapolation": true,
+          "intercept": 0.012459999999999971,
+          "intercept_mode": "free",
+          "molar_absorptivity_L_mol_cm": 1496.7142857142858,
+          "n": 6,
+          "panel": 2,
+          "r_squared_origin": 0.9999445586264057,
+          "residual_sum_squares": 3.4777142857143387e-06,
+          "series": "absorbance",
+          "slope": 2.9934285714285718,
+          "slope_se": 0.011144688494195563,
+          "unknown_concentration_in_x_units": 0.3299026438866087,
+          "unknown_uncertainty": "not calculated: inverse-calibration uncertainty is not supported by this workflow",
+          "unknown_uncertainty_result": {
+            "method": null,
+            "reason": "inverse_calibration_uncertainty_not_supported",
+            "status": "not_calculated",
+            "value": null
+          },
+          "weighting": "none"
+        }
+      ],
+      "verification": {
+        "axis_tick_format_roundtrip": true,
+        "axis_tick_formats": [
+          {
+            "graph": "Graph1",
+            "properties": {
+              "x.label.decPlaces": -1,
+              "x.label.numFormat": 2,
+              "y.label.numFormat": 1
+            }
+          },
+          {
+            "graph": "Graph2",
+            "properties": {
+              "x.label.numFormat": 1,
+              "y.label.numFormat": 1
+            }
+          },
+          {
+            "graph": "Graph3",
+            "properties": {
+              "x.label.numFormat": 1,
+              "y.label.decPlaces": -1,
+              "y.label.numFormat": 2
+            }
+          }
+        ],
+        "data_roundtrip": true,
+        "graph_text_roundtrip": true,
+        "graphs_reopened": 3,
+        "native_reports_reopened": 2,
+        "png_decoded": true,
+        "project_reopened": true,
+        "seconds": 17.0,
+        "titles_reopened": 3,
+        "vendor_native": true,
+        "visual_review": "preview should be reviewed by the agent/user"
+      },
+      "received": [
+        {
+          "name": "panel-01-fit-01.json",
+          "bytes": 1775,
+          "sha256": "22d622cb1cf9264bf1a8af2631fcd326b7a943b950f08c620dd0c337043d88d5"
+        },
+        {
+          "name": "panel-01-fit-01-residuals.csv",
+          "bytes": 372,
+          "sha256": "5f71730a3029f60b0aaaa530fa48701ba95a3eea0f15327dfaebfc7416b953e7"
+        },
+        {
+          "name": "panel-01.png",
+          "bytes": 21411,
+          "sha256": "db2d8b7c5db2430e7fa5c79b6b1e8f1f01abaef73fe2463d485985e61f33a413"
+        },
+        {
+          "name": "panel-01.pdf",
+          "bytes": 5749,
+          "sha256": "be0492e591025cae6176d8d35fb636542fa0abd27eb8a90567c4afc6c67b83cf"
+        },
+        {
+          "name": "panel-01.svg",
+          "bytes": 28778,
+          "sha256": "e720397eafbeaa190a7e515c2f948f36e560c76d0ef6111b218d2f0b8b9e2c89"
+        },
+        {
+          "name": "panel-02-fit-01.json",
+          "bytes": 1781,
+          "sha256": "944dbed0da77c181ed2dde7f4fd9753a3a921ee22647c7647bce5543db761a79"
+        },
+        {
+          "name": "panel-02-fit-01-residuals.csv",
+          "bytes": 358,
+          "sha256": "6dfbf9ae2c603c1359684f83c9c91c797b407e06bf8631eb130f3218bea845d8"
+        },
+        {
+          "name": "panel-02.png",
+          "bytes": 20425,
+          "sha256": "acaa5269573f8c2b49d043ecae0d7f2e605d05917f6bb1ae8819b82f3bc3d649"
+        },
+        {
+          "name": "panel-02.pdf",
+          "bytes": 3998,
+          "sha256": "41eef1c1a2d8a5c5ff32bec9b5358de2cc22bc39e68a1e3fbaeda16ac4fdeaf4"
+        },
+        {
+          "name": "panel-02.svg",
+          "bytes": 22712,
+          "sha256": "fad6864e04ea08a42496b7d14b0cc83513baf6f0a29b0d6a62a102b1b7008128"
+        },
+        {
+          "name": "panel-03.png",
+          "bytes": 24367,
+          "sha256": "1b64161f4fc6ee1fc004940d153d5b64233954bc2cfc04ceb1a3dc8f228c05e7"
+        },
+        {
+          "name": "panel-03.pdf",
+          "bytes": 6752,
+          "sha256": "cc1ceac197b18a1e6cfe4c5ce6402ed94f26237f3874d733b65440875ee70b4b"
+        },
+        {
+          "name": "panel-03.svg",
+          "bytes": 51713,
+          "sha256": "84108295981bab0b3708169fb3d39dbba6cfa92c519fa2a9a0bbf58789f5f9f0"
+        },
+        {
+          "name": "project.opju",
+          "bytes": 266287,
+          "sha256": "3ee76962e45b6909da42ac3192e5b57524ac3cb348d3a6a235b8289d61c8e755"
+        }
+      ],
+      "misrouted_help_recovered": true,
+      "duplicate_job_reused": true,
+      "missing_paired_parameter_rejected": true,
+      "engine": {
+        "version": 10.350243,
+        "bitness": 64,
+        "edition": "Origin",
+        "demo": 0
+      }
+    },
+    "frozen": {
+      "passed": true,
+      "calls": 23,
+      "end_to_end_seconds": 18.797,
+      "summary": [
+        {
+          "coefficient_rss_crosscheck": true,
+          "extrapolation": false,
+          "intercept": 0.012459999999999999,
+          "intercept_mode": "free",
+          "molar_absorptivity_L_mol_cm": 1496.7142857142856,
+          "n": 6,
+          "panel": 1,
+          "r_squared_origin": 0.9999445586264057,
+          "residual_sum_squares": 3.4777142857143785e-06,
+          "series": "absorbance",
+          "slope": 2993.428571428571,
+          "slope_se": 11.144688494195625,
+          "unknown_concentration_in_x_units": 6.265056791066145e-05,
+          "unknown_uncertainty": "not calculated: inverse-calibration uncertainty is not supported by this workflow",
+          "unknown_uncertainty_result": {
+            "method": null,
+            "reason": "inverse_calibration_uncertainty_not_supported",
+            "status": "not_calculated",
+            "value": null
+          },
+          "weighting": "none"
+        },
+        {
+          "coefficient_rss_crosscheck": true,
+          "extrapolation": true,
+          "intercept": 0.012459999999999971,
+          "intercept_mode": "free",
+          "molar_absorptivity_L_mol_cm": 1496.7142857142858,
+          "n": 6,
+          "panel": 2,
+          "r_squared_origin": 0.9999445586264057,
+          "residual_sum_squares": 3.4777142857143387e-06,
+          "series": "absorbance",
+          "slope": 2.9934285714285718,
+          "slope_se": 0.011144688494195563,
+          "unknown_concentration_in_x_units": 0.3299026438866087,
+          "unknown_uncertainty": "not calculated: inverse-calibration uncertainty is not supported by this workflow",
+          "unknown_uncertainty_result": {
+            "method": null,
+            "reason": "inverse_calibration_uncertainty_not_supported",
+            "status": "not_calculated",
+            "value": null
+          },
+          "weighting": "none"
+        }
+      ],
+      "verification": {
+        "axis_tick_format_roundtrip": true,
+        "axis_tick_formats": [
+          {
+            "graph": "Graph1",
+            "properties": {
+              "x.label.decPlaces": -1,
+              "x.label.numFormat": 2,
+              "y.label.numFormat": 1
+            }
+          },
+          {
+            "graph": "Graph2",
+            "properties": {
+              "x.label.numFormat": 1,
+              "y.label.numFormat": 1
+            }
+          },
+          {
+            "graph": "Graph3",
+            "properties": {
+              "x.label.numFormat": 1,
+              "y.label.decPlaces": -1,
+              "y.label.numFormat": 2
+            }
+          }
+        ],
+        "data_roundtrip": true,
+        "graph_text_roundtrip": true,
+        "graphs_reopened": 3,
+        "native_reports_reopened": 2,
+        "png_decoded": true,
+        "project_reopened": true,
+        "seconds": 15.5,
+        "titles_reopened": 3,
+        "vendor_native": true,
+        "visual_review": "preview should be reviewed by the agent/user"
+      },
+      "received": [
+        {
+          "name": "panel-01-fit-01.json",
+          "bytes": 1775,
+          "sha256": "22d622cb1cf9264bf1a8af2631fcd326b7a943b950f08c620dd0c337043d88d5"
+        },
+        {
+          "name": "panel-01-fit-01-residuals.csv",
+          "bytes": 372,
+          "sha256": "5f71730a3029f60b0aaaa530fa48701ba95a3eea0f15327dfaebfc7416b953e7"
+        },
+        {
+          "name": "panel-01.png",
+          "bytes": 21411,
+          "sha256": "adea2f20e5360c597c69885398038f8234d5a357d565e02cbf889a81bd3dc814"
+        },
+        {
+          "name": "panel-01.pdf",
+          "bytes": 5749,
+          "sha256": "be0492e591025cae6176d8d35fb636542fa0abd27eb8a90567c4afc6c67b83cf"
+        },
+        {
+          "name": "panel-01.svg",
+          "bytes": 28778,
+          "sha256": "e720397eafbeaa190a7e515c2f948f36e560c76d0ef6111b218d2f0b8b9e2c89"
+        },
+        {
+          "name": "panel-02-fit-01.json",
+          "bytes": 1781,
+          "sha256": "944dbed0da77c181ed2dde7f4fd9753a3a921ee22647c7647bce5543db761a79"
+        },
+        {
+          "name": "panel-02-fit-01-residuals.csv",
+          "bytes": 358,
+          "sha256": "6dfbf9ae2c603c1359684f83c9c91c797b407e06bf8631eb130f3218bea845d8"
+        },
+        {
+          "name": "panel-02.png",
+          "bytes": 20425,
+          "sha256": "f4abdd43ed286b6dbc45809f3d278b35b93a87ae8cc0ae5c5e9239b44f4a158f"
+        },
+        {
+          "name": "panel-02.pdf",
+          "bytes": 3998,
+          "sha256": "41eef1c1a2d8a5c5ff32bec9b5358de2cc22bc39e68a1e3fbaeda16ac4fdeaf4"
+        },
+        {
+          "name": "panel-02.svg",
+          "bytes": 22712,
+          "sha256": "fad6864e04ea08a42496b7d14b0cc83513baf6f0a29b0d6a62a102b1b7008128"
+        },
+        {
+          "name": "panel-03.png",
+          "bytes": 24367,
+          "sha256": "a66522e77523bdac8577f7311e1d38d6762595b6a5a3dd753ce29afd12293bcc"
+        },
+        {
+          "name": "panel-03.pdf",
+          "bytes": 6752,
+          "sha256": "cc1ceac197b18a1e6cfe4c5ce6402ed94f26237f3874d733b65440875ee70b4b"
+        },
+        {
+          "name": "panel-03.svg",
+          "bytes": 51713,
+          "sha256": "84108295981bab0b3708169fb3d39dbba6cfa92c519fa2a9a0bbf58789f5f9f0"
+        },
+        {
+          "name": "project.opju",
+          "bytes": 266310,
+          "sha256": "fd100f15c1d6b5f1250b780c7ae871a3a623d3c5d3d1f27795124118f0678702"
+        }
+      ],
+      "misrouted_help_recovered": true,
+      "duplicate_job_reused": true,
+      "missing_paired_parameter_rejected": true,
+      "engine": {
+        "version": 10.350243,
+        "bitness": 64,
+        "edition": "Origin",
+        "demo": 0
+      }
+    }
+  },
+  "actual_workbuddy_model_rerun": false,
+  "actual_model_tokens_available": false,
+  "schemas": {
+    "baseline": {
+      "version": "0.2.9",
+      "metric": "UTF-8 bytes of compact JSON MCP tool definitions",
+      "full": {
+        "tools": 14,
+        "bytes": 22327
+      },
+      "economy": {
+        "tools": 5,
+        "bytes": 5129
+      },
+      "tool_definition_reduction_percent": 77.03,
+      "billing_tokens_measured": false,
+      "model_success_rate_measured": false
+    },
+    "current": {
+      "version": "0.2.10",
+      "metric": "UTF-8 bytes of compact JSON MCP tool definitions",
+      "full": {
+        "tools": 14,
+        "bytes": 22555
+      },
+      "economy": {
+        "tools": 5,
+        "bytes": 5129
+      },
+      "tool_definition_reduction_percent": 77.26,
+      "billing_tokens_measured": false,
+      "model_success_rate_measured": false
+    }
+  },
+  "package_checksums": {
+    "origin-agent-0.2.10-windows-x64.zip": "f4a52726e7e9896a9e71c4bc20f9ad088dfacb42a0b3099a9297e008c53d811a",
+    "origin-agent-0.2.10-windows-x64.mcpb": "f4a52726e7e9896a9e71c4bc20f9ad088dfacb42a0b3099a9297e008c53d811a"
+  },
+  "visual_review": {
+    "source_pngs": [
+      1,
+      3
+    ],
+    "source_pdfs": [
+      1,
+      2,
+      3
+    ],
+    "source_svgs": [
+      1,
+      2,
+      3
+    ],
+    "result": "labels, units, notation, curves and supplied error bars readable; no observed clipping",
+    "renderer_note": "Poppler emitted fallback-font warnings; rendered PDFs were visually checked."
+  },
+  "registered_connector": {
+    "host": "Codex desktop current task, existing registered Origin Companion connection",
+    "model": null,
+    "effort": null,
+    "usage_tokens": null,
+    "version": "0.2.10",
+    "status_and_misrouted_help_passed": true,
+    "native_job_state": "succeeded",
+    "summary": [
+      {
+        "coefficient_rss_crosscheck": true,
+        "extrapolation": false,
+        "intercept": 0.011999999999999997,
+        "intercept_mode": "free",
+        "molar_absorptivity_L_mol_cm": 1499.9999999999998,
+        "n": 6,
+        "panel": 1,
+        "r_squared_origin": 1,
+        "residual_sum_squares": 1.9740781929969167e-33,
+        "series": "A",
+        "slope": 1499.9999999999998,
+        "slope_se": 2.655236196782364e-13,
+        "unknown_concentration_in_x_units": 5e-05,
+        "unknown_uncertainty": "not calculated: inverse-calibration uncertainty is not supported by this workflow",
+        "unknown_uncertainty_result": {
+          "method": null,
+          "reason": "inverse_calibration_uncertainty_not_supported",
+          "status": "not_calculated",
+          "value": null
+        },
+        "weighting": "none"
+      }
+    ],
+    "verification": {
+      "axis_tick_format_roundtrip": true,
+      "axis_tick_formats": [
+        {
+          "graph": "Graph1",
+          "properties": {
+            "x.label.decPlaces": -1,
+            "x.label.numFormat": 2,
+            "y.label.numFormat": 1
+          }
+        }
+      ],
+      "data_roundtrip": true,
+      "graph_text_roundtrip": true,
+      "graphs_reopened": 1,
+      "native_reports_reopened": 1,
+      "png_decoded": true,
+      "project_reopened": true,
+      "seconds": 12.937,
+      "titles_reopened": 1,
+      "vendor_native": true,
+      "visual_review": "preview should be reviewed by the agent/user"
+    },
+    "png_preview_visually_reviewed": true,
+    "received_artifacts": [
+      {
+        "artifact_id": "c76efd2d28d44e6691375b354fd87d15/panel-01.png",
+        "bytes": 22921,
+        "sha256": "3fcbbbd014daaf7b7b3d39e3268b03c9081885cf5a05f1412460fd3379777a4f"
+      },
+      {
+        "artifact_id": "c76efd2d28d44e6691375b354fd87d15/panel-01.pdf",
+        "bytes": 5828,
+        "sha256": "7af8d9f846b6e2c6daad91cfda5dbda15021d0213ecc6e23aca6802e6e28f185"
+      },
+      {
+        "artifact_id": "c76efd2d28d44e6691375b354fd87d15/panel-01.svg",
+        "bytes": 30337,
+        "sha256": "36b6f6c00e1946dbfabff88782101dbda6831233eaf394a3f600ce6e1ab97dd5"
+      },
+      {
+        "artifact_id": "c76efd2d28d44e6691375b354fd87d15/project.opju",
+        "bytes": 128477,
+        "sha256": "d72b3a50a3db1546dafe677341aa4ff5f9ce65abcd5791e904c5be9f7f187f75"
+      }
+    ],
+    "all_received_files_read_back_and_hashed": true
+  },
+  "local_host_commands": {
+    "claude_desktop": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.10",
+      "host_model_invocation_tested": false
+    },
+    "workbuddy": {
+      "configured_command_passed": true,
+      "tool_count": 5,
+      "profile": "economy",
+      "version": "0.2.10",
+      "host_model_invocation_tested": false
+    }
+  },
+  "installation": {
+    "version": "0.2.10",
+    "native_self_test_passed": true,
+    "previous_version_retained": "0.2.9",
+    "existing_cloud_connection_reused": true,
+    "codex_and_workbuddy_skills_refreshed": true
+  },
+  "limitations": [
+    "No fresh WorkBuddy or Claude model session was run.",
+    "No fresh Chat/cloud Work/local Work acceptance or Terra max benchmark is inferred.",
+    "Origin 2026 SR1 was not retested for 0.2.10.",
+    "No full Origin, weighted fitting or inverse-calibration uncertainty certification."
+  ]
+}

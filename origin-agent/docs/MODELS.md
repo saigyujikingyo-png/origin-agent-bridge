@@ -55,3 +55,25 @@ The initial profile work did not conduct a cross-provider API benchmark. Later c
 - [GLM thinking mode](https://docs.bigmodel.cn/cn/guide/capabilities/thinking-mode): interleaved tool reasoning context and host-managed thinking settings.
 - [Kimi prompting guidance](https://platform.moonshot.ai/docs/guide/prompt-best-practice): explicit steps, examples and relevant on-demand instructions.
 - [ELM model and quota boundaries](ELM.md).
+
+
+## 0.2.10 routing and model hints
+
+Call the five advertised tools directly. To use an unfamiliar full-mode operation,
+call `origin_help(operation="origin_get_job")`, then
+`origin_call(operation="origin_get_job", arguments_json=...)` with the returned
+schema and real job ID. The same rule covers `origin_run_workflow` and every name
+in the help catalog, including `origin_recipe`. Do not nest `origin_call`.
+Accidentally routing `origin_help` through `origin_call` now returns validated
+help in the same request; it never executes a native operation. Unknown operations
+return a small structured `recovery` instruction pointing to direct help.
+
+`agent_profile.host_requirement` retains its string type and states the MCP host
+requirement. `host_recommendation` carries the preset-specific advice;
+`benchmark_preference` identifies Terra max with `required: false`. The host keeps
+its selected model. `model_quality_verified: false` means there is no model-quality
+certification, not that a native result failed.
+
+The 0.2.10 compact tool definitions remain **5,129 UTF-8 bytes**, the same as the
+measured 0.2.9 baseline. Full mode is 22,555 bytes. These counts exclude skills,
+conversation, help responses, images and reasoning, and are not billed tokens.

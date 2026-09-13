@@ -16,7 +16,7 @@ from .storage import read_json, write_json
 PRESETS = {
     "generic": "Use a host with MCP tools. Enable image input only when the host and model support it.",
     "deepseek": "Use the host's DeepSeek tool adapter; strict mode needs its supported JSON Schema subset.",
-    "gpt-terra": "Select gpt-5.6-terra at max effort in the host; optimize tool/context overhead.",
+    "gpt-terra": "For available GPT-5.6 Terra benchmarks use max effort; otherwise keep the host model.",
     "gemini": "The host must preserve complete tool responses, call IDs and Gemini thought signatures.",
     "glm": "The host must preserve reasoning_content for interleaved thinking and streamed arguments.",
     "kimi": "Use explicit steps and operation examples; the host must preserve the model's tool context.",
@@ -93,7 +93,9 @@ class AgentProfile(ClosedModel):
     def report(self):
         return {
             **self.model_dump(),
-            "host_requirement": PRESETS[self.preset],
+            "host_requirement": "An MCP-capable host; no specific model is required.",
+            "host_recommendation": PRESETS[self.preset],
+            "benchmark_preference": {"model": "gpt-5.6-terra", "effort": "max", "required": False},
             "model_selected_by": "host; preset does not select or detect a model",
             "model_quality_verified": False,
         }
@@ -180,10 +182,10 @@ def make_economy_server(full, store, profile):
         icons=[Icon(src=ICON_URL, mimeType="image/png")],
         version=__version__,
         log_level="WARNING",
-        instructions="Economy mode: status once; help(operation) before an unfamiliar call. "
+        instructions="Economy mode: status once; call origin_help directly before an unfamiliar operation. "
         "Local file: inspect; cloud table: origin_import_table via origin_call. "
         "Then use origin_recipe for plots, linear fits and Beer-Lambert. "
-        "All full-mode operations remain available via origin_call with validated arguments_json. "
+        "Use origin_call for operations returned by help, including origin_get_job and origin_run_workflow. "
         "For a specified device, compare status.device.computer_name before submitting; stop on mismatch. "
         "Reuse dataset/plan/job/session IDs. Stop polling terminal jobs; report failure promptly. "
         "Wait 20s only for pending jobs; never replay uncertain GUI input. "
@@ -213,7 +215,7 @@ def make_economy_server(full, store, profile):
 
     @mcp.tool(annotations=read)
     async def origin_help(operation: str = "", query: str = "") -> dict[str, Any]:
-        """Get an operation schema or search names. Artifact query=receiver returns a host-file adapter."""
+        """Call directly for operation schemas/names. Artifact query=receiver returns a file adapter."""
         items = await tools()
         if operation:
             if operation not in items:
@@ -256,19 +258,38 @@ def make_economy_server(full, store, profile):
                 for t in items.values()
                 if query in (t.name + (t.description or "")).casefold()
             ],
+            "routing": {
+                "direct_tools": [t.name for t in await mcp.list_tools()],
+                "via_origin_call": "Use listed operations with their exact schema; never nest origin_call.",
+                "help": "Call origin_help directly; an accidentally wrapped help request is also accepted.",
+            },
             "profile": profile.report(),
         }
 
     @mcp.tool(annotations=general, structured_output=False)
     async def origin_call(operation: str, arguments_json: str) -> CallToolResult:
-        """Call any full-mode operation. First use origin_help(operation) for its exact arguments.
+        """Execute a name returned by origin_help (call help directly first). Never nest origin_call.
 
         arguments_json encodes one JSON object, not code/Markdown. Same validation and deduplication
         as full mode. Jobs: origin_get_job with job_id and wait_seconds=20. Correct invalid parameters
         using help; do not repeat failures. General programs execute trusted code as the Windows user.
         """
+        if operation == "origin_help":
+            # Read-only compatibility for hosts that wrap every request. Validate through MCP.
+            arguments = parse_arguments(arguments_json)
+            if set(arguments) - {"operation", "query"}:
+                raise ValueError("origin_help accepts only operation and query")
+            return await mcp.call_tool("origin_help", arguments)
         if operation not in await tools():
-            raise ValueError("Unknown operation; use origin_help to discover it")
+            return error_result(
+                {
+                    "error": "invalid_request",
+                    "message": "Do not nest origin_call."
+                    if operation == "origin_call"
+                    else "Unknown operation.",
+                    "recovery": {"tool": "origin_help", "arguments": {}},
+                }
+            )
         arguments = parse_arguments(arguments_json)
         guard_vision(profile, operation, arguments)
         return await full.call_tool(operation, arguments)

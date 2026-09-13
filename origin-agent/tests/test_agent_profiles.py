@@ -33,7 +33,16 @@ async def test_economy_reduces_inventory_and_exposes_every_operation(store):
 async def test_each_preset_uses_same_guarded_engine(store, dataset, preset):
     async with Client(make_server(store, profile="economy", preset=preset)) as client:
         status = await client.call_tool("origin_status", {})
-        assert status.structured_content["agent_profile"]["preset"] == preset
+        profile = status.structured_content["agent_profile"]
+        assert profile["preset"] == preset
+        assert "no specific model is required" in profile["host_requirement"]
+        assert profile["benchmark_preference"] == {
+            "model": "gpt-5.6-terra",
+            "effort": "max",
+            "required": False,
+        }
+        assert not profile["model_quality_verified"]
+        assert profile["host_recommendation"] == PRESETS[preset]
         bad = await client.call_tool(
             "origin_call",
             {
@@ -244,3 +253,42 @@ async def test_file_receiver_is_discovered_only_when_requested(store):
         source = Path(__file__).resolve().parents[1] / "src/origin_agent/data/receive_artifact.js"
         assert receiver.structured_content["receiver"]["javascript"] == source.read_text(encoding="utf-8")
         assert "saveOriginDownload" in receiver.structured_content["receiver"]["javascript"]
+
+
+@pytest.mark.anyio
+async def test_misrouted_help_recovers_without_changing_the_operation_catalog(store, dataset, monkeypatch):
+    monkeypatch.setattr(jobs, "spawn", lambda *a, **k: pytest.fail("Help must not launch a worker"))
+    async with Client(make_server(store, profile="economy")) as client:
+        direct = await client.call_tool("origin_help", {"operation": "origin_get_job"})
+        wrapped = await client.call_tool(
+            "origin_call",
+            {"operation": "origin_help", "arguments_json": '{"operation":"origin_get_job"}'},
+        )
+        assert not wrapped.is_error
+        assert wrapped.structured_content == direct.structured_content
+        catalog = (await client.call_tool("origin_help", {})).structured_content
+        assert len(catalog["routing"]["direct_tools"]) == 5
+        assert "origin_help" not in {item["name"] for item in catalog["operations"]}
+        for arguments in (
+            '{"private":"never-echo"}',
+            '{"operation":42}',
+            '{"operation":"x","operation":"y"}',
+        ):
+            invalid = await client.call_tool(
+                "origin_call", {"operation": "origin_help", "arguments_json": arguments}
+            )
+            assert invalid.is_error
+            assert "never-echo" not in str(invalid.content)
+        for operation in ("origin_call", "private-unknown-name"):
+            invalid = await client.call_tool("origin_call", {"operation": operation, "arguments_json": "{}"})
+            assert invalid.is_error
+            assert invalid.structured_content["recovery"] == {"tool": "origin_help", "arguments": {}}
+        recipe = {"dataset_id": dataset["dataset_id"], "x": "Concentration", "y": ["Absorbance"]}
+        direct_plan = await client.call_tool("origin_recipe", recipe)
+        wrapped_plan = await client.call_tool(
+            "origin_call", {"operation": "origin_recipe", "arguments_json": json.dumps(recipe)}
+        )
+        assert not wrapped_plan.is_error
+        assert direct_plan.structured_content["plan_id"] == wrapped_plan.structured_content["plan_id"]
+        with jobs.database(store) as db:
+            assert db.execute("SELECT count(*) FROM jobs").fetchone()[0] == 0

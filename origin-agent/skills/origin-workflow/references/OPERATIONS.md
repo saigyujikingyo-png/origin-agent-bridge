@@ -68,3 +68,26 @@ Native interface details that affect correctness:
 Use `origin_capabilities(query="coverage")` for the representative coverage matrix. Do not claim that every dialog or third-party App is automated. Python libraries absent from the bundled runtime need a declared dependency or a validated Origin-native alternative. The plugin cannot unlock OriginPro-only or separately licensed features.
 
 Computation is local; the host/model can receive requested summaries, previews and files. Cloud-agent use is not entirely offline. Report uncertainty and extrapolation; a good-looking graph or high R-squared does not establish scientific validity.
+
+
+## Result and figure details (0.2.10)
+
+Beer-Lambert unknowns provide `unknown_uncertainty_result` with `status`, `value`,
+`reason` and `method`. The current workflow returns `not_calculated`, `null`,
+`inverse_calibration_uncertainty_not_supported`, and `null`; it does not implement
+inverse-calibration confidence intervals or accept measurement uncertainty inputs.
+The legacy `unknown_uncertainty` remains human-readable text for compatibility.
+Do not parse that text or invent an interval. Native parameter standard errors are
+separate from uncertainty in an inferred unknown concentration.
+
+`style.x_tick_format` and `style.y_tick_format` accept `auto`, `decimal`, or
+`scientific`. Auto uses scientific notation for absolute axis magnitude below
+0.001 or at/above 100000. It changes only display formatting. Native verification
+records `axis_tick_format_roundtrip` and the actual properties read back after
+saving/reopening. Scientific notation may appear as a power of ten according to
+Origin's native numeric display. It is not a logarithmic axis or a unit conversion.
+
+Each workflow panel is a separate graph page. `graphs_reopened` and
+`native_reports_reopened` are counts. `png_decoded` checks image integrity, not
+visual quality. Review labels, units, overlap and requested annotations separately;
+fit equations/R-squared are not automatically added as graph annotations.

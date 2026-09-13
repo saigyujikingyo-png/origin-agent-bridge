@@ -18,6 +18,8 @@ class ChartStyle(ClosedModel):
     y_label: Text | None = None
     width: int = Field(default=1200, ge=600, le=2400)
     plot: Literal["scatter", "line", "line_symbol"] = "scatter"
+    x_tick_format: Literal["auto", "decimal", "scientific"] = "auto"
+    y_tick_format: Literal["auto", "decimal", "scientific"] = "auto"
     colors: list[Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]] = Field(
         default_factory=list, max_length=12
     )

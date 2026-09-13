@@ -105,3 +105,19 @@ Install the same ZIP independently on each supported Windows computer so local a
 To remove the plugin, first remove its host/plugin connection or roll back the installation configuration, then remove the runtime version directory. Personal OPJU files, data and sessions may be retained. General Python/LabTalk/Origin C code runs with the current Windows user's permissions; the worker process is not a script security sandbox.
 
 See [MODELS.md](MODELS.md) for model/economy profiles and [ELM.md](ELM.md) for university model-service evidence.
+
+
+## Upgrading to 0.2.10
+
+Download the Windows ZIP from [GitHub Releases](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.10),
+extract it and run `Install.cmd` for your existing hosts. The versioned installer
+checks file hashes and performs a native self-test before switching the active
+installation. Existing data, Origin licences, model settings and encrypted tunnel
+credentials are retained; do not create a new account connection or key merely to
+upgrade. Keep 0.2.9 available for rollback. Restart/reconnect the selected host and
+bridge so existing processes load the new executable; old conversations may retain
+cached tool instructions. Confirm `origin_status.plugin_version` is `0.2.10`.
+
+WorkBuddy receives the updated skill and MCP command through its installer option.
+The OpenAI entry remains the same registered plugin. The separate local Work
+project-synchronisation frontend issue is outside this upgrade's scope.

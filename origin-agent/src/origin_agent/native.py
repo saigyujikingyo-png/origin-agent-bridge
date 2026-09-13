@@ -12,6 +12,7 @@ import psutil
 from . import __version__
 from .datasets import column_digest, dataset_table, numeric_columns
 from .graph_text import origin_text
+from .graph_ticks import format_ticks
 from .models import Workflow
 from .planning import load_plan
 from .storage import Store, read_json, sha256, write_json
@@ -226,9 +227,17 @@ def run_native(store: Store, identifier: str, plan_id: str):
                             concentration = (analysis.unknown_absorbance - intercept) / slope
                             summary["unknown_concentration_in_x_units"] = concentration
                             summary["extrapolation"] = not min(x) <= concentration <= max(x)
+                            # Keep the legacy text type; structured consumers use the additive result.
                             summary["unknown_uncertainty"] = (
-                                "not calculated: measurement uncertainty not provided"
+                                "not calculated: inverse-calibration uncertainty "
+                                "is not supported by this workflow"
                             )
+                            summary["unknown_uncertainty_result"] = {
+                                "status": "not_calculated",
+                                "value": None,
+                                "reason": "inverse_calibration_uncertainty_not_supported",
+                                "method": None,
+                            }
                         if analysis.path_length_cm is not None:
                             summary["molar_absorptivity_L_mol_cm"] = slope / (
                                 analysis.path_length_cm * analysis.concentration_scale_molar
@@ -287,10 +296,12 @@ def run_native(store: Store, identifier: str, plan_id: str):
             # Reserve room for the legend so it does not cover the highest points.
             low, high, *_ = layer.ylim
             layer.ylim = (low, high + (high - low) * min(0.6, 0.2 + 0.035 * len(panel.y)))
+            tick_properties = format_ticks(layer, panel.style)
             title_name = _draw_title(layer, panel.title, panel.style.preset)
             graph_text_refs.append(
                 {
                     "graph": graph.name,
+                    "tick_properties": tick_properties,
                     "labels": {
                         title_name: origin_text(panel.title),
                         "xb": layer.label("xb").text,
@@ -328,6 +339,9 @@ def run_native(store: Store, identifier: str, plan_id: str):
                 raise RuntimeError("Saved project is missing a graph")
         for ref in graph_text_refs:
             layer = op.find_graph(ref["graph"])[0]
+            for prop, expected_value in ref["tick_properties"].items():
+                if layer.get_int(prop) != expected_value:
+                    raise RuntimeError("Saved project axis tick format differs from the requested format")
             for label_name, expected_text in ref["labels"].items():
                 label = layer.label(label_name)
                 if label is None or label.text != expected_text:
@@ -357,6 +371,10 @@ def run_native(store: Store, identifier: str, plan_id: str):
             "data_roundtrip": True,
             "graphs_reopened": len(graph_refs),
             "graph_text_roundtrip": True,
+            "axis_tick_format_roundtrip": True,
+            "axis_tick_formats": [
+                {"graph": ref["graph"], "properties": ref["tick_properties"]} for ref in graph_text_refs
+            ],
             "titles_reopened": len(graph_text_refs),
             "native_reports_reopened": len(references),
             "png_decoded": True,
