@@ -16,9 +16,9 @@ For any new Chembridge plugin created in a separate checkout, carry the current 
 
 The user confirmed the OpenAI local Work project-synchronisation problem as an OpenAI frontend bug and instructed us to stop attempting repairs. Do not resume investigation, cache manipulation or host patching for that issue unless the user explicitly reopens it. Record it as an external limitation; do not infer that the affected host passed. For the next plugin, read ORIGIN_DEVELOPMENT_RETROSPECTIVE.md and NEXT_PLUGIN_ASSESSMENT.md.
 
-## Independent development tasks
+## Cross-task coordination
 
-Origin and ChemDraw development tasks are independent. Keep implementation, progress and acceptance in their respective tasks; do not automatically relay reports or coordination messages between them.
+Routine messages between existing user-owned Chembridge tasks are preauthorised under DEVELOPMENT_PRINCIPLES.md section 11; no per-message confirmation is needed within that scope. Preserve each task's objective, source ownership and separate acceptance evidence. This supersedes the earlier Origin/ChemDraw no-relay default.
 
 ## Codex cloud development
 
