@@ -19,3 +19,7 @@ The user confirmed the OpenAI local Work project-synchronisation problem as an O
 ## Independent development tasks
 
 Origin and ChemDraw development tasks are independent. Keep implementation, progress and acceptance in their respective tasks; do not automatically relay reports or coordination messages between them.
+
+## Codex cloud development
+
+Read origin-agent/docs/CODEX_CLOUD.md for the cloud development environment. Use `bash origin-agent/scripts/setup_codex_cloud.sh` from the repository root for setup and cached-container maintenance. Run portable checks in origin-agent. Cloud container checks do not replace licensed Windows Origin execution or native and host acceptance.

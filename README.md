@@ -52,6 +52,7 @@ Five compact tools, on-demand help and batch workflows make the interface suitab
 - [Native NIST verification](NIST_ACCEPTANCE_2026-09-12.md)
 - [Earlier Work acceptance](WORK_ACCEPTANCE_2026-09-11.md), [workflow recovery](WORK_RECOVERY_0.2.6.md) and [file delivery](WORK_DELIVERY_0.2.7.md)
 - [Developer guide](origin-agent/README.md) and [architecture](origin-agent/docs/ARCHITECTURE.md)
+- [Codex Web cloud development environment](origin-agent/docs/CODEX_CLOUD.md)
 - [Shared Chembridge principles](DEVELOPMENT_PRINCIPLES.md), [GitHub distribution](PUBLIC_DISTRIBUTION.md) and [development storage](CLOUD_STORAGE.md)
 
 Codex is both an end-user agent host and a tool for developing and maintaining the plugin. Users work in their chosen agent environment; a source checkout or code project is not a runtime requirement. Public GitHub documentation is in English; natural-language requests can still be made in other languages supported by the selected agent.
