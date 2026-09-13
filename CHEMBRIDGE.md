@@ -37,8 +37,15 @@ The university cloud folder is a development archive, not a required destination
 - [Origin development retrospective](ORIGIN_DEVELOPMENT_RETROSPECTIVE.md): native execution, output quality, host delivery and lightweight implementation lessons.
 - [ChemDraw versus Mnova assessment](NEXT_PLUGIN_ASSESSMENT.md): current evidence, native feasibility gates and the recommended development sequence. ChemAIst remains an unaccepted prototype for the required drawing quality; it is not evidence that ChemDraw automation is complete.
 
-## Current module
+## Current projects and cloud entrypoint
 
 - [Origin Companion](README.md): natural-language analysis, plotting and project editing for Origin 2026 SR1 and 2026b SR2.
 - [Origin product scope and acceptance criteria](origin-agent/docs/EDINBURGH_PRODUCT.md)
 - [Development roadmap](origin-agent/docs/ROADMAP.md)
+
+The [Chembridge hub](https://github.com/saigyujikingyo-png/chembridge) is the public entrypoint for the entire initiative. Its catalog, shared rules and new-plugin templates apply across the project. The cloud environments are **Chembridge**, **Chembridge / Origin Companion**, **Chembridge / ChemDraw Companion**, and **Chembridge / UoE Companion**. Each product retains its own dependencies and acceptance evidence.
+
+- [ChemDraw Companion](https://github.com/saigyujikingyo-png/chemdraw-companion): native chemistry drawing project; its main branch currently contains the architecture preview and contract checks.
+- [UoE Companion](https://github.com/saigyujikingyo-png/edinburgh-study-agent): university resource and personal-workflow plugin.
+
+Environment configuration does not certify native software, campus accounts or all agent hosts. Development tasks remain independent; do not automatically relay messages between Origin and ChemDraw.

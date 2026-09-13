@@ -2,11 +2,13 @@
 
 This environment provides cloud code development, linting and portable tests for Origin Companion. It is separate from using the installed plugin in Chat, Work or Codex. Native Origin execution and native acceptance require the configured, licensed Windows executor.
 
+The shared entrypoint for the whole initiative is the [Chembridge hub](https://github.com/saigyujikingyo-png/chembridge). Use its **Chembridge** environment for cross-project standards and new-plugin planning, and **Chembridge / Origin Companion** for this product.
+
 ## Configure the environment
 
 1. Open [Codex cloud environment settings](https://chatgpt.com/codex/cloud/settings/environments). Reuse the existing GitHub connection and authorise this repository if it is not listed. Complete any GitHub account verification in the browser; no new OpenAI API key is required for this configuration.
 2. Select `saigyujikingyo-png/origin-agent-bridge`. Use the current repository default branch, `codex/origin-companion-release`, unless a task specifies another branch.
-3. Name the environment **Origin Companion** and select the **universal** container image.
+3. Name the environment **Chembridge / Origin Companion** and select the **universal** container image.
 4. Keep container caching enabled. Choose manual setup and enter the following as both the setup and maintenance script:
 
    ```bash
@@ -36,7 +38,7 @@ If the desktop cloud entry remains unavailable after the environment is saved, c
 
 ## Verified configuration: 13 September 2026
 
-The environment was saved as **Origin Companion**, and the Codex Web cloud task composer showed it as selected. The existing GitHub connection was reused; no new API keys or project secrets were added.
+The environment was initially saved as **Origin Companion**, and the Codex Web cloud task composer showed it as selected. It was subsequently renamed and saved as **Chembridge / Origin Companion** when the whole Chembridge workspace was configured; the environment identity and setup were reused. The existing GitHub connection was reused; no new API keys or project secrets were added.
 
 | Check | Observed result |
 | --- | --- |

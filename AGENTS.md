@@ -22,4 +22,6 @@ Origin and ChemDraw development tasks are independent. Keep implementation, prog
 
 ## Codex cloud development
 
+The whole Chembridge initiative starts at https://github.com/saigyujikingyo-png/chembridge. Its **Chembridge** cloud environment handles shared planning and new plugins; this repository uses **Chembridge / Origin Companion**. Keep product repositories and dependencies separate.
+
 Read origin-agent/docs/CODEX_CLOUD.md for the cloud development environment. Use `bash origin-agent/scripts/setup_codex_cloud.sh` from the repository root for setup and cached-container maintenance. Run portable checks in origin-agent. Cloud container checks do not replace licensed Windows Origin execution or native and host acceptance.
