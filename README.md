@@ -6,6 +6,8 @@
 
 Origin Companion is part of [Chembridge](CHEMBRIDGE.md), a collection of plugins for University of Edinburgh students, staff and researchers. It is an independent project, not an official university or OriginLab product.
 
+**Open-source, unified-agent target:** use the same Origin Companion in ChatGPT Chat, local Work, cloud Work, Codex and other suitable agents, backed by one execution core and thin host adapters. Actual acceptance for each entrypoint is recorded below.
+
 ## Download and start
 
 **[Download the 0.2.9 Windows preview](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.9)**
@@ -52,6 +54,6 @@ Five compact tools, on-demand help and batch workflows make the interface suitab
 - [Developer guide](origin-agent/README.md) and [architecture](origin-agent/docs/ARCHITECTURE.md)
 - [Shared Chembridge principles](DEVELOPMENT_PRINCIPLES.md), [GitHub distribution](PUBLIC_DISTRIBUTION.md) and [development storage](CLOUD_STORAGE.md)
 
-Codex is used to develop and maintain the plugin. Users work in their chosen agent environment; a source checkout or code project is not a runtime requirement. Public GitHub documentation is in English; natural-language requests can still be made in other languages supported by the selected agent.
+Codex is both an end-user agent host and a tool for developing and maintaining the plugin. Users work in their chosen agent environment; a source checkout or code project is not a runtime requirement. Public GitHub documentation is in English; natural-language requests can still be made in other languages supported by the selected agent.
 
-Plugin code is MIT-licensed. Third-party libraries retain their own licences.
+Plugin source is public and licensed under [MIT](LICENSE). Third-party libraries retain their own licences; Origin software and licences are not redistributed.

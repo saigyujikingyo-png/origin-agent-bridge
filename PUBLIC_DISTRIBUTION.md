@@ -2,6 +2,8 @@
 
 Decision date: 2026-09-12. The user chose GitHub distribution, with no current work on public plugin-store submission, a public relay service or an associated account platform. Prioritise accessible installation and use for non-developers. Public GitHub content is maintained in English. Store information below is dated background research, not a prerequisite, submission or endorsement by the university, OriginLab or OpenAI.
 
+Policy clarification, 2026-09-13: keep the plugin source public under the [MIT licence](LICENSE). Target one Origin Companion identity and shared execution core across ChatGPT Chat, local Work, cloud Work, Codex and other suitable agents. Host-specific connection and packaging adapters may differ where required; each actual host and account path needs separate acceptance.
+
 ## One plugin package, two Origin builds
 
 Maintain one repository, one Origin Companion version line and one Windows x64 package. Detect **Origin 2026 SR1 (10.300197)** and **Origin 2026b SR2 (10.350243)** at runtime. Record each build, host and model's acceptance separately; do not create permanent branches for the two Origin builds or distribute Origin and university licences.

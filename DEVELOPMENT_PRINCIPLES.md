@@ -1,13 +1,15 @@
 # Chembridge development and delivery principles
 
-Rule version: **2026-09-12.4**. These requirements were explicitly requested by the user and apply to all Chembridge university convenience plugins, specialist software plugins and agent workflow automation plugins, not only Origin Companion. New plugins start with these defaults; users should not have to repeat them in each task. New task-specific user instructions take precedence.
+Rule version: **2026-09-13.1**. These requirements were explicitly requested by the user and apply to all Chembridge university convenience plugins, specialist software plugins and agent workflow automation plugins, not only Origin Companion. New plugins start with these defaults; users should not have to repeat them in each task. New task-specific user instructions take precedence.
 
 ## 1. GitHub distribution
 
 - Manage source, dependency locks, documentation, public tests, sanitised acceptance records and distributable packages through GitHub.
+- Publish plugin source and public documentation in a public GitHub repository with an explicit open-source LICENSE permitting use, modification and redistribution under its terms. Retain required attribution and third-party licence notices. Proprietary software binaries, licences, credentials and private data remain outside the open-source release.
 - Use **English for public GitHub content**: repository descriptions, README files, installation and usage guides, release notes and issue/PR templates. Preserve exact technical identifiers and quoted source/UI evidence. This does not restrict the language users may use with their agents.
 - The default route is GitHub Releases. A public plugin store, official university distribution, campus SSO or a hosted public platform is not a prerequisite.
-- Prefer one user-facing plugin entry per product across local/cloud agent surfaces. Reuse the account connection and execution core; do not ask users to select between same-named local and cloud products. Respect platform limitations and verify each actual surface separately.
+- Target one user-facing plugin identity and shared execution core across **ChatGPT Chat, local Work, cloud Work, Codex, Claude, WorkBuddy and other suitable Agent hosts**. Reuse valid account connections and keep core tools, workflow behaviour and artifact formats consistent. Avoid separate product forks for individual hosts or models.
+- Use thin host-specific connection, authentication, file-delivery and packaging adapters when required by the platform. Record actual host/account limitations and verify each surface separately; the unified target does not establish that every surface is already supported or accepted.
 - Keep a clear version line and download entrypoint for each product. Do not permanently fork a shared platform package by model, agent or minor software version; detect capabilities at runtime and record support and acceptance separately in a compatibility matrix.
 - Include installation instructions, checksums, compatibility, known issues, update and recovery steps. Label previews and stable releases accurately; retain earlier releases for rollback.
 - Do not publish private materials, original course documents, restricted software, account configuration, licences or secrets. Prefer public, synthetic or explicitly authorised academic test data.
@@ -20,12 +22,12 @@ The target flow is: download the appropriate package → double-click or install
 - Discover the target software and existing installation, check the supported version and licence, and self-test with isolated data. Installation success and a real agent workflow are separate acceptance results.
 - Reuse the user's existing configuration and encrypted credentials during upgrades, repeated installation and reconnection. Request credential action only after observing missing, invalid or insufficient permissions; do not repeatedly request new keys.
 - Preserve other plugins, host configuration, user changes and research outputs. Keep recoverable backups and clear failure messages. Provide understandable status, reconnection, recovery and removal entrypoints.
-- Identify steps requiring the account owner, such as provider login, MFA, licence activation or account association, and guide them to the correct interface. Do not claim those steps are fully automated. Routine use should be independent of Codex and development terminals.
+- Identify steps requiring the account owner, such as provider login, MFA, licence activation or account association, and guide them to the correct interface. Do not claim those steps are fully automated. Routine use should require the selected agent host and configured plugin runtime, without a source checkout, build commands or a development terminal, including when Codex is the chosen agent.
 - Record graphical wizards, automatic updates or one-click repair as gaps when not implemented. Do not describe a partly scripted setup as an entirely one-click installation.
 
 ## 3. Multiple agents and models
 
-- Use Codex for development, maintenance and acceptance. Primary use cases are ChatGPT Work cloud/local, Claude, WorkBuddy and other general agents with suitable tool capabilities. Users should not need a coding environment.
+- Codex is both a development/maintenance/acceptance tool and a target end-user Agent host. The unified use target includes ChatGPT Chat, local Work, cloud Work, Codex, Claude, WorkBuddy and other general agents with suitable tool capabilities. Users should be able to install the plugin and request work in natural language without a coding project or development setup.
 - Prefer MCP, official software APIs and portable file formats, with one execution core and thin host adapters. Do not duplicate business logic, scientific calculations or backend services for each model.
 - Adapt to actual capabilities: tool calls, structured arguments, context capacity, streaming results, file transfer, vision and local/cloud access. A brand name or preset is not a capability check.
 - Target GPT Terra, DeepSeek, Gemini, GLM and Kimi; integrate university services such as ELM when available for the task. Exact models, permissions and costs depend on the actual host and account at the time of use.
@@ -79,7 +81,7 @@ Each plugin maintains an applicable compatibility matrix and release gates cover
 | Area | Required evidence |
 | --- | --- |
 | Installation | Actual results for a new device/user, upgrade, repeat installation, path differences, self-test, recovery and removal |
-| Agents and models | Actual work entrypoint, exact model/effort, Terra max benchmark and unverified combinations |
+| Agents and models | Separate actual acceptance for ChatGPT Chat, local Work, cloud Work, Codex and each advertised other Agent host; consistent core workflows, exact model/effort, Terra max benchmark and unverified combinations |
 | University applicability | Relevant course/university sources, software build/licence boundaries and unsupported assumptions |
 | Task quality | Data/method, native results, editable artifacts and necessary reopening, visual or independent checks |
 | Delivery | Files the user actually receives and can open through host attachments, manual download or automatic saving; user-selected location, no OneDrive requirement; size/hash checks where needed, not merely an existing link |

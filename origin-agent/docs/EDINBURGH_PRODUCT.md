@@ -1,17 +1,17 @@
 # Origin Companion: product scope and reuse decision
 
-Updated: 2026-09-12. Origin Companion is developed and maintained with Codex for personal sharing with classmates, professors and researchers. Users work in cloud Work, local Work, Claude Desktop, WorkBuddy and other general-purpose agents. The goal is natural-language access to the complete functionality of the specified, legally licensed Edinburgh Origin versions, with straightforward installation and continuous editing.
+Updated: 2026-09-13. Origin Companion is an MIT-licensed open-source project developed and maintained with Codex for sharing with classmates, professors and researchers. The target is one plugin and shared execution core for ChatGPT Chat, local Work, cloud Work, Codex, Claude Desktop, WorkBuddy and other suitable general-purpose agents. The goal is natural-language access to the complete functionality of the specified, legally licensed Edinburgh Origin versions, with straightforward installation and continuous editing.
 
 This is an independent sharing project. Official university distribution, campus SSO and central administration are not prerequisites.
 
-## Development versus use
+## Development and agent use
 
 - **Development:** Codex handles source changes, builds, tests and releases. Repositories, development terminals and engineering tools belong here.
-- **User work:** users connect from an agent, provide data, describe research goals and check results. Installation, use and recovery should not require source clones, code projects, development servers or script expertise.
+- **User work:** users connect from their chosen agent, including Codex, provide data, describe research goals and check results. Installation, use and recovery should not require source clones, code projects, development servers or script expertise.
 - **Local execution:** the package includes its Python runtime and runs on a Windows computer with activated target Origin. A cloud agent does not move Origin into the cloud. The runtime must be independent of the development task and terminal.
-- **Acceptance:** test from the real user entrypoint of each host. Codex CLI, protocol clients, native scripts and CI establish only their own checks, not a host/model workflow.
+- **Acceptance:** test from the real user entrypoint of each host. CLI/protocol smoke tests, native scripts and CI establish their recorded checks; a complete agent workflow requires actual model calls, native outputs and delivered artifacts in that host.
 
-Codex/Claude Code integrations remain optional development and compatibility routes. If a host asks for a folder, a research folder is sufficient; the plugin does not require Git. If a host requires a code project, record that as user friction rather than claiming the intended work scenario is complete. Cloud Work has real calls recorded; local Work requires separate acceptance.
+Codex and other suitable agent integrations are end-user routes as well as development options. If a host asks for a folder, a research folder is sufficient; the plugin does not require Git. If a host requires a code project, record that as user friction rather than claiming the intended work scenario is complete. Cloud Work has real calls recorded; local Work requires separate acceptance.
 
 ## Two specified Origin builds
 
@@ -50,7 +50,7 @@ See [implementation design](IMPLEMENTATION_PLAN.md). Persistent sessions/checkpo
 | Learning effort | Users state research goals; the agent finds operations and supplies arguments; ask only for missing information affecting scientific conclusions, and provide actionable recovery |
 | Results | Editable OPJU, traceable parameters/sources/steps, actual visual review and appropriate numerical checks |
 | Shared use | Same code/interface, with individual data, settings and agent accounts; no developer-specific paths, keys or accounts |
-| Hosts | Real cloud Work, local Work and each promised agent entrypoint accepted independently, without development-process dependencies |
+| Hosts | ChatGPT Chat, local Work, cloud Work, Codex and each advertised other Agent entrypoint accepted independently, with consistent core workflows and without development-process dependencies |
 | Performance/quota | On-demand discovery, batching, session reuse, short default summaries, no extra model service, and measured time/calls |
 | Distribution | Shareable package/link, checksums, updates and rollback; clean-environment/different-user installation checks; classmate/staff trials inform usability without waiting for official university release |
 

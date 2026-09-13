@@ -4,7 +4,7 @@
 
 Your agent, your Origin. Independent personal project; not an official OriginLab or university product.
 
-**Built and maintained with Codex; used in general agent work environments.** The primary product scenarios are cloud Work, local Work, Claude Desktop, WorkBuddy and other supported agent hosts. End users install the packaged plugin, connect their own host, and request scientific work in natural language. A source checkout, Git repository, development terminal and separately installed Python are not runtime prerequisites.
+**Open-source and unified across agent hosts.** The target is the same Origin Companion for ChatGPT Chat, local Work, cloud Work, Codex, Claude Desktop, WorkBuddy and other suitable agents, with a shared execution core. Codex is also used to develop and maintain the plugin. End users install the packaged plugin, connect their own host, and request scientific work in natural language. A source checkout, Git repository, development terminal and separately installed Python are not runtime prerequisites.
 
 Cloud Work has recorded real-model acceptance. Local Work and other hosts need their own end-to-end acceptance; a successful Codex CLI or standalone MCP client test does not certify those user flows. See the [current Work acceptance report](https://github.com/saigyujikingyo-png/origin-agent-bridge/blob/codex/origin-companion-release/WORK_ACCEPTANCE_0.2.8.md).
 
@@ -25,7 +25,7 @@ Use the installation packages described in [INSTALL.md](docs/INSTALL.md). The Wi
 <details>
 <summary>Developer setup — for modifying this project</summary>
 
-Use Codex or another development environment with a source checkout. Run `uv sync --locked`, then `uv run origin-agent serve` from the `origin-agent` package directory. This source workflow is separate from the packaged end-user installation. Codex and Claude Code integrations remain available for development and compatibility testing.
+Use Codex or another development environment with a source checkout. Run `uv sync --locked`, then `uv run origin-agent serve` from the `origin-agent` package directory. This source workflow is separate from the packaged end-user installation. For ordinary agent work, including Codex, use the packaged plugin connection; these source commands are for modifying the project.
 
 </details>
 
