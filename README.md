@@ -10,7 +10,7 @@ Origin Companion is part of [Chembridge](CHEMBRIDGE.md), a collection of plugins
 
 ## Download and start
 
-**[Download the 0.2.10 Windows preview](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.10)**
+**[Download the 0.2.11 Windows preview](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.11)**
 
 1. Download the Windows x64 ZIP, extract it and double-click `Install.cmd`.
 2. For Chat, Work and Codex, use **Connect-OpenAI.cmd** to reuse one registered Origin Companion. Connect other agents using the [installation guide](origin-agent/docs/INSTALL.md). The installer includes its runtime; you do not need Git, Python or a development environment. First-time cloud connections still require account-specific setup.
@@ -41,9 +41,11 @@ Five compact tools, on-demand help and batch workflows make the interface suitab
 | WorkBuddy | User-reported 0.2.9 core workflow acceptance; input, numerical results and 20 local artifacts corroborated | Actual model/effort and host download receipt were not supplied; this is not a fresh 0.2.10 host-model pass |
 | Claude Desktop and other agents | Shared runtime, host configuration and protocol checks | Each actual host/model workflow requires its own acceptance |
 
-**0.2.10 is a preview, not a claim of complete Origin coverage or universal host compatibility.** The user confirmed a download to their own Downloads folder, but did not supply the device, full file list or hashes for that follow-up. See the [0.2.8 acceptance report](WORK_ACCEPTANCE_0.2.8.md) and [coverage matrix](origin-agent/docs/COVERAGE.md).
+**0.2.11 is a preview, not a claim of complete Origin coverage or universal host compatibility.** The user confirmed a download to their own Downloads folder, but did not supply the device, full file list or hashes for that follow-up. See the [0.2.8 acceptance report](WORK_ACCEPTANCE_0.2.8.md) and [coverage matrix](origin-agent/docs/COVERAGE.md).
 
 The [0.2.10 follow-up](WORK_ACCEPTANCE_0.2.10.md) fixes economy help routing, removes model-binding wording, adds structured uncertainty status and readable automatic tick notation. It keeps the same plugin identity, runtime dependencies and five-tool economy interface.
+
+The [0.2.11 output contracts](origin-agent/docs/OUTPUT_CONTRACTS.md) add meaningful schemas and strict server-side validation across the same public tools, with compatible text/media delivery and recovery without automatic replay. See [0.2.11 acceptance](WORK_ACCEPTANCE_0.2.11.md) for current evidence.
 
 ## Guides and evidence
 

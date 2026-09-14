@@ -1,4 +1,4 @@
-# Install Origin Companion 0.2.9
+# Install Origin Companion 0.2.11
 
 Supported baseline: **Origin 2026 SR1 (10.300197)** or **Origin 2026b SR2 (10.350243)**, Windows x64, standard Origin edition, activated and non-Demo. Install and activate one of these builds on each computer first. SR2 has recorded native and cloud acceptance; SR1 has second-device native and Terra max cloud execution evidence, with delivery details and a tool-host startup issue still open. Version detection alone is not acceptance. The plugin does not distribute Origin or university licences, or unlock OriginPro/third-party App features.
 
@@ -18,12 +18,12 @@ See [One Origin Companion](UNIFIED_PLUGIN.md) for the single-entry design, safe 
 
 ## Download, extract and install
 
-1. Get `origin-agent-0.2.9-windows-x64.zip` from the [release page](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.9), check the supplied SHA-256 and extract to an ordinary local folder.
+1. Get `origin-agent-0.2.11-windows-x64.zip` from the [release page](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.11), check the supplied SHA-256 and extract to an ordinary local folder.
 2. Double-click `Install.cmd`. Enter `openai` for Chat/Work/Codex, or other hosts such as `claude,workbuddy`. Pressing Enter installs the engine only. The OpenAI option opens the account-link window after installation. Reuse the existing private connection; first-time users still complete the secure-connection steps below.
 3. The installer verifies the complete file set, copies the bundled runtime, starts Origin with synthetic data and checks the build and numerical read-back. It merges host configuration and switches the active version only after these checks pass. Reopen the selected agent.
 4. Ask the agent to check Origin Companion status before submitting a real analysis, plotting or editing task.
 
-There is no separate Python, Node, uv or compiler requirement. The default runtime is `%USERPROFILE%\.origin-agent\app\0.2.9`; research outputs and sessions live under `%USERPROFILE%\.origin-agent`. Origin installation/licensing is unchanged. The engine installation does not register startup by default; cloud users can enable the private-tunnel login task below. Packages do not have a commercial code signature: a hash verifies transfer integrity, not publisher identity.
+There is no separate Python, Node, uv or compiler requirement. The default runtime is `%USERPROFILE%\.origin-agent\app\0.2.11`; research outputs and sessions live under `%USERPROFILE%\.origin-agent`. Origin installation/licensing is unchanged. The engine installation does not register startup by default; cloud users can enable the private-tunnel login task below. Packages do not have a commercial code signature: a hash verifies transfer integrity, not publisher identity.
 
 For an unattended upgrade of an existing installation:
 
@@ -34,13 +34,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Install.ps1 -NonInteractiv
 The installer preserves other MCP/host settings, old runtime versions and research data. Each installation returns a `receipt_id`, with backups under `.origin-agent\installations\<receipt_id>`. A failed upgrade restores modified configuration automatically; if the user has subsequently edited a file, rollback reports the conflict and preserves that edit. To request rollback:
 
 ```powershell
-& "$env:USERPROFILE\.origin-agent\app\0.2.9\server\origin-agent.exe" rollback-install <receipt_id>
+& "$env:USERPROFILE\.origin-agent\app\0.2.11\server\origin-agent.exe" rollback-install <receipt_id>
 ```
 
 Native diagnostics:
 
 ```powershell
-& "$env:USERPROFILE\.origin-agent\app\0.2.9\server\origin-agent.exe" doctor --native
+& "$env:USERPROFILE\.origin-agent\app\0.2.11\server\origin-agent.exe" doctor --native
 ```
 
 `doctor` alone checks discovery; `--native` creates a synthetic project and verifies native read-back. Finish or roll back an open GUI transaction before installation. GUI interaction needs an unlocked interactive Windows desktop. Sleep, closing the lid or shutdown can interrupt local jobs; read job/session status before resuming.
@@ -50,7 +50,7 @@ Native diagnostics:
 - **Claude Desktop:** select `claude` to merge configuration automatically, or import the `.mcpb` directly. It includes its runtime and uses the default local data directory. Automatic skill loading depends on the host; compact tool guidance is also served by the plugin.
 - **WorkBuddy:** select `workbuddy` to merge `~/.workbuddy/mcp.json` and install the workflow skill. The package's `workbuddy` folder includes connector metadata and the blue open-circle icon.
 - **Local Work:** this is a separate user entrypoint requiring acceptance. Codex development setup is not a substitute for its installation instructions.
-- **Other MCP agents:** use `.origin-agent/host-configs/0.2.9/generic-mcp.json` through the host's supported configuration flow. Hosts have different connection/plugin formats but share the runtime and workflow contract; actual host acceptance is still needed.
+- **Other MCP agents:** use `.origin-agent/host-configs/0.2.11/generic-mcp.json` through the host's supported configuration flow. Hosts have different connection/plugin formats but share the runtime and workflow contract; actual host acceptance is still needed.
 
 <details>
 <summary>Development and optional compatibility: Codex / Claude Code</summary>
@@ -70,7 +70,7 @@ The installer does not reset an existing tunnel, account association or key. Rec
 .\Connect-ChatGPT.ps1 -TunnelId <your-tunnel-id> -TunnelClient <official-client-path> -Run
 ```
 
-When creating the personal ChatGPT entry, upload [`assets/icon-chatgpt.png`](../assets/icon-chatgpt.png) in the optional icon field before saving. It is the blue open-circle design at 256 x 256 pixels and under 10 KB. The larger local icon and MCP icon metadata do not set the remote listing artwork. For an existing entry without an icon editor, see the [replacement guidance](UNIFIED_PLUGIN.md#registered-chatgpt-icon). The small PNG is provided separately with the 0.2.9 release; previously published ZIP/MCPB archives are unchanged.
+When creating the personal ChatGPT entry, upload [`assets/icon-chatgpt.png`](../assets/icon-chatgpt.png) in the optional icon field before saving. It is the blue open-circle design at 256 x 256 pixels and under 10 KB. The larger local icon and MCP icon metadata do not set the remote listing artwork. For an existing entry without an icon editor, see the [replacement guidance](UNIFIED_PLUGIN.md#registered-chatgpt-icon). The small PNG is included in the bundle and provided separately with the release.
 
 Keep the key on your computer, not in source or chat. Existing users reconnect with their own launcher; do not share the developer's tunnel configuration, account or key. The Windows computer must be on and the tunnel client online. Chat attachments do not automatically appear on Windows; the agent needs a local copy or a supported transfer route before using them.
 
@@ -94,7 +94,7 @@ The bridge is MIT-licensed and adds no paid model intermediary. Origin, agent ho
 
 ## Updates and result delivery
 
-After updating, reconnect the local plugin or refresh the cloud connection's tool list, then start a new conversation if the old one retains cached tools. The installed runtime and actual Chat, cloud Work and fresh Codex calls returned 0.2.9; see the [current acceptance record](https://github.com/saigyujikingyo-png/origin-agent-bridge/blob/codex/origin-companion-release/WORK_ACCEPTANCE_0.2.9.md). Local Work remains separately blocked by host project synchronisation.
+After updating, reconnect the local plugin or refresh the cloud connection's tool list, then start a new conversation if the old one retains cached tools. The installed runtime and actual Chat, cloud Work and fresh Codex calls returned 0.2.9; see the [historical acceptance record](https://github.com/saigyujikingyo-png/origin-agent-bridge/blob/codex/origin-companion-release/WORK_ACCEPTANCE_0.2.9.md). Local Work remains separately blocked by host project synchronisation.
 
 Save results to your Downloads folder or another chosen authorised location. University OneDrive is not required. Native execution, host file receipt and a particular browser's automated download route are separate checks. See [Work troubleshooting](WORK_TROUBLESHOOTING.md).
 
@@ -107,17 +107,10 @@ To remove the plugin, first remove its host/plugin connection or roll back the i
 See [MODELS.md](MODELS.md) for model/economy profiles and [ELM.md](ELM.md) for university model-service evidence.
 
 
-## Upgrading to 0.2.10
+## Upgrading to 0.2.11
 
-Download the Windows ZIP from [GitHub Releases](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.10),
-extract it and run `Install.cmd` for your existing hosts. The versioned installer
-checks file hashes and performs a native self-test before switching the active
-installation. Existing data, Origin licences, model settings and encrypted tunnel
-credentials are retained; do not create a new account connection or key merely to
-upgrade. Keep 0.2.9 available for rollback. Restart/reconnect the selected host and
-bridge so existing processes load the new executable; old conversations may retain
-cached tool instructions. Confirm `origin_status.plugin_version` is `0.2.10`.
+Download the Windows ZIP from [GitHub Releases](https://github.com/saigyujikingyo-png/origin-agent-bridge/releases/tag/v0.2.11), verify its SHA-256, extract it and run `Install.cmd`. The installer checks native Origin before selecting the new runtime. Keep 0.2.10 for rollback. Existing data, account connections and encrypted credentials are reused. A new API key or another plugin identity is not required for an upgrade.
 
-WorkBuddy receives the updated skill and MCP command through its installer option.
-The OpenAI entry remains the same registered plugin. The separate local Work
-project-synchronisation frontend issue is outside this upgrade's scope.
+Refresh the existing account connection's tool list and start a new conversation if the old one retains cached definitions. Confirm `origin_status.plugin_version` is `0.2.11` and `output_contract.version` is `1.0.0`. Installation and connection verification are separate; verify each signed-in account independently. The known local Work project-sync frontend issue is external and is not repaired by this release.
+
+Read [output contracts](OUTPUT_CONTRACTS.md) for result semantics, malformed-output recovery, media metadata and compatibility. Existing inputs, IDs and scientific field meanings remain unchanged.

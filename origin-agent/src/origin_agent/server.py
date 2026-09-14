@@ -33,6 +33,7 @@ from .gui import GuiCommand
 from .jobs import TERMINAL, cancel, get_job, submit
 from .models import Workflow
 from .native import artifact_bytes, artifact_path
+from .output_contracts import OUTPUT_CONTRACT_VERSION
 from .planning import plan_workflow
 from .product import DESCRIPTION, ICON_URL, WEBSITE
 from .programs import OriginProgram, prepare_program
@@ -220,6 +221,11 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
         return {
             "plugin_version": __version__,
             "product_name": "Origin Companion",
+            "output_contract": {
+                "version": OUTPUT_CONTRACT_VERSION,
+                "server_validation": True,
+                "schema_discovery": "origin_help(operation=...) in economy mode; tools/list in full mode",
+            },
             "agent_profile": selected.report(),
             **discover(),
             "last_native_engine": engine,
@@ -338,6 +344,7 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
             path, mime = await asyncio.to_thread(artifact_path, store, artifact_id)
         details = {
             "artifact_id": artifact_id,
+            "mode": mode,
             "local_path": str(path),
             "bytes": len(payload) if payload is not None else path.stat().st_size,
             "sha256": hashlib.sha256(payload).hexdigest()
@@ -345,6 +352,8 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
             else await asyncio.to_thread(sha256, path),
             "mime_type": mime,
         }
+        if mode != "info":
+            details["content_index"] = 2
         content = [
             TextContent(type="text", text=json.dumps(details, ensure_ascii=False)),
             ResourceLink(
@@ -386,6 +395,11 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
             if offset > len(value):
                 raise ValueError("offset is beyond this artifact's text")
             end = min(len(value), offset + max_chars)
+            details["pagination"] = {
+                "offset": offset,
+                "next_offset": end if end < len(value) else None,
+                "total_chars": len(value),
+            }
             content.append(
                 TextContent(
                     type="text",
@@ -400,14 +414,19 @@ def make_server(store: Store | None = None, *, profile=None, preset=None, vision
                     ),
                 )
             )
-        return CallToolResult(content=content)
+        return CallToolResult(content=content, structured_content=details)
 
     @mcp.tool(annotations=read)
     async def origin_inspect_project(job_id: str) -> dict[str, Any]:
         """Read a completed OPJU index/workflow. General programs can continue from its project artifact."""
         path, _ = await asyncio.to_thread(artifact_path, store, f"{job_id}/manifest.json")
         manifest = read_json(path)
-        return {key: manifest[key] for key in ("engine", "workflow", "project_index", "verification")}
+        fields = ("engine", "workflow", "project_index", "verification")
+        if any(key not in manifest for key in fields):
+            raise ValueError(
+                "This job has no inspectable project index; inspect its checkpoint/artifacts instead"
+            )
+        return {key: manifest[key] for key in fields}
 
     @mcp.resource("origin://artifacts/{job_id}/{name}")
     async def artifact(job_id: str, name: str) -> bytes:

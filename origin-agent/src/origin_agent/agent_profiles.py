@@ -11,6 +11,7 @@ from mcp_types import CallToolResult, TextContent
 from pydantic import Field, ValidationError
 
 from .models import ClosedModel
+from .output_contracts import OUTPUT_CONTRACT_VERSION, output_schema, validate_result
 from .storage import read_json, write_json
 
 PRESETS = {
@@ -36,7 +37,18 @@ def error_result(payload):
 class AgentMCPServer(MCPServer):
     """Make correctable validation/state errors useful without exposing tracebacks or input payloads."""
 
+    async def list_tools(self):
+        items = await super().list_tools()
+        for item in items:
+            item.output_schema = output_schema(item.name)
+            item.meta = {**(item.meta or {}), "origin_output_contract_version": OUTPUT_CONTRACT_VERSION}
+        return items
+
     async def call_tool(self, name, arguments, context=None):
+        result = await self._call_with_errors(name, arguments, context)
+        return validate_result(name, result)
+
+    async def _call_with_errors(self, name, arguments, context=None):
         try:
             return await super().call_tool(name, arguments, context)
         except ToolError as exc:
@@ -66,7 +78,12 @@ class AgentMCPServer(MCPServer):
                 cause = cause.__cause__
             if not isinstance(exc, UnexpectedToolError):
                 return error_result({"error": "tool", "message": str(exc)[:1200]})
-            raise
+            return error_result(
+                {
+                    "error": "execution",
+                    "message": "Origin operation failed; inspect known job state before retrying.",
+                }
+            )
 
 
 class EconomyMCPServer(AgentMCPServer):
@@ -225,6 +242,8 @@ def make_economy_server(full, store, profile):
                 "operation": item.name,
                 "instructions": item.description,
                 "input_schema": item.input_schema,
+                "output_schema": item.output_schema,
+                "output_contract_version": OUTPUT_CONTRACT_VERSION,
                 "call": {
                     "tool": "origin_call",
                     "operation": item.name,

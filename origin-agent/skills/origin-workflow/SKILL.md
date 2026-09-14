@@ -16,6 +16,10 @@ Translate the requested outcome into Origin work. Do not ask users to learn menu
 - Use `origin_recipe` for plotting, linear fitting or Beer-Lambert with flat arguments. Fits require explicit intercept and weighting. `action=run` validates and submits when the task is authorized; no extra confirmation gate.
 - For advanced work read only the relevant section of [operations](references/OPERATIONS.md). Use capabilities discovery before unfamiliar native APIs. Full mode exposes these operations directly.
 
+## Structured results
+
+All tools return validated `structuredContent` with a matching JSON text fallback. Read `origin_help(operation=...)` for exact input and output schemas; the output contract version is in `origin_status.output_contract`. Keep original IDs, nulls, units and verification evidence. `output_validation` means a backend result was rejected; the action may already have run. Inspect any retained job/session ID before a deliberate retry. Do not poll a terminal job. Artifact JSON contains metadata only: use its `content_index` for the existing media/page block and `pagination.next_offset` for text. A valid schema does not prove scientific correctness or host file receipt.
+
 ## Quality and efficiency
 
 Terra max is a benchmark preference when available, not a required model. Keep the user's selected host model; presets neither select nor detect it. For Beer-Lambert unknowns, read `unknown_uncertainty_result.status` and `reason`; the current workflow does not calculate inverse-calibration uncertainty. The legacy `unknown_uncertainty` string is display text, not a parsing contract. Never invent a confidence interval. Workflow styles accept `x_tick_format` / `y_tick_format`: `auto` (default), `decimal`, or `scientific`; discover the full workflow schema for overrides. Multiple workflow panels produce separate graph pages, not a combined figure. Native reopen/PNG decoding do not replace visual review or host-file delivery checks.

@@ -16,7 +16,9 @@ async def test_protocol_tools_and_schema_guard(store, monkeypatch):
         tools = (await client.list_tools()).tools
         assert len(tools) == 14
         serialized = json.dumps([tool.model_dump(mode="json") for tool in tools])
-        assert len(serialized) < 38000
+        # Full mode explicitly advertises per-operation result contracts.
+        # Economy mode has a separate <40 KB / <25% contract budget.
+        assert len(serialized.encode()) < 200_000
         status = await client.call_tool("origin_status", {})
         assert not status.is_error
         assert status.structured_content["plugin_version"] == __version__

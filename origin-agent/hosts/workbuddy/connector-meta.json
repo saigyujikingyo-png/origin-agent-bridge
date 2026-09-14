@@ -4,7 +4,7 @@
   "name": "Origin Companion",
   "name_zh": "Origin Companion · Origin 工作助手",
   "name_en": "Origin Companion",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Origin Companion: natural-language workflows, live projects and GUI automation.",
   "description_zh": "用自然语言调用本机正版 Origin，完成导入、作图、拟合、批处理和可编辑工程导出。",
   "description_en": "Origin Companion: natural-language workflows, live projects and GUI automation.",

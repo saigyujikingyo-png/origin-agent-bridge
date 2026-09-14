@@ -77,3 +77,15 @@ certification, not that a native result failed.
 The 0.2.10 compact tool definitions remain **5,129 UTF-8 bytes**, the same as the
 measured 0.2.9 baseline. Full mode is 22,555 bytes. These counts exclude skills,
 conversation, help responses, images and reasoning, and are not billed tokens.
+
+
+## 0.2.11 output contracts
+
+The five-tool economy catalog now includes validated output schemas: 36,317 UTF-8
+bytes versus 178,008 in full mode using serialized tool metadata. This adds metadata
+compared with the earlier release; exact operation schemas remain on demand through
+`origin_help`. New limits guard schema growth and structured-output size. Local warm
+status validation measured 0.1489 ms median across 500 iterations. No paid secondary
+model layer or new runtime dependency was added. These measurements are not billed
+tokens or a Terra max model benchmark. See [output contracts](OUTPUT_CONTRACTS.md)
+and the version-specific acceptance report for verification and untested hosts.

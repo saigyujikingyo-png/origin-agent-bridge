@@ -12,7 +12,8 @@ import sys
 import time
 from pathlib import Path
 
-from mcp import Client, StdioServerParameters
+from contract_validation import ContractClient as Client
+from mcp import StdioServerParameters
 
 
 async def main():

@@ -39,6 +39,7 @@ Try a complete natural-language workflow using the [synthetic example](examples/
 
 ## Recent changes
 
+- **0.2.11:** Strict output schemas, validated structured results, safe malformed-output recovery, and compatible media metadata. [Output contracts](docs/OUTPUT_CONTRACTS.md).
 - **0.2.10:** WorkBuddy feedback fixes: recover wrapped help requests, separate optional model recommendations, report unsupported inverse-calibration uncertainty in structured form, and save/recheck per-axis scientific notation. [Acceptance and limitations](https://github.com/saigyujikingyo-png/origin-agent-bridge/blob/codex/origin-companion-release/WORK_ACCEPTANCE_0.2.10.md).
 - **0.2.9:** one registered OpenAI connection for Chat, Work and Codex, a graphical account-link setup, guarded consolidation of old local entries, and consistent English name/icon metadata. See [unified setup](docs/UNIFIED_PLUGIN.md). Local Work desktop acceptance remains separate.
 

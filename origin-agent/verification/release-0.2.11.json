@@ -1,0 +1,71 @@
+{
+  "version": "0.2.11",
+  "output_contract_version": "1.0.0",
+  "date": "2026-09-14",
+  "automated": {
+    "passed": 228,
+    "skipped": 1,
+    "skip_reason": "Windows symlink creation privilege",
+    "ruff": "passed",
+    "plugin_manifest": "passed",
+    "mcpb_manifest": "passed"
+  },
+  "native_origin_version": 10.350243,
+  "native_origin_label": "Origin 2026b SR2",
+  "source_calibration": {
+    "passed": true,
+    "seconds": 22.797,
+    "received_artifacts": 14
+  },
+  "bundle_calibration": {
+    "passed": true,
+    "seconds": 17.25,
+    "received_artifacts": 14
+  },
+  "source_economy": {
+    "passed": true,
+    "seconds": 29.359
+  },
+  "source_sessions": {
+    "passed": true,
+    "cases": 12,
+    "second_mcp_process": true
+  },
+  "source_gui": {
+    "status": "partial",
+    "reason": "transient_missing_or_ambiguous_menu_target",
+    "cleanup_rollback_and_close": true
+  },
+  "initial_failure": {
+    "missing_progress_field": "total_panels",
+    "fixed_and_retested": true
+  },
+  "metrics": {
+    "catalog_utf8_bytes": {
+      "full": 178008,
+      "economy": 36317
+    },
+    "validation_status_ms": {
+      "iterations": 500,
+      "median": 0.1489,
+      "p95": 0.1782
+    },
+    "actual_model_tested": false,
+    "billing_tokens_measured": false
+  },
+  "package_sha256": {
+    "origin-agent-0.2.11-windows-x64.zip": "95bd2d73792b46d3718983de2ab4e10592a6631dac5e6cdadb34139479a8d0aa",
+    "origin-agent-0.2.11-windows-x64.mcpb": "95bd2d73792b46d3718983de2ab4e10592a6631dac5e6cdadb34139479a8d0aa"
+  },
+  "runtime_file_identity_checked": true,
+  "account_acceptance": "pending installation/refresh after publication",
+  "scope_limits": [
+    "2026 SR1 not rerun",
+    "no all-functions claim",
+    "no fresh all-host/model pass",
+    "no Terra max billing benchmark",
+    "complete GUI scenario partial",
+    "PDF/SVG visual review not repeated",
+    "external local Work project-sync issue untouched"
+  ]
+}
