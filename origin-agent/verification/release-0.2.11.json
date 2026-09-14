@@ -50,15 +50,19 @@
       "median": 0.1489,
       "p95": 0.1782
     },
-    "actual_model_tested": false,
-    "billing_tokens_measured": false
+    "billing_tokens_measured": false,
+    "model_read_only_smoke_tested": true,
+    "model_scientific_workflow_benchmarked": false
   },
   "package_sha256": {
     "origin-agent-0.2.11-windows-x64.zip": "95bd2d73792b46d3718983de2ab4e10592a6631dac5e6cdadb34139479a8d0aa",
     "origin-agent-0.2.11-windows-x64.mcpb": "95bd2d73792b46d3718983de2ab4e10592a6631dac5e6cdadb34139479a8d0aa"
   },
   "runtime_file_identity_checked": true,
-  "account_acceptance": "pending installation/refresh after publication",
+  "account_acceptance": {
+    "school": "passed: fresh cloud Work Terra/max status and operation schema calls after catalog refresh",
+    "personal": "passed: fresh cloud Work Terra/max status and operation schema calls after catalog refresh"
+  },
   "scope_limits": [
     "2026 SR1 not rerun",
     "no all-functions claim",
@@ -67,5 +71,82 @@
     "complete GUI scenario partial",
     "PDF/SVG visual review not repeated",
     "external local Work project-sync issue untouched"
+  ],
+  "installed_economy": {
+    "passed": true,
+    "seconds": 29.078,
+    "native_jobs": 2,
+    "output_contract": "1.0.0"
+  },
+  "installation": {
+    "version": "0.2.11",
+    "native_self_test": true,
+    "existing_data_and_keys_preserved": true,
+    "old_runtime_retained": "0.2.10",
+    "two_existing_private_connections": {
+      "ready": true,
+      "healthy": true,
+      "engine_version": "0.2.11",
+      "observed_at_utc": "2026-09-14T19:02:14.051656+00:00"
+    },
+    "connection_recovery": {
+      "observed_exit": "0xC000013A",
+      "termination_source": "unconfirmed",
+      "existing_tasks_restarted": true,
+      "credentials_changed": false,
+      "settings_changed": false,
+      "initial_ready_not_treated_as_persistence_proof": true,
+      "same_processes_observed_seconds_at_least": 420,
+      "long_term_stability_verified": false
+    }
+  },
+  "host_read_only_smokes": [
+    {
+      "host": "ChatGPT cloud Work",
+      "account": "school",
+      "model": "GPT-5.6 Terra",
+      "effort": "max",
+      "seconds": 18,
+      "plugin_version": "0.2.11",
+      "contract_version": "1.0.0",
+      "status_called": true,
+      "operation_help_called": true,
+      "job_state_values": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ],
+      "native_job_run": false,
+      "initial_attempt": {
+        "passed": false,
+        "seconds": 32,
+        "reason": "tunnel_client_not_seen"
+      },
+      "actual_token_usage": null
+    },
+    {
+      "host": "ChatGPT cloud Work",
+      "account": "personal",
+      "model": "GPT-5.6 Terra",
+      "effort": "max",
+      "seconds": 27,
+      "plugin_version": "0.2.11",
+      "contract_version": "1.0.0",
+      "status_called": true,
+      "operation_help_called": true,
+      "job_state_values": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ],
+      "native_job_run": false,
+      "actual_token_usage": null
+    }
   ]
 }

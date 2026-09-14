@@ -73,8 +73,35 @@ usage, first-attempt model success and charges were not measured in these script
 
 The release preserves existing local runtime data, encrypted keys and per-account
 private connections. User accounts and private connection identifiers are kept out
-of this public record. Installation and account refresh results are recorded after
-release deployment; package and protocol passes do not establish account acceptance.
+of this public record. The deployed runtime passes its native installer self-test.
+Its economy interface then passes two fresh native jobs, exact text paging and
+per-result contract checks (29.078 seconds). Local shared skill guidance and
+existing Claude/WorkBuddy configurations are updated; 0.2.10 remains for rollback.
+
+Both private connectors initially became ready, then their MCP processes and
+scheduled wrappers exited with Windows status `0xC000013A`. A school-account Work
+attempt correctly reported `tunnel_client_not_seen`; it is retained as a failed
+attempt. The available logs do not identify the source of that termination. The
+existing scheduled tasks were restarted without changing credentials or task
+settings; subsequent observations and the school Work calls remain healthy.
+Do not present an initial health check as proof of persistent connectivity.
+
+After account-owner sign-in and catalog refresh, **school-account cloud Work**
+using **GPT-5.6 Terra / max** passed fresh `origin_status` and direct
+`origin_help(operation="origin_get_job")` calls in 18 seconds. It returned plugin
+`0.2.11`, contract `1.0.0`, server validation enabled, and the operation output
+schema with all six job states. The catalog's missing-output-schema warnings
+cleared. This was a read-only interface check, not a fresh model-led scientific
+workflow or billing benchmark. The first connection-failure attempt was 32 seconds.
+
+After account-owner MFA, **personal-account cloud Work** using **GPT-5.6 Terra /
+max** passed the same two fresh calls in 27 seconds. It returned plugin `0.2.11`,
+contract `1.0.0`, server validation enabled, and all six operation job states. Its
+catalog warnings also cleared. Both accounts reuse their existing registered app
+and private connection; no duplicate app, new API key or increased permission was
+required. Both background processes remained ready with the same PIDs for more
+than seven minutes after restart, including the catalog and model calls. This is
+a bounded observation, not proof that the unexplained termination cannot recur.
 
 The supported version family remains standard x64 Origin 2026 SR1 and 2026b SR2.
 Current native checks above use licensed **2026b SR2 (10.350243)**. The 2026 SR1
