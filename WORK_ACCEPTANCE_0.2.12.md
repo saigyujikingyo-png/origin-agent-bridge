@@ -1,7 +1,7 @@
 # Origin Companion 0.2.12 lifecycle candidate
 
 Date: 19 September 2026. Baseline: 513ea6f (released runtime 0.2.11).
-Status: **source and isolated package checks passed; draft PR opened; amended candidate review, installation and host gates remain pending**.
+Status: **reviewed source, frozen package and controlled dual-account installation/readiness passed; draft PR remains a preview with separate CI, release and host/native/OS gates**.
 
 ## Change and invariants
 
@@ -25,7 +25,8 @@ Windows x64, Python 3.12.14, locked environment:
 | --- | --- |
 | Locked offline dependency sync | Passed; project version updated to 0.2.12, no new runtime dependency |
 | Ruff check and format | Passed; 98 Python files formatted |
-| Full pytest suite | **346 passed, 2 skipped, 93.88 seconds** |
+| Full local pytest suite before the final fixture-only CI repair | **346 passed, 2 skipped, 93.88 seconds** |
+| Lifecycle suite after atomic fixture publication | **40 passed, 61.94 seconds**; the failed duplicate-daemon scenario also passed five consecutive focused runs |
 | Installation and admission focused suite before the Scheduler JSON correction | **82 passed, 1 skipped, 11.84 seconds**; the full suite above includes the corrected adapter |
 | Focused connector lifecycle suite after alias-absence fix | **38 passed, 58.24 seconds** |
 | Independent review of alias-absence fix | Passed; 9 separately exercised in-memory cases, including marker spoofing and cleanup refusal |
@@ -49,10 +50,8 @@ restored identical exported XML and was removed after exact ownership verificati
 
 Initial GitHub Windows CI also exposed fixture reads that relied on the system
 encoding for generated UTF-8 configuration. Test readers now specify UTF-8; the
-runtime's encoding was already explicit. Subsequent CI is a separate gate.
-Both local skips are Windows symbolic-link creation privilege limits. Installed
-account migration/rollback, actual logon and cloud account calls remain unverified
-for this candidate. The Scheduler fixture does not establish those outcomes.
+runtime's encoding was already explicit. A later Windows CI run also exposed a non-atomic write in the subprocess test fixture: termination during publication could leave an empty PID record, causing the next fixture command and teardown to fail. A deterministic write-interruption probe reproduced the old empty public file; atomic temporary-file publication leaves the public file absent. The fixture-only correction changes no shipped runtime files. [Draft PR checks](https://github.com/saigyujikingyo-png/origin-agent-bridge/pull/1/checks) track results for each exact revision; prior failures remain recorded.
+Both local skips are Windows symbolic-link creation privilege limits. The Scheduler fixture does not establish installed rollback, actual logon or cloud account calls. Controlled installation/readiness evidence follows; those remaining outcomes stay unverified.
 
 ## Failure-path coverage
 
@@ -100,11 +99,38 @@ Other exit codes, extra diagnostics, authentication errors, bad JSON, conflictin
 profiles/directories and a reserved absence marker supplied in successful JSON
 are rejected. The 11 rejection cases prove that none starts a connection.
 
+## Controlled installed acceptance
+
+After independent review of runtime source `f83f1ca1` and package `b52e1bd8`, the
+existing installation was upgraded using the checksum-verified packaged `integrate`
+OpenAI route. The native self-test in `Install.ps1` was deliberately not invoked
+under this acceptance scope. Both existing task registrations were read back with
+unchanged startup preference; the previous 0.2.11 package remained intact and all
+313 checksum-listed rollback files were verified. A backup is not an actual rollback.
+
+Both configured accounts were explicitly started once and reached ready/healthy,
+then produced later health observations. Independent official-client status and
+process inspection found one daemon and one 0.2.12 MCP frontend per account, with
+current executable and creation identities matching the configuration. No scientific
+workflow was submitted. Queue/session records, scientific manifests, encrypted key
+bytes, unrelated host configuration and the existing Claude/UoE process identities
+were unchanged at readback. Cloud host calls remain a separate acceptance step.
+
+The installer preserved profile bytes. The subsequent official-client connect
+updated only `mcp.commands` to the installed 0.2.12 executable with the sole `serve`
+argument. An initial strict pre-upgrade byte-equality assertion therefore failed;
+that failure is retained. Read-only reconciliation verified every changed field,
+the old and new executable paths, complete equality outside that command field,
+unchanged tunnel identity/environment key reference and equal encrypted-key hashes.
+The accepted result is **profile identity preserved with explicit engine-command
+migration**, not byte-identical profiles after starting. No second install, restart
+or rollback was performed to reconcile the observation.
+
 ## Open gates
 
-- Independent review of the amended Scheduler fix and package before installation or release.
-- Published CI and native self-check for this frozen candidate.
-- Actual installed dual-account upgrade, registration readback, stop/start and rollback.
+- Passing CI for the revision selected for release, plus merge/public-release approval.
+- Native self-check for this frozen candidate.
+- Actual installed rollback and explicit stop/restart acceptance; initial explicit start and upgrade passed as described above.
 - Fresh app/account connection, catalog and tool call for each intended host/account.
 - Safe-window logon/reboot/network/sleep/logoff acceptance; no disruptive test was run.
 - First-time vendor profile initialization and fresh-device credential setup.
