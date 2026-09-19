@@ -50,6 +50,18 @@ def main():
     )
     rollback = sub.add_parser("rollback-install", help="Restore a host-configuration installation receipt")
     rollback.add_argument("receipt_id")
+    tunnel = sub.add_parser(
+        "tunnel", help="Manage an existing private connection without changing its identity"
+    )
+    actions = tunnel.add_subparsers(dest="action", required=True)
+    for action in ("run", "status", "stop", "allow-start", "disable-startup"):
+        actions.add_parser(action).add_argument("--config", type=Path, required=True)
+    startup = actions.add_parser("install-startup")
+    startup.add_argument("--profile-source", type=Path)
+    startup.add_argument("--start-now", action="store_true")
+    initialize = actions.add_parser("initialize")
+    initialize.add_argument("--tunnel-id", required=True)
+    initialize.add_argument("--tunnel-client", type=Path, required=True)
     inspect = sub.add_parser("inspect")
     inspect.add_argument("path")
     inspect.add_argument("--sheet")
@@ -94,7 +106,27 @@ def main():
                     max_request_body_size=1024 * 1024,
                 )
             return
-        if args.command == "configure-model":
+        if args.command == "tunnel":
+            from . import tunnel_lifecycle
+
+            if args.action == "initialize":
+                from .tunnel_install import initialize_profile
+
+                result = initialize_profile(store.root, args.tunnel_id, args.tunnel_client)
+            elif args.action == "install-startup":
+                from .tunnel_install import install_startup
+
+                result = install_startup(
+                    store.root, profile_source=args.profile_source, start_now=args.start_now
+                )
+            elif args.action == "disable-startup":
+                from .tunnel_install import disable_startup
+
+                result = disable_startup(args.config)
+            else:
+                action = getattr(tunnel_lifecycle, args.action.replace("-", "_"))
+                result = action(args.config)
+        elif args.command == "configure-model":
             from .agent_profiles import configure_profile
 
             result = configure_profile(store, args.preset, args.profile, args.vision)

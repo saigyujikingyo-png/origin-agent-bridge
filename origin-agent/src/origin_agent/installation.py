@@ -102,38 +102,101 @@ class Changes:
             raise RuntimeError("Codex CLI could not register Origin Companion; configuration was backed up")
 
 
-def rollback(state_root, receipt_id):
+def rollback(state_root, receipt_id, *, defer_activation=False):
+    from . import tunnel_install
+    from .lifecycle_admission import transaction
+
+    valid_id(receipt_id)
+    state_root = Path(state_root).resolve()
+    with transaction(state_root, receipt_id, recovery=True):
+        result = _rollback(state_root, receipt_id)
+    if not defer_activation:
+        tunnel_install.activate_rollback(state_root, receipt_id)
+    return result
+
+
+def _rollback(state_root, receipt_id):
+    from . import tunnel_install
+    from .lifecycle_admission import intent_guard
+
     valid_id(receipt_id)
     root = Path(state_root) / "installations" / receipt_id
     path = root / "receipt.json"
     receipt = read_json(path)
+    if receipt.get("files") or receipt.get("tasks"):
+        tunnel_install.check_activation_pending(state_root, receipt_id=receipt_id)
     if receipt["status"] == "rolled_back":
         return {"receipt_id": receipt_id, "status": "rolled_back"}
     # Check every file before changing any; never overwrite edits made after installation.
     restore = []
     for item in receipt["files"]:
+        # Starting/stopping a connector is a live user preference, not a later
+        # source/config edit. Completed rollback preserves that current preference.
+        if receipt["status"] == "installed" and item.get("lifecycle_intent"):
+            continue
         target = Path(item["path"])
         current = digest(contents(target))
-        if current == item["before"]:
+        if current == item["before"] and not item.get("lifecycle_intent"):
             continue
-        if current != item["after"]:
+        if current not in tunnel_install.intent_states(item):
             raise RuntimeError(f"Rollback conflict; file changed since installation: {target}")
         backup = item["backup"]
         data = contents(root / Path(backup).name) if backup else None
         if digest(data) != item["before"]:
             raise RuntimeError("Installation backup failed integrity verification")
-        restore.append((target, data))
-    for target, data in reversed(restore):
-        if data is None:
-            target.unlink(missing_ok=True)
+        restore.append((target, data, item))
+    tasks, task_restore = tunnel_install.prepare_task_rollback(receipt, root)
+    tunnel_intents = tunnel_install.quiesce_rollback(receipt, root, tasks)
+    for target, data, item in reversed(restore):
+        if item.get("lifecycle_intent"):
+            with intent_guard(target.parent):
+                _restore_file(target, data, item)
         else:
-            atomic_bytes(target, data)
+            _restore_file(target, data, item)
+    tunnel_install.restore_rollback_intents(receipt, root, tunnel_intents)
+    tunnel_install.restore_tasks(tasks, task_restore, receipt, root)
     receipt["status"] = "rolled_back"
     write_json(path, receipt)
     return {"receipt_id": receipt_id, "status": "rolled_back", "restored_files": len(restore)}
 
 
+def _restore_file(target, data, item):
+    from .tunnel_install import intent_states
+
+    current = digest(contents(target))
+    if current not in intent_states(item):
+        raise RuntimeError(f"Rollback conflict; file changed during recovery: {target}")
+    if data is None:
+        target.unlink(missing_ok=True)
+    else:
+        atomic_bytes(target, data)
+
+
 def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
+    from . import tunnel_install
+    from .lifecycle_admission import transaction
+
+    state_root = Path(state_root).resolve()
+    # Only a unique private receipt is allocated before admission. All shared
+    # configuration reads/planning and publication belong to the one transaction.
+    changes = Changes(state_root)
+    failure = None
+    with transaction(state_root, changes.root.name):
+        try:
+            tunnel_install.check_activation_pending(state_root)
+            result = _integrate(bundle, state_root, hosts, changes, user_home=user_home, appdata=appdata)
+        except Exception as exc:
+            rollback(state_root, changes.root.name, defer_activation=True)
+            failure = exc
+    if failure is not None:
+        tunnel_install.activate_rollback(state_root, changes.root.name)
+        raise failure
+    return result
+
+
+def _integrate(bundle, state_root, hosts, changes, *, user_home=None, appdata=None):
+    from . import tunnel_install
+
     bundle, state_root = Path(bundle).resolve(), Path(state_root).resolve()
     user_home = Path(user_home or Path.home()).resolve()
     appdata = Path(appdata or os.environ.get("APPDATA", user_home / "AppData/Roaming")).resolve()
@@ -177,29 +240,30 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
             encoded({"version": __version__, "root": str(bundle), "executable": str(executable)}),
         )
     )
-    changes = Changes(state_root)
-    try:
-        for path, data in plans[:-1]:
-            changes.put(path, data)
-        if "codex-direct" in hosts:
-            if user_home != Path.home().resolve() or os.environ.get("CODEX_HOME"):
-                raise ValueError("Codex automatic setup requires its default user profile")
-            changes.codex(executable, state_root, user_home)
-        # The installation pointer changes only after all selected host configurations succeed.
-        changes.put(*plans[-1])
-        changes.value.update(status="installed", version=__version__, hosts=hosts, bundle=str(bundle))
-        changes.save()
-    except Exception:
-        rollback(state_root, changes.root.name)
-        raise
+    # Reconcile all account scopes before changing a launcher or active engine.
+    # Migration preserves task preferences and never starts a connector.
+    private_tunnels = tunnel_install.migrate(changes, bundle, state_root)
+    for path, data in plans[:-1]:
+        changes.put(path, data)
+    if "codex-direct" in hosts:
+        if user_home != Path.home().resolve() or os.environ.get("CODEX_HOME"):
+            raise ValueError("Codex automatic setup requires its default user profile")
+        changes.codex(executable, state_root, user_home)
+    # The installation pointer changes only after all selected host configurations succeed.
+    changes.put(*plans[-1])
+    tunnel_install.finish_migration(changes)
+    changes.value.update(status="installed", version=__version__, hosts=hosts, bundle=str(bundle))
+    changes.save()
     return {
         "version": __version__,
         "hosts": hosts,
         "receipt_id": changes.root.name,
         "executable": str(executable),
         "restart_hosts": True,
+        "private_tunnels": private_tunnels,
         "chatgpt": "Use Connect-OpenAI.cmd for the same registered plugin in Chat, Work and Codex. "
-        "Existing tunnel configuration is preserved; reconnect to load the new engine.",
+        "Private account identities and startup preferences are preserved. "
+        "Start the private connector explicitly after upgrade; installation does not start it.",
     }
 
 

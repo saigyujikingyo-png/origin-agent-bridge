@@ -27,3 +27,8 @@ The whole Chembridge initiative starts at https://github.com/saigyujikingyo-png/
 Read origin-agent/docs/CODEX_CLOUD.md for the cloud development environment. Use `bash origin-agent/scripts/setup_codex_cloud.sh` from the repository root for setup and cached-container maintenance. Run portable checks in origin-agent. Cloud container checks do not replace licensed Windows Origin execution or native and host acceptance.
 
 Every Chembridge plugin must implement and validate meaningful tool output schemas and structured results under DEVELOPMENT_PRINCIPLES.md section 12. Preserve media delivery and host compatibility, keep schemas compact, and record implementation/acceptance gaps separately.
+
+The shared baseline is 2026-09-19.1. Read origin-agent/docs/RUNTIME_LIFECYCLE.md
+for product lifecycle ownership, upgrade/rollback and acceptance boundaries before
+changing connection runners or installers. One Astra Max product owner implements;
+Governance reviews cross-product lifecycle changes before publication/installation.
