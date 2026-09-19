@@ -115,6 +115,11 @@ if action == "connect":
         raise SystemExit(2)
     print("{}")
 elif action == "status":
+    if "status_override" in settings:
+        override = settings["status_override"]
+        print(override.get("stdout", ""), end="")
+        print(override.get("stderr", ""), end="", file=sys.stderr)
+        raise SystemExit(override.get("returncode", 0))
     if settings.get("status_hang"):
         time.sleep(180)
     if settings.get("status_fail") or (
@@ -122,6 +127,12 @@ elif action == "status":
     ):
         raise SystemExit(2)
     registry = read(folder / "registry.json", {})
+    if not registry:
+        print(
+            settings.get("status_error", f"alias {alias} is not known; run create or connect first"),
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
     running = bool(registry) and psutil.pid_exists(registry["pid"])
     ready = running and time.time() - registry["started"] >= settings.get("ready_after", 0.1)
     if settings.get("unhealthy"):

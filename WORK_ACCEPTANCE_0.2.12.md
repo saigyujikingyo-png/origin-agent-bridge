@@ -25,10 +25,17 @@ Windows x64, Python 3.12.14, locked environment:
 | --- | --- |
 | Locked offline dependency sync | Passed; project version updated to 0.2.12, no new runtime dependency |
 | Ruff check and format | Passed; 96 Python files formatted |
-| Full pytest suite | **281 passed, 2 skipped, 82.20 seconds** |
+| Full pytest suite | **293 passed, 2 skipped, 91.30 seconds** |
+| Focused connector lifecycle suite after alias-absence fix | **38 passed, 58.24 seconds** |
+| Independent review of alias-absence fix | Passed; 9 separately exercised in-memory cases, including marker spoofing and cleanup refusal |
 | Actual CLI version and lifecycle subcommands | 0.2.12; run/status/stop/startup/initialize routes available |
 | Existing account/task discovery | Both configured accounts matched exactly one owned registration; read-only, no changes |
 | Real PowerShell/DPAPI fixture | Passed with dummy secret, Unicode path, inherited PowerShell 7 module paths, no key in argv/output, scoped state restored |
+| Frozen Windows review candidate | Built; 315 package files verified against SHA-256 inventory; frozen source hashes match; executable reports 0.2.12 |
+
+The unpublished ZIP/MCPB candidate is 33,180,676 bytes (31.64 MiB). Both have
+SHA-256 `2ac7ffcab4cf6b2368a3cd4b0f4f4260fafa7710e7485b1bc01b9a567ba7c3ff`.
+This identifies the reviewed package, not a published or installed release.
 
 Both skips are Windows symbolic-link creation privilege limits. Linux execution
 of the candidate remains a CI gate. The real Windows Task Scheduler adapter was
@@ -57,10 +64,18 @@ publication-before-pointer rollback, changed-file/task conflicts and preservatio
 of current stop preferences during a completed-install rollback. New profile
 initialization is locked, bounded, validated and refuses existing identities.
 
+A read-only query to the installed official tunnel client 0.0.14 established its
+never-registered-alias diagnostic. Only exit 1 with that exact diagnostic for the
+requested alias permits initial connection, after ownership reconciliation. This
+uses the existing validated tunnel identity; it does not create or rotate one.
+Other exit codes, extra diagnostics, authentication errors, bad JSON, conflicting
+profiles/directories and a reserved absence marker supplied in successful JSON
+are rejected. The 11 rejection cases prove that none starts a connection.
+
 ## Open gates
 
 - Independent governance review before publication or installation.
-- Published CI, frozen package/checksum/size and native self-check for this candidate.
+- Published CI and native self-check for this frozen candidate.
 - Actual installed dual-account upgrade, registration readback, stop/start and rollback.
 - Fresh app/account connection, catalog and tool call for each intended host/account.
 - Safe-window logon/reboot/network/sleep/logoff acceptance; no disruptive test was run.

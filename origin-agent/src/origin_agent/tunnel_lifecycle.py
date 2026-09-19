@@ -312,6 +312,15 @@ class Controller:
                 except subprocess.TimeoutExpired:
                     continue
             if proc.returncode:
+                # Official tunnel-client v0.0.14 uses this exact diagnostic for a
+                # never-registered alias. This is absence, not a generic status failure.
+                absent = f"alias {self.c.alias} is not known; run create or connect first".encode()
+                if (
+                    proc.returncode == 1
+                    and args == ["runtimes", "status", self.c.alias, "--json"]
+                    and (out + err).strip() == absent
+                ):
+                    return {"alias_missing": True}
                 lower = err.lower()
                 if any(x in lower for x in (b"unauthorized", b"forbidden", b"invalid api key")):
                     raise LifecycleError("authentication_required")
@@ -322,7 +331,9 @@ class Controller:
                 value = json.loads(out)
             except (ValueError, UnicodeDecodeError) as exc:
                 raise LifecycleError("invalid_command_output") from exc
-            if not isinstance(value, dict):
+            # Reserved internal marker: successful vendor JSON cannot claim absence
+            # or bypass the profile checks in probe().
+            if not isinstance(value, dict) or "alias_missing" in value:
                 raise LifecycleError("invalid_command_output")
             return value
         finally:
@@ -332,6 +343,8 @@ class Controller:
 
     def probe(self, timeout=None):
         value = self.command_json(["runtimes", "status", self.c.alias, "--json"], timeout=timeout)
+        if value.get("alias_missing") is True:
+            return value
         # Incomplete/mismatched alias metadata never authorizes adoption or a new connect.
         for name, expected in (("profile_name", self.c.profile), ("profile_dir", str(self.c.profile_dir))):
             actual = value.get(name)
@@ -520,6 +533,11 @@ class Controller:
     def ensure_ready(self):
         daemons, frontends = self.scan()
         value = self.probe()
+        if value.get("alias_missing") is True:
+            # No new remote identity is created: connect still requires the user's
+            # existing validated tunnel ID. Reconcile OS owners before registration.
+            self.reconcile()
+            return self.connect()
         if self.verified_ready(value, daemons, frontends):
             return daemons[0]
         if len(daemons) == 1:

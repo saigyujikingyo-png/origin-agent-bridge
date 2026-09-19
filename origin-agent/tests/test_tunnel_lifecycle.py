@@ -115,6 +115,54 @@ def test_delayed_ready_has_one_daemon_and_one_connect(world):
     assert not daemon.live() and not any(p.live() for p in children)
 
 
+def test_never_registered_alias_connects_once_using_existing_identity(world):
+    controller, _ = setup(world)
+    original = controller.c.profile_path.read_bytes()
+    assert controller.probe() == {"alias_missing": True}
+    assert controller.ensure_ready().live()
+    assert count(world, controller.c.alias) == 1
+    assert controller.c.profile_path.read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    ("override", "error"),
+    [
+        (
+            {"stderr": "alias different-account is not known; run create or connect first", "returncode": 1},
+            "command_failed",
+        ),
+        ({"stderr": "network unavailable", "returncode": 1}, "command_failed"),
+        ({"stderr": "unauthorized", "returncode": 1}, "authentication_required"),
+        (
+            {"stderr": "alias test-absent is not known; run create or connect first", "returncode": 2},
+            "command_failed",
+        ),
+        (
+            {
+                "stderr": "unauthorized\nalias test-absent is not known; run create or connect first",
+                "returncode": 1,
+            },
+            "authentication_required",
+        ),
+        ({"stdout": "{broken"}, "invalid_command_output"),
+        ({"stdout": "[]"}, "invalid_command_output"),
+        ({"stdout": '{"alias_missing":true}'}, "invalid_command_output"),
+        (
+            {"stdout": '{"alias_missing":true,"profile_name":"different","profile_dir":"wrong"}'},
+            "invalid_command_output",
+        ),
+        ({"stdout": '{"profile_name":"different","profile_dir":"wrong"}'}, "runtime_alias_conflict"),
+        ({"stdout": '{"profile_name":"test-absent","profile_dir":"wrong"}'}, "runtime_alias_conflict"),
+    ],
+)
+def test_status_failure_cannot_be_treated_as_alias_absence(world, override, error):
+    controller, _ = setup(world, {"status_override": override}, name="test-absent")
+    with pytest.raises(LifecycleError, match=error):
+        controller.supervise()
+    assert count(world, controller.c.alias) == 0
+    assert controller.scan() == ([], [])
+
+
 @pytest.mark.parametrize(
     "failure", ["before_spawn", "after_spawn", "status_fail_after_spawn", "connect_hang", "no_child"]
 )
