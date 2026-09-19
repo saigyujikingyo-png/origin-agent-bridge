@@ -1,7 +1,7 @@
 # Origin Companion 0.2.12 lifecycle candidate
 
 Date: 19 September 2026. Baseline: 513ea6f (released runtime 0.2.11).
-Status: **source and isolated package checks passed; publication/installation and host gates pending governance review**.
+Status: **source and isolated package checks passed; draft PR opened; amended candidate review, installation and host gates remain pending**.
 
 ## Change and invariants
 
@@ -25,26 +25,34 @@ Windows x64, Python 3.12.14, locked environment:
 | --- | --- |
 | Locked offline dependency sync | Passed; project version updated to 0.2.12, no new runtime dependency |
 | Ruff check and format | Passed; 98 Python files formatted |
-| Full pytest suite | **345 passed, 2 skipped, 99.92 seconds** |
-| Installation and admission focused suite | **82 passed, 1 skipped, 11.84 seconds** |
+| Full pytest suite | **346 passed, 2 skipped, 93.88 seconds** |
+| Installation and admission focused suite before the Scheduler JSON correction | **82 passed, 1 skipped, 11.84 seconds**; the full suite above includes the corrected adapter |
 | Focused connector lifecycle suite after alias-absence fix | **38 passed, 58.24 seconds** |
 | Independent review of alias-absence fix | Passed; 9 separately exercised in-memory cases, including marker spoofing and cleanup refusal |
 | Independent final transaction review | Passed after fixing each reproduced race; 16 recovery cases plus the original wrong-receipt activation reproduction independently rechecked |
 | Actual CLI version and lifecycle subcommands | 0.2.12; run/status/stop/startup/initialize routes available |
 | Existing account/task discovery | Both configured accounts matched exactly one owned registration; read-only, no changes |
+| Real Windows Scheduler adapter | Passed: uniquely named current-user harmless task registration, readback, disable, XML restoration and exact cleanup; no command executed |
 | Real PowerShell/DPAPI fixture | Passed with dummy secret, Unicode path, inherited PowerShell 7 module paths, no key in argv/output, scoped state restored |
 | Frozen Windows review candidate | Built; 315 package files verified against SHA-256 inventory; frozen source hashes match; executable reports 0.2.12 |
 | Frozen MCP protocol and output contracts | Passed in auto/legacy transports and economy/full profiles; 5/14 advertised schemas, status, compatible text and economy help checked in isolated state |
 
-The rebuilt unpublished ZIP/MCPB candidate is 33,196,799 bytes (31.66 MiB). Both have
-SHA-256 `edbbbdf5ba553b985bbe5f3f6da7fa7603aa009354fd6204a3d8859e42f95dad`.
-The earlier review candidate was withdrawn after governance reproduced a migration/start race.
-Only this rebuilt candidate includes the reviewed transaction-recovery fixes.
+The rebuilt unpublished ZIP/MCPB candidate is 33,196,535 bytes (31.66 MiB). Both have
+SHA-256 `b52e1bd8adeb17f5bdd760b56203d367f5ee05c7880c44ea93b63a880cbb75da`.
+Earlier candidates are withdrawn. The `edbbbdf5` candidate passed source review
+but failed the actual Windows Scheduler prerequisite before any registration:
+Windows PowerShell 5.1 emitted empty output for a null result. The corrected driver
+writes explicit JSON null for absent tasks and successful void operations; malformed
+or missing unexpected output still fails parsing. A real read-only regression
+failed before the change and passes now. The disposable task completed all steps,
+restored identical exported XML and was removed after exact ownership verification.
 
-Both skips are Windows symbolic-link creation privilege limits. Linux execution
-of the candidate remains a CI gate. The real Windows Task Scheduler adapter was
-read, but task creation/migration/rollback has not yet been exercised on installed
-registrations. A fixture is not acceptance of an actual logon or cloud account.
+Initial GitHub Windows CI also exposed fixture reads that relied on the system
+encoding for generated UTF-8 configuration. Test readers now specify UTF-8; the
+runtime's encoding was already explicit. Subsequent CI is a separate gate.
+Both local skips are Windows symbolic-link creation privilege limits. Installed
+account migration/rollback, actual logon and cloud account calls remain unverified
+for this candidate. The Scheduler fixture does not establish those outcomes.
 
 ## Failure-path coverage
 
@@ -94,7 +102,7 @@ are rejected. The 11 rejection cases prove that none starts a connection.
 
 ## Open gates
 
-- Independent governance review before publication or installation.
+- Independent review of the amended Scheduler fix and package before installation or release.
 - Published CI and native self-check for this frozen candidate.
 - Actual installed dual-account upgrade, registration readback, stop/start and rollback.
 - Fresh app/account connection, catalog and tool call for each intended host/account.

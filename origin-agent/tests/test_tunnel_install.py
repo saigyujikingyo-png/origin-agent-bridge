@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import uuid
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -9,6 +10,13 @@ import pytest
 from origin_agent import __version__, tunnel_install
 from origin_agent.installation import Changes, contents, digest, integrate, rollback
 from origin_agent.lifecycle_admission import intent_guard
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Task Scheduler adapter")
+def test_real_windows_task_adapter_reads_absent_task_as_null():
+    tasks = tunnel_install.WindowsTasks()
+    name = "Origin Companion Missing Fixture-" + uuid.uuid4().hex
+    assert tasks.read(name) is None
 
 
 class Tasks:
@@ -67,7 +75,7 @@ class Lifecycle:
                 and digest(contents(intent)) != preconditions["expected_intent_sha256"]
             ):
                 raise RuntimeError("private intent precondition conflict")
-            before = json.loads(intent.read_text()) if intent.exists() else {"enabled": True}
+            before = json.loads(intent.read_text(encoding="utf-8")) if intent.exists() else {"enabled": True}
             data = json.dumps(
                 {**before, "stop_requested": True, "updated_at": f"stop-{len(self.stopped)}"}
             ).encode()
@@ -82,7 +90,7 @@ class Lifecycle:
         return {"state": "stopped", "intent_sha256": expected}
 
     def allow_start(self, config_path):
-        config = json.loads(Path(config_path).read_text())
+        config = json.loads(Path(config_path).read_text(encoding="utf-8"))
         (Path(config["cloud_root"]) / "intent.json").write_text(
             json.dumps({"enabled": True, "stop_requested": False})
         )
@@ -144,7 +152,7 @@ def test_upgrade_migrates_both_accounts_and_rollback_preserves_identity(setup):
     assert lifecycle.stopped == ["origin-agent", "origin-agent-school"]
     assert tasks.starts == []
     for cloud, secret, record in ((personal, personal_secret, first), (school, school_secret, second)):
-        config = json.loads((cloud / "runtime-config.json").read_text())
+        config = json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))
         assert config["secret_file"] == str(secret.resolve())
         assert config["task_name"] == record["name"]
         assert config["profile_dir"] == str((cloud / "profiles").resolve())
@@ -233,7 +241,9 @@ def test_rollback_refuses_changed_task_before_restoring_files(setup):
 def test_multiple_profiles_in_one_root_refuse_ambiguous_scope(setup):
     bundle, state, tasks, lifecycle = setup
     cloud, _, _ = profile(state, tasks)
-    (cloud / "profiles/extra.yaml").write_text((cloud / "profiles/origin-agent.yaml").read_text())
+    (cloud / "profiles/extra.yaml").write_text(
+        (cloud / "profiles/origin-agent.yaml").read_text(encoding="utf-8")
+    )
     with pytest.raises(ValueError, match="one managed profile"):
         integrate(bundle, state, [])
     assert lifecycle.stopped == []
@@ -249,7 +259,7 @@ def test_stop_intent_and_disabled_tasks_hold_until_pointer_commits(setup, monkey
         if path == state / "install.json":
             assert (state / "install.json").read_bytes() == before
             assert tasks.read(task["name"])["enabled"] is False
-            assert json.loads((cloud / "intent.json").read_text())["stop_requested"] is True
+            assert json.loads((cloud / "intent.json").read_text(encoding="utf-8"))["stop_requested"] is True
         return original_put(self, path, data)
 
     monkeypatch.setattr(Changes, "put", inspect_commit)
@@ -264,7 +274,7 @@ def test_unconfigured_profiles_do_not_gain_enabled_startup_on_upgrade(setup):
     tasks.tasks.pop((task["path"], task["name"]))
     result = integrate(bundle, state, [])
     assert result["private_tunnels"][0]["startup_enabled"] is False
-    config = json.loads((cloud / "runtime-config.json").read_text())
+    config = json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))
     assert tasks.read(config["task_name"])["enabled"] is False
     assert tasks.starts == []
     rollback(state, result["receipt_id"])
@@ -299,7 +309,7 @@ def test_explicit_start_resumes_disabled_profile_only_after_migration(setup):
     assert result["profiles"][0]["ready_verified"] is False
     assert tasks.read(task["name"])["enabled"] is True
     assert tasks.starts == [("\\", task["name"])]
-    current = json.loads((cloud / "intent.json").read_text())
+    current = json.loads((cloud / "intent.json").read_text(encoding="utf-8"))
     assert current["enabled"] is True and current["stop_requested"] is False
 
 
@@ -319,7 +329,7 @@ def test_invalid_profile_does_not_rewrite_or_attempt_credential_recovery(setup):
     bundle, state, tasks, lifecycle = setup
     cloud, secret, _ = profile(state, tasks)
     source = cloud / "profiles/origin-agent.yaml"
-    original = json.loads(source.read_text())
+    original = json.loads(source.read_text(encoding="utf-8"))
     original["control_plane"]["api_key"] = "literal-not-accepted"
     source.write_text(json.dumps(original))
     before = source.read_bytes()
@@ -340,7 +350,7 @@ def test_receipt_never_copies_profile_identifier_or_key_data(setup):
             content = file.read_bytes()
             assert b"tunnel_aaaaaaaa" not in content
             assert secret.read_bytes() not in content
-    assert json.loads((cloud / "runtime-config.json").read_text())["schema_version"] == 1
+    assert json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))["schema_version"] == 1
 
 
 def test_disabled_startup_adapter_only_disables_exact_scope(setup):
@@ -388,7 +398,7 @@ def test_partial_explicit_start_is_reconciled_before_rollback(setup, monkeypatch
     # Starting is now a separate, postcommit action. Rollback reconciles workers
     # while preserving that current user preference rather than deleting it.
     for cloud in (first, second):
-        current = json.loads((cloud / "intent.json").read_text())
+        current = json.loads((cloud / "intent.json").read_text(encoding="utf-8"))
         assert current["enabled"] is True and current["stop_requested"] is False
     assert (first / "Run-ChatGPT-Tunnel.ps1").read_bytes() == b"# old account launcher"
 
@@ -436,7 +446,9 @@ def test_existing_task_action_via_directory_alias_is_reused(setup, tmp_path):
     tasks.register(task)
     integrate(bundle, state, [])
     assert len(tasks.tasks) == 1
-    assert json.loads((cloud / "runtime-config.json").read_text())["task_name"] == task["name"]
+    assert (
+        json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))["task_name"] == task["name"]
+    )
 
 
 def test_initialize_refuses_existing_identity_before_vendor_call(setup, monkeypatch):
@@ -515,7 +527,10 @@ def test_initialize_publishes_only_new_valid_profile_under_ownership_guard(setup
         )
         assert result["state"] == "initialized"
         assert result["started"] is False
-        assert json.loads(profile_path.read_text())["control_plane"]["api_key"] == "env:CONTROL_PLANE_API_KEY"
+        assert (
+            json.loads(profile_path.read_text(encoding="utf-8"))["control_plane"]["api_key"]
+            == "env:CONTROL_PLANE_API_KEY"
+        )
     assert tasks.starts == []
 
 
@@ -583,7 +598,7 @@ def assert_start_admission_denied(config_path):
     from origin_agent.lifecycle_admission import AdmissionError
     from origin_agent.tunnel_lifecycle import allow_start, run
 
-    config = json.loads(Path(config_path).read_text())
+    config = json.loads(Path(config_path).read_text(encoding="utf-8"))
     intent = Path(config["cloud_root"]) / "intent.json"
     before = contents(intent)
     for operation in (allow_start, run):
@@ -831,7 +846,7 @@ def test_rollback_keeps_legacy_task_disabled_until_commit(setup, monkeypatch):
     def restore(name, path, xml):
         enabled = tunnel_install.record_from_xml(name, path, xml)["enabled"]
         if enabled:
-            assert json.loads(receipt_path.read_text())["status"] == "rolled_back"
+            assert json.loads(receipt_path.read_text(encoding="utf-8"))["status"] == "rolled_back"
             assert pending_transaction(state) is None
             with pytest.raises(AdmissionError, match="busy"), admitted(state):
                 raise AssertionError("Activation must hold fresh admission")
@@ -874,7 +889,7 @@ def test_pending_activation_retries_by_readback_without_repeating_shutdown(
     monkeypatch.setattr(tasks, "restore", restore)
     with pytest.raises(RuntimeError, match="activation response failed"):
         rollback(state, result["receipt_id"])
-    saved = json.loads(receipt_path.read_text())
+    saved = json.loads(receipt_path.read_text(encoding="utf-8"))
     assert saved["status"] == "rolled_back"
     assert saved["rollback_activation"][0]["state"] == "pending"
     assert tasks.read(task["name"])["enabled"] is write_completed
@@ -885,7 +900,10 @@ def test_pending_activation_retries_by_readback_without_repeating_shutdown(
         with pytest.raises(RuntimeError, match="activation pending"):
             operation()
         assert pending_transaction(state) is None
-        assert json.loads(receipt_path.read_text())["rollback_activation"][0]["state"] == "pending"
+        assert (
+            json.loads(receipt_path.read_text(encoding="utf-8"))["rollback_activation"][0]["state"]
+            == "pending"
+        )
     rollback(state, result["receipt_id"])
     assert lifecycle.stopped == shutdowns
     assert tasks.read(task["name"])["enabled"] is True
@@ -903,7 +921,9 @@ def test_manual_disable_between_rollback_commit_and_activation_wins(setup, monke
     old_activate = tunnel_install.activate_rollback
 
     def activate(root, receipt_id):
-        assert json.loads((receipt_root / "receipt.json").read_text())["status"] == "rolled_back"
+        assert (
+            json.loads((receipt_root / "receipt.json").read_text(encoding="utf-8"))["status"] == "rolled_back"
+        )
         if preference == "startup_only":
             tunnel_install.disable_startup(receipt_root / "tunnel-config-0.json")
         else:
@@ -914,9 +934,9 @@ def test_manual_disable_between_rollback_commit_and_activation_wins(setup, monke
     monkeypatch.setattr(tunnel_install, "activate_rollback", activate)
     rollback(state, result["receipt_id"])
     assert not tasks.read(task["name"])["enabled"]
-    saved = json.loads((receipt_root / "receipt.json").read_text())
+    saved = json.loads((receipt_root / "receipt.json").read_text(encoding="utf-8"))
     assert saved["rollback_activation"][0]["reason"] == "manual_stop_preserved"
-    intent = json.loads((cloud / "intent.json").read_text())
+    intent = json.loads((cloud / "intent.json").read_text(encoding="utf-8"))
     if preference == "startup_only":
         assert intent == {"startup_enabled": False}
     assert tasks.starts == []
@@ -968,7 +988,9 @@ def test_crash_after_finish_restores_original_intent_after_recovery_stop(setup, 
     with pytest.raises(KeyboardInterrupt):
         integrate(bundle, state, [])
     pending = pending_transaction(state)
-    receipt = json.loads((state / "installations" / pending["receipt_id"] / "receipt.json").read_text())
+    receipt = json.loads(
+        (state / "installations" / pending["receipt_id"] / "receipt.json").read_text(encoding="utf-8")
+    )
     assert receipt["status"] == "preparing"
     rollback(state, pending["receipt_id"])
     assert contents(intent) == original

@@ -171,7 +171,10 @@ switch ($request.operation) {
     }
     default { throw 'Unsupported startup operation.' }
 }
-ConvertTo-Json -InputObject $result -Depth 12 -Compress
+# Windows PowerShell 5.1 emits no JSON for $null, including absent tasks and
+# successful void operations. Keep these responses distinct from broken output.
+if ($null -eq $result) { [Console]::Out.WriteLine('null') }
+else { ConvertTo-Json -InputObject $result -Depth 12 -Compress }
 """
 
 
