@@ -12,7 +12,7 @@ These areas define the scope, not a list of completed products. This repository 
 
 ## Shared principles
 
-Read the [Chembridge development and delivery principles](DEVELOPMENT_PRINCIPLES.md), version **2026-09-14.1**, before development. The defaults are public GitHub open-source distribution with an explicit licence and English documentation, accessible installation for non-developers, one plugin across ChatGPT Chat, local Work, cloud Work, Codex and other suitable agents, multiple model capabilities, economical-model support, **GPT-5.6 Terra + max as the benchmark**, verified task-specific Edinburgh requirements, and lightweight, responsive, efficient operation with careful use of model quota. Record evidence, compatibility and remaining work separately; these goals are not all certified achievements.
+Read the [Chembridge development and delivery principles](DEVELOPMENT_PRINCIPLES.md), version **2026-09-19.1**, before development. The defaults are public GitHub open-source distribution with an explicit licence and English documentation, accessible installation for non-developers, one plugin across ChatGPT Chat, local Work, cloud Work, Codex and other suitable agents, multiple model capabilities, economical-model support, **GPT-5.6 Terra + max as the benchmark**, verified task-specific Edinburgh requirements, and lightweight, responsive, efficient operation with careful use of model quota. Record evidence, compatibility and remaining work separately; these goals are not all certified achievements.
 
 Each new plugin must reference these principles in its own `AGENTS.md`, so users do not need to repeat them in every development task. New user instructions take precedence. Tasks already running must reread the entrypoint to adopt updated rules.
 

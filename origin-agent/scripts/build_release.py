@@ -132,6 +132,7 @@ def main():
         "Connect-OpenAI.cmd",
         "Enable-ChatGPT-Tunnel-Startup.ps1",
         "Run-ChatGPT-Tunnel.ps1",
+        "Stop-ChatGPT-Tunnel.ps1",
     ):
         shutil.copy2(ROOT / "scripts" / filename, bundle / filename)
     shutil.copytree(ROOT / "hosts/workbuddy", bundle / "workbuddy")

@@ -103,6 +103,8 @@ class Changes:
 
 
 def rollback(state_root, receipt_id):
+    from . import tunnel_install
+
     valid_id(receipt_id)
     root = Path(state_root) / "installations" / receipt_id
     path = root / "receipt.json"
@@ -112,6 +114,10 @@ def rollback(state_root, receipt_id):
     # Check every file before changing any; never overwrite edits made after installation.
     restore = []
     for item in receipt["files"]:
+        # Starting/stopping a connector is a live user preference, not a later
+        # source/config edit. Completed rollback preserves that current preference.
+        if receipt["status"] == "installed" and item.get("lifecycle_intent"):
+            continue
         target = Path(item["path"])
         current = digest(contents(target))
         if current == item["before"]:
@@ -123,17 +129,23 @@ def rollback(state_root, receipt_id):
         if digest(data) != item["before"]:
             raise RuntimeError("Installation backup failed integrity verification")
         restore.append((target, data))
+    tasks, task_restore = tunnel_install.prepare_task_rollback(receipt, root)
+    tunnel_intents = tunnel_install.quiesce_rollback(receipt, root, tasks)
     for target, data in reversed(restore):
         if data is None:
             target.unlink(missing_ok=True)
         else:
             atomic_bytes(target, data)
+    tunnel_install.restore_rollback_intents(receipt, root, tunnel_intents)
+    tunnel_install.restore_tasks(tasks, task_restore, receipt, root)
     receipt["status"] = "rolled_back"
     write_json(path, receipt)
     return {"receipt_id": receipt_id, "status": "rolled_back", "restored_files": len(restore)}
 
 
 def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
+    from . import tunnel_install
+
     bundle, state_root = Path(bundle).resolve(), Path(state_root).resolve()
     user_home = Path(user_home or Path.home()).resolve()
     appdata = Path(appdata or os.environ.get("APPDATA", user_home / "AppData/Roaming")).resolve()
@@ -179,6 +191,9 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
     )
     changes = Changes(state_root)
     try:
+        # Reconcile all account scopes before changing a launcher or active engine.
+        # Migration preserves task preferences and never starts a connector.
+        private_tunnels = tunnel_install.migrate(changes, bundle, state_root)
         for path, data in plans[:-1]:
             changes.put(path, data)
         if "codex-direct" in hosts:
@@ -187,6 +202,7 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
             changes.codex(executable, state_root, user_home)
         # The installation pointer changes only after all selected host configurations succeed.
         changes.put(*plans[-1])
+        tunnel_install.finish_migration(changes)
         changes.value.update(status="installed", version=__version__, hosts=hosts, bundle=str(bundle))
         changes.save()
     except Exception:
@@ -198,8 +214,10 @@ def integrate(bundle, state_root, hosts, *, user_home=None, appdata=None):
         "receipt_id": changes.root.name,
         "executable": str(executable),
         "restart_hosts": True,
+        "private_tunnels": private_tunnels,
         "chatgpt": "Use Connect-OpenAI.cmd for the same registered plugin in Chat, Work and Codex. "
-        "Existing tunnel configuration is preserved; reconnect to load the new engine.",
+        "Private account identities and startup preferences are preserved. "
+        "Start the private connector explicitly after upgrade; installation does not start it.",
     }
 
 
