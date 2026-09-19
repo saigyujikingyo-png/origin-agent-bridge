@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -22,12 +23,20 @@ def get(flag):
 
 
 def read(path, default=None):
-    return json.loads(path.read_text()) if path.exists() else default
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
 
 
 def write(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value))
+    # The lifecycle tests deliberately terminate daemons during startup. A PID
+    # record must appear complete or absent, never truncated halfway through a write.
+    fd, temporary = tempfile.mkstemp(prefix=".pending-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(value, stream)
+        os.replace(temporary, path)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
 
 
 def launch(arguments):
