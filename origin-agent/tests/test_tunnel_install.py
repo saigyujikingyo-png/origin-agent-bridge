@@ -7,7 +7,8 @@ from types import SimpleNamespace
 import pytest
 
 from origin_agent import __version__, tunnel_install
-from origin_agent.installation import Changes, integrate, rollback
+from origin_agent.installation import Changes, contents, digest, integrate, rollback
+from origin_agent.lifecycle_admission import intent_guard
 
 
 class Tasks:
@@ -55,16 +56,30 @@ class Lifecycle:
         self.stopped = []
         self.fail = False
 
-    def stop(self, config_path, disable=False):
+    def stop(self, config_path, disable=False, **preconditions):
         assert disable is False
         config = json.loads(Path(config_path).read_text(encoding="utf-8"))
         self.stopped.append(config["alias"])
         intent = Path(config["cloud_root"]) / "intent.json"
-        before = json.loads(intent.read_text()) if intent.exists() else {"enabled": True}
-        intent.write_text(json.dumps({**before, "stop_requested": True}))
+        with intent_guard(intent.parent):
+            if (
+                "expected_intent_sha256" in preconditions
+                and digest(contents(intent)) != preconditions["expected_intent_sha256"]
+            ):
+                raise RuntimeError("private intent precondition conflict")
+            before = json.loads(intent.read_text()) if intent.exists() else {"enabled": True}
+            data = json.dumps(
+                {**before, "stop_requested": True, "updated_at": f"stop-{len(self.stopped)}"}
+            ).encode()
+            expected = digest(data)
+            if callback := preconditions.get("before_intent_write"):
+                callback(expected)
+            intent.write_bytes(data)
         if self.fail:
-            raise RuntimeError("unresolved owner")
-        return {"state": "stopped"}
+            error = RuntimeError("unresolved owner")
+            error.intent_sha256 = expected
+            raise error
+        return {"state": "stopped", "intent_sha256": expected}
 
     def allow_start(self, config_path):
         config = json.loads(Path(config_path).read_text())
@@ -279,10 +294,13 @@ def test_explicit_start_resumes_disabled_profile_only_after_migration(setup):
     (state / "install.json").write_text(json.dumps({"root": str(bundle), "version": __version__}))
     (cloud / "intent.json").write_text('{"enabled":false,"stop_requested":true}')
     result = tunnel_install.install_startup(state, start_now=True)
-    assert result["profiles"][0]["started"] is True
+    assert result["profiles"][0]["start_requested"] is True
+    assert result["profiles"][0]["started"] is False
+    assert result["profiles"][0]["ready_verified"] is False
     assert tasks.read(task["name"])["enabled"] is True
     assert tasks.starts == [("\\", task["name"])]
-    assert json.loads((cloud / "intent.json").read_text()) == {"enabled": True, "stop_requested": False}
+    current = json.loads((cloud / "intent.json").read_text())
+    assert current["enabled"] is True and current["stop_requested"] is False
 
 
 def test_startup_configuration_without_explicit_start_preserves_stop(setup):
@@ -367,8 +385,11 @@ def test_partial_explicit_start_is_reconciled_before_rollback(setup, monkeypatch
         tunnel_install.install_startup(state, start_now=True)
     assert lifecycle.stopped == ["origin-agent", "second", "origin-agent", "second"]
     assert tasks.tasks == original_tasks
-    assert not (first / "intent.json").exists()
-    assert not (second / "intent.json").exists()
+    # Starting is now a separate, postcommit action. Rollback reconciles workers
+    # while preserving that current user preference rather than deleting it.
+    for cloud in (first, second):
+        current = json.loads((cloud / "intent.json").read_text())
+        assert current["enabled"] is True and current["stop_requested"] is False
     assert (first / "Run-ChatGPT-Tunnel.ps1").read_bytes() == b"# old account launcher"
 
 
@@ -556,3 +577,442 @@ def test_real_powershell_wrapper_passes_scoped_home_and_key_without_argv_secret(
     assert value["state"] == str(state)
     assert value["keyPresent"] is True
     assert "sk-" not in json.dumps(value)
+
+
+def assert_start_admission_denied(config_path):
+    from origin_agent.lifecycle_admission import AdmissionError
+    from origin_agent.tunnel_lifecycle import allow_start, run
+
+    config = json.loads(Path(config_path).read_text())
+    intent = Path(config["cloud_root"]) / "intent.json"
+    before = contents(intent)
+    for operation in (allow_start, run):
+        with pytest.raises(AdmissionError, match="lifecycle_"):
+            operation(config_path)
+        assert contents(intent) == before
+
+
+@pytest.mark.parametrize(
+    "boundary", ["quiesce", "config_before", "config_after", "pointer_before", "pointer_after", "receipt"]
+)
+def test_migration_rejects_supported_starts_at_every_publication_boundary(setup, monkeypatch, boundary):
+    from origin_agent import tunnel_lifecycle
+    from origin_agent.lifecycle_admission import pending_transaction
+
+    bundle, state, tasks, lifecycle = setup
+    cloud, _, _ = profile(state, tasks)
+    observations = []
+
+    def forbidden_supervise(self):
+        raise AssertionError("A denied start must never reach runtime supervision")
+
+    monkeypatch.setattr(tunnel_lifecycle.Controller, "supervise", forbidden_supervise)
+    original_stop, original_put, original_save = lifecycle.stop, Changes.put, Changes.save
+
+    def stop(config, **kwargs):
+        result = original_stop(config, **kwargs)
+        if boundary == "quiesce":
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+        return result
+
+    def put(self, path, data):
+        config = self.root / "tunnel-config-0.json"
+        if (boundary == "config_before" and path == cloud / "runtime-config.json") or (
+            boundary == "pointer_before" and path == state / "install.json"
+        ):
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+        value = original_put(self, path, data)
+        if (boundary == "config_after" and path == cloud / "runtime-config.json") or (
+            boundary == "pointer_after" and path == state / "install.json"
+        ):
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+        return value
+
+    def save(self):
+        value = original_save(self)
+        if boundary == "receipt" and self.value["status"] == "installed":
+            assert_start_admission_denied(self.root / "tunnel-config-0.json")
+            observations.append(boundary)
+        return value
+
+    monkeypatch.setattr(lifecycle, "stop", stop)
+    monkeypatch.setattr(Changes, "put", put)
+    monkeypatch.setattr(Changes, "save", save)
+    integrate(bundle, state, [])
+    assert observations == [boundary]
+    assert pending_transaction(state) is None
+    assert not (cloud / "intent.json").exists()
+    assert tasks.starts == []
+
+
+@pytest.mark.parametrize("boundary", ["quiesce", "pointer_before", "pointer_after", "tasks"])
+def test_rollback_holds_start_admission_through_restoration(setup, monkeypatch, boundary):
+    from origin_agent import installation
+    from origin_agent.lifecycle_admission import pending_transaction
+
+    bundle, state, tasks, lifecycle = setup
+    _, _, _ = profile(state, tasks)
+    result = integrate(bundle, state, [])
+    config = state / "installations" / result["receipt_id"] / "tunnel-config-0.json"
+    observations = []
+    original_stop, original_atomic, original_restore = (
+        lifecycle.stop,
+        installation.atomic_bytes,
+        tasks.restore,
+    )
+
+    def stop(path, **kwargs):
+        result = original_stop(path, **kwargs)
+        if boundary == "quiesce":
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+        return result
+
+    def atomic(path, data):
+        if boundary == "pointer_before" and path == state / "install.json":
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+        original_atomic(path, data)
+        if boundary == "pointer_after" and path == state / "install.json":
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+
+    def restore(name, path, xml):
+        original_restore(name, path, xml)
+        if boundary == "tasks":
+            assert_start_admission_denied(config)
+            observations.append(boundary)
+
+    monkeypatch.setattr(lifecycle, "stop", stop)
+    monkeypatch.setattr(installation, "atomic_bytes", atomic)
+    monkeypatch.setattr(tasks, "restore", restore)
+    rollback(state, result["receipt_id"])
+    assert observations == [boundary]
+    assert pending_transaction(state) is None
+
+
+def test_second_install_cannot_read_or_publish_while_first_owns_transaction(setup, monkeypatch):
+    from origin_agent.lifecycle_admission import AdmissionError, pending_transaction
+
+    bundle, state, tasks, _ = setup
+    profile(state, tasks)
+    original_put = Changes.put
+    blocked = []
+
+    def put(self, path, data):
+        if path == state / "install.json":
+            before = path.read_bytes()
+            with pytest.raises(AdmissionError, match="busy"):
+                integrate(bundle, state, [])
+            assert path.read_bytes() == before
+            blocked.append(True)
+        return original_put(self, path, data)
+
+    monkeypatch.setattr(Changes, "put", put)
+    integrate(bundle, state, [])
+    assert blocked == [True]
+    assert pending_transaction(state) is None
+    assert tasks.starts == []
+
+
+def test_abandoned_published_install_requires_matching_receipt_recovery(setup, monkeypatch):
+    from origin_agent.lifecycle_admission import AdmissionError, pending_transaction
+
+    bundle, state, tasks, _ = setup
+    cloud, _, _ = profile(state, tasks)
+    before = (state / "install.json").read_bytes()
+    original_put = Changes.put
+
+    def abandon(self, path, data):
+        if path == state / "install.json":
+            raise KeyboardInterrupt("simulate owner death after publishing config")
+        return original_put(self, path, data)
+
+    monkeypatch.setattr(Changes, "put", abandon)
+    with pytest.raises(KeyboardInterrupt):
+        integrate(bundle, state, [])
+    pending = pending_transaction(state)
+    assert pending
+    assert_start_admission_denied(cloud / "runtime-config.json")
+    with pytest.raises(AdmissionError, match="recovery_required"):
+        integrate(bundle, state, [])
+    wrong = Changes(state)
+    with pytest.raises(AdmissionError, match="recovery_required"):
+        rollback(state, wrong.root.name)
+    rollback(state, pending["receipt_id"])
+    assert pending_transaction(state) is None
+    assert (state / "install.json").read_bytes() == before
+    assert (cloud / "Run-ChatGPT-Tunnel.ps1").read_bytes() == b"# old account launcher"
+
+
+@pytest.mark.parametrize("boundary", ["before_stop", "after_stop", "restore"])
+def test_concurrent_manual_stop_is_never_absorbed_or_restored_over(setup, monkeypatch, boundary):
+    from origin_agent.lifecycle_admission import pending_transaction
+
+    bundle, state, tasks, lifecycle = setup
+    cloud, _, _ = profile(state, tasks)
+    intent = cloud / "intent.json"
+    manual = b'{"enabled":false,"stop_requested":true,"owner":"concurrent user stop"}'
+    original_stop, original_restore = lifecycle.stop, tunnel_install._restore_intent
+
+    def user_stop():
+        with intent_guard(cloud):
+            intent.write_bytes(manual)
+
+    def stop(path, **kwargs):
+        if boundary == "before_stop":
+            user_stop()
+        result = original_stop(path, **kwargs)
+        if boundary == "after_stop":
+            user_stop()
+        return result
+
+    def restore(changes, snapshot):
+        if boundary == "restore":
+            user_stop()
+        return original_restore(changes, snapshot)
+
+    monkeypatch.setattr(lifecycle, "stop", stop)
+    monkeypatch.setattr(tunnel_install, "_restore_intent", restore)
+    with pytest.raises(RuntimeError, match="conflict|changed"):
+        integrate(bundle, state, [])
+    assert intent.read_bytes() == manual
+    assert pending_transaction(state)
+    assert tasks.starts == []
+
+
+def test_explicit_start_requests_happen_only_after_transaction_releases(setup, monkeypatch):
+    from origin_agent.lifecycle_admission import admitted, pending_transaction
+
+    bundle, state, tasks, _ = setup
+    profile(state, tasks, enabled=False)
+    (state / "install.json").write_text(json.dumps({"root": str(bundle), "version": __version__}))
+    original_start = tasks.start
+    observed = []
+
+    def start(name, path="\\"):
+        assert pending_transaction(state) is None
+        with admitted(state):
+            observed.append("admission released")
+        original_start(name, path)
+
+    monkeypatch.setattr(tasks, "start", start)
+    result = tunnel_install.install_startup(state, start_now=True)
+    assert observed == ["admission released"]
+    assert result["profiles"][0]["start_requested"] is True
+    assert result["profiles"][0]["started"] is False
+
+
+def test_rollback_keeps_legacy_task_disabled_until_commit(setup, monkeypatch):
+    from origin_agent import installation
+    from origin_agent.lifecycle_admission import AdmissionError, admitted, pending_transaction
+
+    bundle, state, tasks, _ = setup
+    cloud, _, task = profile(state, tasks)
+    task["xml"] = task["xml"].replace("PT0S", "PT72H")
+    tasks.register(task)
+    result = integrate(bundle, state, [])
+    receipt_path = state / "installations" / result["receipt_id"] / "receipt.json"
+    old_write, old_restore = installation.write_json, tasks.restore
+    observed = []
+
+    def write(path, value):
+        if path == receipt_path and value["status"] == "rolled_back":
+            assert not tasks.read(task["name"])["enabled"]
+            assert pending_transaction(state)
+            assert value["rollback_activation"][0]["state"] == "pending"
+            assert (cloud / "Run-ChatGPT-Tunnel.ps1").read_bytes() == b"# old account launcher"
+            observed.append("commit-disabled")
+        return old_write(path, value)
+
+    def restore(name, path, xml):
+        enabled = tunnel_install.record_from_xml(name, path, xml)["enabled"]
+        if enabled:
+            assert json.loads(receipt_path.read_text())["status"] == "rolled_back"
+            assert pending_transaction(state) is None
+            with pytest.raises(AdmissionError, match="busy"), admitted(state):
+                raise AssertionError("Activation must hold fresh admission")
+            observed.append("activate-after-commit")
+        else:
+            assert pending_transaction(state)
+            observed.append("stage-disabled")
+        return old_restore(name, path, xml)
+
+    monkeypatch.setattr(installation, "write_json", write)
+    monkeypatch.setattr(tasks, "restore", restore)
+    rollback(state, result["receipt_id"])
+    assert observed == ["stage-disabled", "commit-disabled", "activate-after-commit"]
+    assert tasks.read(task["name"])["xml"] == task["xml"]
+    assert not (cloud / "rollback-activation.json").exists()
+    assert tasks.starts == []
+
+
+@pytest.mark.parametrize("write_completed", [False, True])
+def test_pending_activation_retries_by_readback_without_repeating_shutdown(
+    setup, monkeypatch, write_completed
+):
+    from origin_agent.lifecycle_admission import pending_transaction
+
+    bundle, state, tasks, lifecycle = setup
+    cloud, _, task = profile(state, tasks)
+    result = integrate(bundle, state, [])
+    receipt_path = state / "installations" / result["receipt_id"] / "receipt.json"
+    old_restore, attempts = tasks.restore, []
+
+    def restore(name, path, xml):
+        if tunnel_install.record_from_xml(name, path, xml)["enabled"]:
+            attempts.append("enable")
+            if len(attempts) == 1:
+                if write_completed:
+                    old_restore(name, path, xml)
+                raise RuntimeError("activation response failed")
+        return old_restore(name, path, xml)
+
+    monkeypatch.setattr(tasks, "restore", restore)
+    with pytest.raises(RuntimeError, match="activation response failed"):
+        rollback(state, result["receipt_id"])
+    saved = json.loads(receipt_path.read_text())
+    assert saved["status"] == "rolled_back"
+    assert saved["rollback_activation"][0]["state"] == "pending"
+    assert tasks.read(task["name"])["enabled"] is write_completed
+    assert pending_transaction(state) is None
+    shutdowns = list(lifecycle.stopped)
+    # A new install must not mistake a staged disabled task for user preference.
+    for operation in (lambda: integrate(bundle, state, []), lambda: tunnel_install.install_startup(state)):
+        with pytest.raises(RuntimeError, match="activation pending"):
+            operation()
+        assert pending_transaction(state) is None
+        assert json.loads(receipt_path.read_text())["rollback_activation"][0]["state"] == "pending"
+    rollback(state, result["receipt_id"])
+    assert lifecycle.stopped == shutdowns
+    assert tasks.read(task["name"])["enabled"] is True
+    assert attempts == ["enable"] * (1 if write_completed else 2)
+    assert not (cloud / "rollback-activation.json").exists()
+    assert tasks.starts == []
+
+
+@pytest.mark.parametrize("preference", ["stop", "startup_only"])
+def test_manual_disable_between_rollback_commit_and_activation_wins(setup, monkeypatch, preference):
+    bundle, state, tasks, _ = setup
+    cloud, _, task = profile(state, tasks)
+    result = integrate(bundle, state, [])
+    receipt_root = state / "installations" / result["receipt_id"]
+    old_activate = tunnel_install.activate_rollback
+
+    def activate(root, receipt_id):
+        assert json.loads((receipt_root / "receipt.json").read_text())["status"] == "rolled_back"
+        if preference == "startup_only":
+            tunnel_install.disable_startup(receipt_root / "tunnel-config-0.json")
+        else:
+            with intent_guard(cloud):
+                (cloud / "intent.json").write_text('{"enabled":false,"stop_requested":true}')
+        return old_activate(root, receipt_id)
+
+    monkeypatch.setattr(tunnel_install, "activate_rollback", activate)
+    rollback(state, result["receipt_id"])
+    assert not tasks.read(task["name"])["enabled"]
+    saved = json.loads((receipt_root / "receipt.json").read_text())
+    assert saved["rollback_activation"][0]["reason"] == "manual_stop_preserved"
+    intent = json.loads((cloud / "intent.json").read_text())
+    if preference == "startup_only":
+        assert intent == {"startup_enabled": False}
+    assert tasks.starts == []
+
+
+def test_busy_postcommit_activation_stays_pending_for_matching_recovery(setup, monkeypatch):
+    from origin_agent.lifecycle_admission import AdmissionError, admitted, pending_transaction
+
+    bundle, state, tasks, lifecycle = setup
+    cloud, _, task = profile(state, tasks)
+    result = integrate(bundle, state, [])
+    old_activate = tunnel_install.activate_rollback
+
+    def busy(root, receipt_id):
+        with admitted(root):
+            return old_activate(root, receipt_id)
+
+    monkeypatch.setattr(tunnel_install, "activate_rollback", busy)
+    with pytest.raises(AdmissionError, match="busy"):
+        rollback(state, result["receipt_id"])
+    assert pending_transaction(state) is None
+    assert not tasks.read(task["name"])["enabled"]
+    assert (cloud / "rollback-activation.json").exists()
+    shutdowns = list(lifecycle.stopped)
+    monkeypatch.setattr(tunnel_install, "activate_rollback", old_activate)
+    rollback(state, result["receipt_id"])
+    assert lifecycle.stopped == shutdowns
+    assert tasks.read(task["name"])["enabled"]
+
+
+@pytest.mark.parametrize("original", [None, b'{"enabled":true,"stop_requested":false,"custom":"original"}'])
+def test_crash_after_finish_restores_original_intent_after_recovery_stop(setup, monkeypatch, original):
+    from origin_agent.lifecycle_admission import pending_transaction
+
+    bundle, state, tasks, _ = setup
+    cloud, _, task = profile(state, tasks)
+    intent = cloud / "intent.json"
+    if original is not None:
+        intent.write_bytes(original)
+    old_save = Changes.save
+
+    def crash(self):
+        if self.value["status"] == "installed":
+            assert contents(intent) == original
+            raise KeyboardInterrupt("crash before final installed receipt")
+        return old_save(self)
+
+    monkeypatch.setattr(Changes, "save", crash)
+    with pytest.raises(KeyboardInterrupt):
+        integrate(bundle, state, [])
+    pending = pending_transaction(state)
+    receipt = json.loads((state / "installations" / pending["receipt_id"] / "receipt.json").read_text())
+    assert receipt["status"] == "preparing"
+    rollback(state, pending["receipt_id"])
+    assert contents(intent) == original
+    assert tasks.read(task["name"])["enabled"]
+    assert pending_transaction(state) is None
+
+
+@pytest.mark.parametrize("operation", ["install", "rollback"])
+@pytest.mark.parametrize("boundary", ["before_write", "after_write"])
+@pytest.mark.parametrize("original", [None, b'{"enabled":true,"stop_requested":false}'])
+def test_stop_write_ahead_journal_survives_owner_death(setup, monkeypatch, operation, boundary, original):
+    from origin_agent.lifecycle_admission import pending_transaction
+
+    bundle, state, tasks, lifecycle = setup
+    cloud, _, task = profile(state, tasks)
+    intent = cloud / "intent.json"
+    if original is not None:
+        intent.write_bytes(original)
+    installed = integrate(bundle, state, []) if operation == "rollback" else None
+    old_stop = lifecycle.stop
+
+    def crash(path, **kwargs):
+        journal = kwargs["before_intent_write"]
+
+        def before(planned):
+            journal(planned)
+            if boundary == "before_write":
+                raise KeyboardInterrupt("crash after journal, before intent")
+
+        kwargs["before_intent_write"] = before
+        old_stop(path, **kwargs)
+        raise KeyboardInterrupt("crash after intent, before stop returned")
+
+    monkeypatch.setattr(lifecycle, "stop", crash)
+    with pytest.raises(KeyboardInterrupt):
+        if operation == "install":
+            integrate(bundle, state, [])
+        else:
+            rollback(state, installed["receipt_id"])
+    pending = pending_transaction(state)
+    assert pending
+    monkeypatch.setattr(lifecycle, "stop", old_stop)
+    rollback(state, pending["receipt_id"])
+    assert contents(intent) == original
+    assert tasks.read(task["name"])["enabled"]
+    assert pending_transaction(state) is None
+    assert tasks.starts == []

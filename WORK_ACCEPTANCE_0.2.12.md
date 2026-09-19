@@ -1,7 +1,7 @@
 # Origin Companion 0.2.12 lifecycle candidate
 
 Date: 19 September 2026. Baseline: 513ea6f (released runtime 0.2.11).
-Status: **source verification passed; publication/installation and host gates pending review**.
+Status: **source and isolated package checks passed; publication/installation and host gates pending governance review**.
 
 ## Change and invariants
 
@@ -24,18 +24,22 @@ Windows x64, Python 3.12.14, locked environment:
 | Check | Result |
 | --- | --- |
 | Locked offline dependency sync | Passed; project version updated to 0.2.12, no new runtime dependency |
-| Ruff check and format | Passed; 96 Python files formatted |
-| Full pytest suite | **293 passed, 2 skipped, 91.30 seconds** |
+| Ruff check and format | Passed; 98 Python files formatted |
+| Full pytest suite | **345 passed, 2 skipped, 99.92 seconds** |
+| Installation and admission focused suite | **82 passed, 1 skipped, 11.84 seconds** |
 | Focused connector lifecycle suite after alias-absence fix | **38 passed, 58.24 seconds** |
 | Independent review of alias-absence fix | Passed; 9 separately exercised in-memory cases, including marker spoofing and cleanup refusal |
+| Independent final transaction review | Passed after fixing each reproduced race; 16 recovery cases plus the original wrong-receipt activation reproduction independently rechecked |
 | Actual CLI version and lifecycle subcommands | 0.2.12; run/status/stop/startup/initialize routes available |
 | Existing account/task discovery | Both configured accounts matched exactly one owned registration; read-only, no changes |
 | Real PowerShell/DPAPI fixture | Passed with dummy secret, Unicode path, inherited PowerShell 7 module paths, no key in argv/output, scoped state restored |
 | Frozen Windows review candidate | Built; 315 package files verified against SHA-256 inventory; frozen source hashes match; executable reports 0.2.12 |
+| Frozen MCP protocol and output contracts | Passed in auto/legacy transports and economy/full profiles; 5/14 advertised schemas, status, compatible text and economy help checked in isolated state |
 
-The unpublished ZIP/MCPB candidate is 33,180,676 bytes (31.64 MiB). Both have
-SHA-256 `2ac7ffcab4cf6b2368a3cd4b0f4f4260fafa7710e7485b1bc01b9a567ba7c3ff`.
-This identifies the reviewed package, not a published or installed release.
+The rebuilt unpublished ZIP/MCPB candidate is 33,196,799 bytes (31.66 MiB). Both have
+SHA-256 `edbbbdf5ba553b985bbe5f3f6da7fa7603aa009354fd6204a3d8859e42f95dad`.
+The earlier review candidate was withdrawn after governance reproduced a migration/start race.
+Only this rebuilt candidate includes the reviewed transaction-recovery fixes.
 
 Both skips are Windows symbolic-link creation privilege limits. Linux execution
 of the candidate remains a CI gate. The real Windows Task Scheduler adapter was
@@ -63,6 +67,22 @@ extra actions, profile/key-reference refusal, quiesce/write/registration failure
 publication-before-pointer rollback, changed-file/task conflicts and preservation
 of current stop preferences during a completed-install rollback. New profile
 initialization is locked, bounded, validated and refuses existing identities.
+
+Administrative admission now blocks starts during publication, pointer changes
+and rollback. An exact replay of the governance race rejects the concurrent start
+and restores the original 0.2.11 pointer, startup preference and absent intent file.
+Cross-process tests cover competing transactions, abrupt owner death and matching
+receipt recovery; configuration rebinding and a stale frozen executable are refused.
+
+Planned stop bytes are journalled before publication. Tests interrupt installation
+and repeated recovery before/after that write, after preference restoration and
+before final receipt commit. Exact original/previous/planned hashes distinguish the
+transaction's writes from a later manual stop. Legacy task definitions stay disabled
+until rollback commits; pending activation is resumed by readback without repeating
+shutdown or native work. Wrong recovery receipts cannot acquire a fence that would
+block the matching activation. Live legacy command children refuse upgrade quiescence
+and the preserved wrapper is resumed. Windows console-host helpers are identified
+by their exact system executable path.
 
 A read-only query to the installed official tunnel client 0.0.14 established its
 never-registered-alias diagnostic. Only exit 1 with that exact diagnostic for the

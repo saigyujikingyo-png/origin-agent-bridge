@@ -12,10 +12,12 @@ import shutil
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .installation import atomic_bytes, contents, digest, encoded
-from .storage import file_lock, write_json
+from .lifecycle_admission import admitted, intent_guard, transaction
+from .storage import file_lock, read_json, valid_id, write_json
 
 TASK_NS = "http://schemas.microsoft.com/windows/2004/02/mit/task"
 SCRIPTS = ("Run-ChatGPT-Tunnel.ps1", "Stop-ChatGPT-Tunnel.ps1")
@@ -369,6 +371,40 @@ def _xml_policy(xml, *, ignore_enabled=False):
     return ET.canonicalize(ET.tostring(tree, encoding="unicode"), strip_text=True, rewrite_prefixes=True)
 
 
+def _xml_enabled(xml, enabled):
+    tree = ET.fromstring(xml)
+    setting = tree.find(f"{{{TASK_NS}}}Settings/{{{TASK_NS}}}Enabled")
+    if setting is None:
+        raise RuntimeError("Startup task preference cannot be safely restored")
+    if setting.text.lower() == str(enabled).lower():
+        return xml
+    setting.text = str(enabled).lower()
+    return ET.tostring(tree, encoding="unicode")
+
+
+def _activation_marker(state_root):
+    return Path(state_root) / "cloud/rollback-activation.json"
+
+
+def check_activation_pending(state_root, *, receipt_id=None):
+    from .lifecycle_admission import check_activation_pending as check
+
+    check(state_root, receipt_id=receipt_id)
+
+
+def _activation_xml(root, entry):
+    raw = contents(root / Path(entry["desired_backup"]).name)
+    if digest(raw) != entry["desired_sha256"]:
+        raise RuntimeError("Startup activation backup failed integrity verification")
+    return raw.decode("utf-8")
+
+
+def _staged_task_matches(record, entry, root):
+    return record and _xml_policy(record["xml"]) == _xml_policy(
+        _xml_enabled(_activation_xml(root, entry), False)
+    )
+
+
 def _task_after(root, receipt, item, record):
     item["after"] = _task_hash(record)
     item["after_backup"] = None
@@ -409,29 +445,51 @@ def _change_task(changes, tasks, item, action):
 
 
 def _intent_snapshot(changes, path):
-    before = contents(path)
-    item = changes.prepare(path, before)
-    item["lifecycle_intent"] = True
-    changes.save()
+    with intent_guard(path.parent):
+        before = contents(path)
+        item = changes.prepare(path, before)
+        item["lifecycle_intent"] = True
+        changes.save()
     return path, before, item
 
 
-def _observe_intent(changes, snapshot):
+def intent_states(item):
+    """Only exact bytes from this receipt's original/last write-ahead intent states."""
+    states = (item["before"], item["after"])
+    if "intent_write_before" in item:
+        states += (item["intent_write_before"],)
+    return states
+
+
+def _journal_stop(receipt, root, item, previous, planned):
+    # Called by stop while it owns intent_guard, before any intent replacement.
+    # The preceding stop can itself be a timestamped migration write, not the
+    # original preference. Retain both sides of this latest journalled write.
+    item["intent_write_before"] = previous
+    item["after"] = planned
+    write_json(root / "receipt.json", receipt)
+
+
+def _observe_intent(changes, snapshot, expected):
     path, _, item = snapshot
-    item["after"] = digest(contents(path))
-    changes.save()
+    if expected is None:
+        raise RuntimeError("Private tunnel stop did not identify its intent write")
+    with intent_guard(path.parent):
+        if expected != item["after"] or digest(contents(path)) != expected:
+            raise RuntimeError("Private tunnel intent changed during installation")
 
 
 def _restore_intent(changes, snapshot):
     path, before, item = snapshot
-    if digest(contents(path)) != item["after"]:
-        raise RuntimeError("Private tunnel intent changed during installation")
-    if before is None:
-        path.unlink(missing_ok=True)
-    else:
-        atomic_bytes(path, before)
-    item["after"] = digest(before)
-    changes.save()
+    with intent_guard(path.parent):
+        if digest(contents(path)) != item["after"]:
+            raise RuntimeError("Private tunnel intent changed during installation")
+        if before is None:
+            path.unlink(missing_ok=True)
+        else:
+            atomic_bytes(path, before)
+        item["after"] = digest(before)
+        changes.save()
 
 
 def migrate(changes, bundle, state_root, *, enable_new=False):
@@ -487,11 +545,21 @@ def migrate(changes, bundle, state_root, *, enable_new=False):
         candidate = changes.root / f"tunnel-config-{index}.json"
         atomic_bytes(candidate, encoded(config))
         try:
-            stopped = api.stop(candidate, disable=False)
-            if stopped.get("state") != "stopped":
-                raise RuntimeError("Private tunnel shutdown is not confirmed; installation did not switch")
-        finally:
-            _observe_intent(changes, snapshot)
+            previous = snapshot[2]["after"]
+            stopped = api.stop(
+                candidate,
+                disable=False,
+                expected_intent_sha256=previous,
+                before_intent_write=lambda planned, item=snapshot[2], old=previous: _journal_stop(
+                    changes.value, changes.root, item, old, planned
+                ),
+            )
+        except Exception as exc:
+            _observe_intent(changes, snapshot, getattr(exc, "intent_sha256", None))
+            raise
+        _observe_intent(changes, snapshot, stopped.get("intent_sha256"))
+        if stopped.get("state") != "stopped":
+            raise RuntimeError("Private tunnel shutdown is not confirmed; installation did not switch")
     # From this point on a supported concurrent start may observe published files.
     # Every subsequent rollback reconciles again, even if the installer never starts.
     changes.value["lifecycle"]["phase"] = "publishing"
@@ -523,11 +591,11 @@ def migrate(changes, bundle, state_root, *, enable_new=False):
     ]
 
 
-def finish_migration(changes, *, start_now=False):
+def finish_migration(changes):
     transition = getattr(changes, "tunnel_transition", None)
     if transition is None:
         return
-    plans, tasks, api, task_items, snapshots = transition
+    plans, tasks, _api, task_items, snapshots = transition
     for (_config, record, _), item in zip(plans, task_items, strict=True):
         _change_task(changes, tasks, item, lambda r=record: tasks.register(r))
         actual = tasks.read(record["name"], record["path"])
@@ -535,19 +603,43 @@ def finish_migration(changes, *, start_now=False):
             raise RuntimeError("Private tunnel startup preference readback did not match")
     for snapshot in snapshots:
         _restore_intent(changes, snapshot)
-    if start_now:
-        # Clearing explicit stop can permit a contemporaneous logon trigger too.
+
+
+def _start_configured(changes, state_root):
+    """Prepare explicit start after commit; a scheduler request is not readiness."""
+    plans, tasks, _api, task_items, snapshots = changes.tunnel_transition
+    with admitted(state_root):
+        for (config, record, _), item, snapshot in zip(plans, task_items, snapshots, strict=True):
+            config_path = Path(config["cloud_root"]) / "runtime-config.json"
+            expected = next(entry for entry in changes.value["files"] if entry["path"] == str(config_path))
+            if digest(contents(config_path)) != expected["after"]:
+                raise RuntimeError("Private tunnel configuration changed before explicit start")
+            path, _, intent_item = snapshot
+            with intent_guard(path.parent):
+                if digest(contents(path)) != intent_item["after"]:
+                    raise RuntimeError("Private tunnel intent changed before explicit start")
+                data = encoded(
+                    {
+                        "enabled": True,
+                        "stop_requested": False,
+                        "startup_enabled": True,
+                        "updated_at": datetime.now(UTC).isoformat(),
+                    }
+                )
+                atomic_bytes(path, data)
+                intent_item["after"] = digest(data)
+                changes.save()
+                record["enabled"] = True
+                record["xml"] = task_xml(record)
+                _change_task(changes, tasks, item, lambda r=record: tasks.register(r))
+        # A scheduled logon trigger can observe the enabled preference now. Mark
+        # possible starts before releasing admission, without claiming readiness.
         changes.value["lifecycle"]["auto_started"] = True
         changes.save()
-        for (config, record, _), item, snapshot in zip(plans, task_items, snapshots, strict=True):
-            try:
-                api.allow_start(Path(config["cloud_root"]) / "runtime-config.json")
-            finally:
-                _observe_intent(changes, snapshot)
-            record["enabled"] = True
-            record["xml"] = task_xml(record)
-            _change_task(changes, tasks, item, lambda r=record: tasks.register(r))
-            tasks.start(record["name"], record["path"])
+    for _config, record, _ in plans:
+        # The child must obtain fresh admission and reload its pointer/config.
+        # A new competing migration may reject that child; this is only a request.
+        tasks.start(record["name"], record["path"])
 
 
 def prepare_task_rollback(receipt, root):
@@ -558,6 +650,19 @@ def prepare_task_rollback(receipt, root):
     for item in entries:
         record = tasks.read(item["name"], item["path"])
         current = _task_hash(record)
+        activation = next(
+            (
+                value
+                for value in receipt.get("rollback_activation", [])
+                if value["name"] == item["name"] and value["path"] == item["path"]
+            ),
+            None,
+        )
+        if activation and activation["state"] == "staging" and _staged_task_matches(record, activation, root):
+            # A scheduler write can complete before its readback is journalled.
+            # Reconcile only the exact recorded disabled definition.
+            _task_after(root, receipt, item, record)
+            current = item["after"]
         if current not in (item["before"], item["after"]):
             after_backup = item.get("after_backup")
             after = contents(root / Path(after_backup).name) if after_backup else None
@@ -581,13 +686,7 @@ def prepare_task_rollback(receipt, root):
             raise RuntimeError("Startup task backup failed integrity verification")
         xml = raw.decode("utf-8") if raw else None
         if xml and "rollback_enabled" in item:
-            tree = ET.fromstring(xml)
-            enabled = tree.find(f"{{{TASK_NS}}}Settings/{{{TASK_NS}}}Enabled")
-            if enabled is None:
-                raise RuntimeError("Startup task preference cannot be safely restored")
-            if enabled.text.lower() != str(item["rollback_enabled"]).lower():
-                enabled.text = str(item["rollback_enabled"]).lower()
-                xml = ET.tostring(tree, encoding="unicode")
+            xml = _xml_enabled(xml, item["rollback_enabled"])
         plans.append((item, xml))
     return tasks, plans
 
@@ -621,71 +720,189 @@ def quiesce_rollback(receipt, root, tasks):
         candidate = root / ("rollback-" + config["alias"] + ".json")
         atomic_bytes(candidate, encoded(config))
         intent = Path(config["cloud_root"]) / "intent.json"
-        if preserve_preference:
-            saved = receipt.setdefault("rollback_intents", [])
-            snapshot = next((value for value in saved if value["path"] == str(intent)), None)
-            if snapshot is None:
-                before = contents(intent)
-                backup = f"rollback-intent-{len(saved)}.bin" if before is not None else None
-                if backup:
-                    atomic_bytes(root / backup, before)
-                snapshot = {
-                    "path": str(intent),
-                    "before": digest(before),
-                    "after": digest(before),
-                    "backup": backup,
-                }
-                saved.append(snapshot)
-                write_json(root / "receipt.json", receipt)
-            elif digest(contents(intent)) != snapshot["after"]:
+        with intent_guard(intent.parent):
+            if preserve_preference:
+                saved = receipt.setdefault("rollback_intents", [])
+                snapshot = next((value for value in saved if value["path"] == str(intent)), None)
+                if snapshot is None:
+                    before = contents(intent)
+                    backup = f"rollback-intent-{len(saved)}.bin" if before is not None else None
+                    if backup:
+                        atomic_bytes(root / backup, before)
+                    snapshot = {
+                        "path": str(intent),
+                        "before": digest(before),
+                        "after": digest(before),
+                        "backup": backup,
+                    }
+                    saved.append(snapshot)
+                    write_json(root / "receipt.json", receipt)
+            else:
+                snapshot = next(value for value in receipt["files"] if value["path"] == str(intent.resolve()))
+            previous = digest(contents(intent))
+            if previous not in intent_states(snapshot):
                 raise RuntimeError("Rollback conflict; private tunnel intent changed during recovery")
-        else:
-            snapshot = next(value for value in receipt["files"] if value["path"] == str(intent.resolve()))
         try:
-            stopped = api.stop(candidate, disable=False)
-            if stopped.get("state") != "stopped":
-                raise RuntimeError("Private tunnel rollback shutdown is not confirmed")
-        finally:
-            snapshot["after"] = digest(contents(intent))
-            write_json(root / "receipt.json", receipt)
+            stopped = api.stop(
+                candidate,
+                disable=False,
+                expected_intent_sha256=previous,
+                before_intent_write=lambda planned, item=snapshot, old=previous: _journal_stop(
+                    receipt, root, item, old, planned
+                ),
+            )
+        except Exception as exc:
+            _record_rollback_stop(receipt, root, snapshot, intent, getattr(exc, "intent_sha256", None))
+            raise
+        _record_rollback_stop(receipt, root, snapshot, intent, stopped.get("intent_sha256"))
+        if stopped.get("state") != "stopped":
+            raise RuntimeError("Private tunnel rollback shutdown is not confirmed")
     return receipt.get("rollback_intents", [])
+
+
+def _record_rollback_stop(receipt, root, snapshot, intent, expected):
+    if expected is None:
+        raise RuntimeError("Private tunnel rollback stop did not identify its intent write")
+    with intent_guard(intent.parent):
+        if snapshot["after"] != expected or digest(contents(intent)) != expected:
+            raise RuntimeError("Rollback conflict; private tunnel intent changed during shutdown")
 
 
 def restore_rollback_intents(receipt, root, snapshots):
     for item in snapshots:
         target = Path(item["path"])
-        if digest(contents(target)) != item["after"]:
-            raise RuntimeError("Rollback conflict; private tunnel intent changed during recovery")
-        before = contents(root / Path(item["backup"]).name) if item["backup"] else None
-        if digest(before) != item["before"]:
-            raise RuntimeError("Private tunnel intent backup failed integrity verification")
-        if before is None:
-            target.unlink(missing_ok=True)
-        else:
-            atomic_bytes(target, before)
-        item["after"] = digest(before)
-        write_json(root / "receipt.json", receipt)
+        with intent_guard(target.parent):
+            if digest(contents(target)) not in intent_states(item):
+                raise RuntimeError("Rollback conflict; private tunnel intent changed during recovery")
+            before = contents(root / Path(item["backup"]).name) if item["backup"] else None
+            if digest(before) != item["before"]:
+                raise RuntimeError("Private tunnel intent backup failed integrity verification")
+            if before is None:
+                target.unlink(missing_ok=True)
+            else:
+                atomic_bytes(target, before)
+            item["after"] = digest(before)
+            write_json(root / "receipt.json", receipt)
 
 
 def restore_tasks(tasks, plans, receipt, root):
     if tasks is None:
         return
     for item, xml in reversed(plans):
+        activation = None
+        if xml is not None:
+            entries = receipt.setdefault("rollback_activation", [])
+            activation = next(
+                (
+                    value
+                    for value in entries
+                    if value["name"] == item["name"] and value["path"] == item["path"]
+                ),
+                None,
+            )
+            if activation is None:
+                config = next(
+                    value
+                    for value in receipt["lifecycle"]["configs"]
+                    if value["task_name"] == item["name"] and value.get("task_path", "\\") == item["path"]
+                )
+                raw = xml.encode("utf-8")
+                backup = f"task-activation-{len(entries)}.xml"
+                atomic_bytes(root / backup, raw)
+                activation = {
+                    "name": item["name"],
+                    "path": item["path"],
+                    "cloud_root": config["cloud_root"],
+                    "desired_backup": backup,
+                    "desired_sha256": digest(raw),
+                    "state": "staging",
+                }
+                entries.append(activation)
+                write_json(root / "receipt.json", receipt)
+            else:
+                xml = _activation_xml(root, activation)
+            marker = _activation_marker(root.parent.parent)
+            check_activation_pending(root.parent.parent, receipt_id=receipt["id"])
+            write_json(marker, {"schema_version": 1, "receipt_id": receipt["id"]})
+            # Old launchers need not honor the new admission gate. Restore their
+            # definitions disabled until the pointer/files/receipt commit.
+            xml = _xml_enabled(xml, False)
         record = tasks.read(item["name"], item["path"])
         current = _task_hash(record)
-        if (not record and xml is None) or (
+        already_restored = (not record and xml is None) or (
             record and xml and _xml_policy(record["xml"]) == _xml_policy(xml)
-        ):
-            continue
-        if current not in (item["before"], item["after"]):
+        )
+        if not already_restored and current not in (item["before"], item["after"]):
             raise RuntimeError("Rollback conflict; startup task changed during recovery")
-        tasks.restore(item["name"], item["path"], xml)
+        if not already_restored:
+            tasks.restore(item["name"], item["path"], xml)
         actual = tasks.read(item["name"], item["path"])
         _task_after(root, receipt, item, actual)
         if (xml is None and actual) or (
             xml and (not actual or _xml_policy(actual["xml"]) != _xml_policy(xml))
         ):
             raise RuntimeError("Startup task rollback readback failed")
+        if activation:
+            activation.update(state="pending", staged_sha256=_task_hash(actual))
+            write_json(root / "receipt.json", receipt)
+
+
+def activate_rollback(state_root, receipt_id):
+    """Restore enabled preferences after commit; never explicitly start a task."""
+    valid_id(receipt_id)
+    state_root = Path(state_root).resolve()
+    root = state_root / "installations" / receipt_id
+    # Avoid taking another admission lock for a rollback that touched no tasks.
+    entries = read_json(root / "receipt.json").get("rollback_activation", [])
+    if not entries or (
+        all(entry["state"] == "complete" for entry in entries) and not _activation_marker(state_root).exists()
+    ):
+        return
+    with admitted(state_root):
+        receipt = read_json(root / "receipt.json")
+        if receipt["status"] != "rolled_back":
+            raise RuntimeError("Startup activation requires a committed rollback")
+        check_activation_pending(state_root, receipt_id=receipt_id)
+        # A later install/edit must not be reversed by an old pending activation.
+        for item in receipt["files"]:
+            if not item.get("lifecycle_intent") and digest(contents(Path(item["path"]))) != item["before"]:
+                raise RuntimeError("Startup activation conflict; restored configuration changed")
+        tasks = WindowsTasks()
+        for entry in receipt["rollback_activation"]:
+            if entry["state"] == "complete":
+                continue
+            desired = _activation_xml(root, entry)
+            with intent_guard(entry["cloud_root"]):
+                intent_path = Path(entry["cloud_root"]) / "intent.json"
+                intent = read_json(intent_path) if intent_path.exists() else {}
+                stopped = (
+                    intent.get("enabled") is False
+                    or intent.get("stop_requested") is True
+                    or intent.get("startup_enabled") is False
+                )
+                target = _xml_enabled(desired, False) if stopped else desired
+                record = tasks.read(entry["name"], entry["path"])
+                if not record or not _owned_task(record, entry["cloud_root"], tasks):
+                    raise RuntimeError("Startup activation task ownership is unproven")
+                matches_desired = _xml_policy(record["xml"]) == _xml_policy(desired)
+                if _task_hash(record) != entry["staged_sha256"] and not matches_desired:
+                    raise RuntimeError("Startup activation conflict; staged task changed")
+                if _xml_policy(record["xml"]) != _xml_policy(target):
+                    tasks.restore(entry["name"], entry["path"], target)
+                actual = tasks.read(entry["name"], entry["path"])
+                if not actual or _xml_policy(actual["xml"]) != _xml_policy(target):
+                    raise RuntimeError("Startup activation readback failed")
+                entry.update(
+                    state="complete",
+                    activated_sha256=_task_hash(actual),
+                    startup_enabled=actual["enabled"],
+                    reason="manual_stop_preserved" if stopped else "preference_restored",
+                )
+                write_json(root / "receipt.json", receipt)
+        marker = _activation_marker(state_root)
+        if marker.exists():
+            check_activation_pending(state_root, receipt_id=receipt_id)
+            marker.unlink()
 
 
 def install_startup(state_root, *, profile_source=None, start_now=False):
@@ -693,43 +910,76 @@ def install_startup(state_root, *, profile_source=None, start_now=False):
     from .installation import Changes, rollback
 
     state_root = Path(state_root).resolve()
-    install = json.loads((state_root / "install.json").read_text(encoding="utf-8-sig"))
     changes = Changes(state_root)
-    try:
-        if profile_source:
-            destination = state_root / "cloud/profiles/origin-agent.yaml"
-            if not destination.exists():
-                changes.put(destination, Path(profile_source).read_bytes())
-        result = migrate(changes, Path(install["root"]), state_root, enable_new=True)
-        if not result:
-            raise ValueError("Set up an existing private tunnel profile and encrypted key first")
-        finish_migration(changes, start_now=start_now)
-        if start_now:
-            for item in result:
-                item.update(started=True, startup_enabled=True)
-        changes.value.update(status="installed", kind="startup", version=install["version"])
-        changes.save()
-    except Exception:
-        rollback(state_root, changes.root.name)
-        raise
+    failure = None
+    with transaction(state_root, changes.root.name):
+        try:
+            check_activation_pending(state_root)
+            install = json.loads((state_root / "install.json").read_text(encoding="utf-8-sig"))
+            if profile_source:
+                destination = state_root / "cloud/profiles/origin-agent.yaml"
+                if not destination.exists():
+                    changes.put(destination, Path(profile_source).read_bytes())
+            result = migrate(changes, Path(install["root"]), state_root, enable_new=True)
+            if not result:
+                raise ValueError("Set up an existing private tunnel profile and encrypted key first")
+            finish_migration(changes)
+            changes.value.update(status="installed", kind="startup", version=install["version"])
+            changes.save()
+        except Exception as exc:
+            rollback(state_root, changes.root.name, defer_activation=True)
+            failure = exc
+    if failure is not None:
+        activate_rollback(state_root, changes.root.name)
+        raise failure
+    if start_now:
+        try:
+            _start_configured(changes, state_root)
+        except Exception:
+            rollback(state_root, changes.root.name)
+            raise
+        for item in result:
+            item.update(start_requested=True, started=False, startup_enabled=True, ready_verified=False)
     return {"status": "configured", "receipt_id": changes.root.name, "profiles": result}
 
 
 def disable_startup(config_path):
     config = json.loads(Path(config_path).read_text(encoding="utf-8-sig"))
-    tasks = WindowsTasks()
-    matches = [task for task in tasks.list() if _references_scope(task, config["cloud_root"])]
-    if len(matches) > 1 or (matches and not _owned_task(matches[0], config["cloud_root"], tasks)):
-        raise RuntimeError("Private tunnel startup task ownership is ambiguous")
-    if matches:
-        task = matches[0]
-        tasks.disable(task["name"], task["path"])
-        if tasks.read(task["name"], task["path"])["enabled"]:
-            raise RuntimeError("Private tunnel startup disable was not confirmed")
+    admission_root = Path(config["state_root"]).resolve()
+    with admitted(admission_root):
+        return _disable_startup(config_path, admission_root)
+
+
+def _disable_startup(config_path, admission_root):
+    config = json.loads(Path(config_path).read_text(encoding="utf-8-sig"))
+    if Path(config["state_root"]).resolve() != admission_root:
+        raise RuntimeError("Private tunnel configuration changed admission scope")
+    with intent_guard(config["cloud_root"]):
+        tasks = WindowsTasks()
+        matches = [task for task in tasks.list() if _references_scope(task, config["cloud_root"])]
+        if len(matches) > 1 or (matches and not _owned_task(matches[0], config["cloud_root"], tasks)):
+            raise RuntimeError("Private tunnel startup task ownership is ambiguous")
+        intent_path = Path(config["cloud_root"]) / "intent.json"
+        intent = read_json(intent_path) if intent_path.exists() else {}
+        # Disabling logon startup is independent of stopping a running connector.
+        # Persist it before the scheduler call so postcommit recovery cannot undo it.
+        intent.update(startup_enabled=False)
+        write_json(intent_path, intent)
+        if matches:
+            task = matches[0]
+            tasks.disable(task["name"], task["path"])
+            if tasks.read(task["name"], task["path"])["enabled"]:
+                raise RuntimeError("Private tunnel startup disable was not confirmed")
     return {"startup_enabled": False}
 
 
 def initialize_profile(state_root, tunnel_id, tunnel_client):
+    state_root = Path(state_root).resolve()
+    with admitted(state_root):
+        return _initialize_profile(state_root, tunnel_id, tunnel_client)
+
+
+def _initialize_profile(state_root, tunnel_id, tunnel_client):
     """Initialize once under the runtime's canonical lock; never replace a profile.
 
     The vendor generates into a private staging directory. A verified profile is
@@ -739,6 +989,7 @@ def initialize_profile(state_root, tunnel_id, tunnel_client):
     from .tunnel_lifecycle import Connection, Controller
     from .tunnel_lifecycle import canonical as runtime_canonical
 
+    check_activation_pending(state_root)
     if not re.fullmatch(r"tunnel_[a-f0-9]+", tunnel_id):
         raise ValueError("A valid private tunnel identifier is required")
     state_root = Path(state_root).resolve()

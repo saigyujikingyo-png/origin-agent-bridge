@@ -74,6 +74,12 @@ stopped only with current-user, executable, exact script path and PID/start proo
 No Task Scheduler process-tree kill is used. A disabled/manual-stop preference
 survives reinstall. Only an explicit start clears it.
 
+A legacy PowerShell wrapper is suspended before its children are inspected. If a
+live command remains below it, shutdown refuses and resumes the wrapper instead of
+orphaning a command that could spawn later. Only the exact Windows system console
+host is excluded from that producer check. Retry the upgrade after the legacy
+command ends; an unresolved command is not permission to kill a whole process tree.
+
 ## Installation, upgrade and rollback
 
 `tunnel_install.py` discovers the personal profile and supported account folders,
@@ -88,6 +94,30 @@ file/task backups and enabled/disabled/manual-stop intent. It does not restart
 connections automatically during reinstall. Rollback covers lifecycle files and
 registrations as well as the previous engine pointer, subject to conflict checks.
 Outputs, jobs, credentials and licences remain local and unchanged.
+
+`lifecycle_admission.py` adds one administrative lock per canonical state root,
+separate from the long-lived runtime profile lock. Installation, startup setup and
+rollback hold this lock through shared-state changes. Public start and profile
+initialization must enter the same gate. A runtime acquires its profile lock while
+admitted, then releases the administrative lock before supervision so shutdown
+cannot deadlock. It reloads the installation pointer under the gate and rejects a
+configuration rebound to another state root or a frozen executable selected before
+the pointer changed.
+
+A receipt-linked transaction marker survives abrupt installer death. Ordinary
+start/reinstall refuses that partial state. Explicit rollback with the matching
+receipt is the recovery route; a failed rollback does not clear the marker merely
+because the original receipt still says `installed`. Successful completion or a
+verified rollback clears it. A malformed marker or edited configuration remains a
+reconciliation issue, never an automatic overwrite.
+
+Intent updates have a short separate lock and exact before/after digests. Installer
+shutdown journals its planned stop write before publishing it, then releases the
+intent lock before waiting for process shutdown. A later user stop is not adopted
+as the installer's own write or overwritten by restoration. Recovery covers a
+crash during stop as well as during launcher, pointer and receipt publication.
+When rolling back to an older launcher, task activation follows complete file and
+receipt restoration; task-request acceptance is still separate from runtime health.
 
 Uninstalling an account registration removes no cloud account or research data.
 Use the explicit stop route before removing its owned task; an unrelated registration
@@ -106,7 +136,7 @@ termination, user logout, shutdown or power loss.
 | Delayed readiness and command failures | Isolated real-process fixtures exercise delayed-ready, before/after-spawn failure, status failure/hang, command deadline and absent child |
 | Ownership and retry | Real fixtures inspect daemons/children at retry boundaries, adoption, duplicate cleanup, missing registry, orphan proof, PID creation mismatch and two profiles |
 | Stop and supervisor loss | Cross-process lock, abrupt supervisor death/adoption, cooperative stop and persistent manual-stop intent fixtures |
-| Installation transaction | Real filesystem changes with Task Scheduler adapter boundary tests: multi-account, disabled, repeated install, partial failure and rollback |
+| Installation transaction | Real filesystem and isolated-process tests: multi-account, disabled, competing starts/installs, crash fence, matching recovery, partial publication and rollback; real scheduler acceptance remains separate |
 | Native scientific regressions | Historical 0.2.11 evidence remains historical; no science change is intended by this patch |
 | Packaged/install/current-device | Pending independent governance review and installation of the candidate |
 | Remote app/account/catalog/call | Independent per-account governance acceptance; local health is insufficient |

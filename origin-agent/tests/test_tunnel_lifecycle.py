@@ -19,6 +19,7 @@ from origin_agent.tunnel_lifecycle import (
     OwnershipError,
     Policy,
     allow_start,
+    quiesce_legacy_wrapper,
     run,
     status,
     stop,
@@ -440,3 +441,25 @@ def test_one_resume_failure_does_not_skip_other_suspended_producers(world, monke
         for p in daemons:
             if p.live():
                 original_resume(psutil.Process(p.pid))
+
+
+def test_legacy_wrapper_with_live_producer_child_refuses_quiescence_and_resumes(world):
+    controller, _ = setup(world)
+    wrapper = controller.ensure_ready()
+    _, children = controller.scan()
+    with pytest.raises(OwnershipError, match="legacy_wrapper_child_in_flight"):
+        quiesce_legacy_wrapper(wrapper)
+    assert wrapper.live() and psutil.Process(wrapper.pid).status() != psutil.STATUS_STOPPED
+    assert all(child.live() for child in children)
+
+
+def test_legacy_wrapper_without_child_is_frozen_before_exit(world):
+    wrapper = subprocess.Popen(
+        [PYTHON, str(FIXTURE), "--root", str(world), "serve"],
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    wait_for(lambda: (world / "pids" / f"{wrapper.pid}.json").exists())
+    owner = Identity.capture(psutil.Process(wrapper.pid), "legacy_wrapper")
+    quiesce_legacy_wrapper(owner)
+    wrapper.wait(3)
+    assert not owner.live()

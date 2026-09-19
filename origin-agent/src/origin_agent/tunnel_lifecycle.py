@@ -5,7 +5,9 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
+from contextlib import ExitStack
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from functools import cached_property
@@ -13,7 +15,8 @@ from pathlib import Path
 
 import psutil
 
-from .storage import BusyError, file_lock, write_json
+from .lifecycle_admission import AdmissionError, admitted, intent_guard, pending_transaction
+from .storage import BusyError, file_lock, json_bytes, write_json
 
 
 class LifecycleError(RuntimeError):
@@ -591,18 +594,66 @@ class Controller:
 
 def allow_start(config_path):
     c = Connection.load(config_path)
-    write_json(c.cloud_root / "intent.json", {"enabled": True, "stop_requested": False, "updated_at": utc()})
+    admission_root = c.state_root
+    with admitted(admission_root):
+        c = Connection.load(config_path)
+        if c.state_root != admission_root:
+            raise OwnershipError("connection_scope_changed")
+        with intent_guard(c.cloud_root):
+            intent = c.intent()
+            intent.update(enabled=True, stop_requested=False, updated_at=utc())
+            write_json(c.cloud_root / "intent.json", intent)
     return {"state": "allowed", "scope": c.scope}
 
 
 def run(config_path):
     c = Connection.load(config_path)
-    try:
-        with file_lock(c.lock, timeout=0):
+    admission_root = c.state_root
+    with ExitStack() as runtime:
+        with admitted(admission_root):
+            c = Connection.load(config_path)
+            if c.state_root != admission_root:
+                raise OwnershipError("connection_scope_changed")
+            if getattr(sys, "frozen", False) and canonical(sys.executable) != canonical(c.engine):
+                raise LifecycleError("engine_changed_restart_required")
+            try:
+                runtime.enter_context(file_lock(c.lock, timeout=0))
+            except BusyError:
+                return {"state": "already_supervised", "scope": c.scope}
             controller = Controller(c)
-            return controller.supervise()
-    except BusyError:
-        return {"state": "already_supervised", "scope": c.scope}
+        return controller.supervise()
+
+
+def quiesce_legacy_wrapper(owner):
+    """Do not orphan a spawn-capable legacy CLI child by killing its wrapper."""
+    producer = psutil.Process(owner.pid)
+    suspended = False
+    try:
+        if not owner.live():
+            return
+        producer.suspend()
+        suspended = True
+        if not owner.live():
+            return
+        for child in producer.children(recursive=True):
+            try:
+                if child.is_running() and child.status() != psutil.STATUS_ZOMBIE:
+                    # CREATE_NO_WINDOW still creates the Windows console host.
+                    # It is not a legacy connection command or a spawn producer.
+                    if os.name == "nt" and canonical(child.exe()) == canonical(
+                        Path(os.environ["SystemRoot"]) / "System32/conhost.exe"
+                    ):
+                        continue
+                    raise OwnershipError("legacy_wrapper_child_in_flight")
+            except psutil.NoSuchProcess:
+                continue
+        # The frozen wrapper cannot start a CLI between the child scan and exit.
+        if owner.live():
+            producer.kill()
+            producer.wait(8)
+    finally:
+        if suspended and owner.live():
+            producer.resume()
 
 
 def stop_legacy_wrappers(c):
@@ -625,22 +676,30 @@ def stop_legacy_wrappers(c):
             target = option(argv, flag)
             if target and canonical(target) == script:
                 owner = Identity.capture(p, "legacy_wrapper")
-                if owner.live():
-                    p.terminate()
-                    p.wait(8)
+                quiesce_legacy_wrapper(owner)
         except psutil.NoSuchProcess:
             continue
         except (psutil.AccessDenied, psutil.TimeoutExpired) as exc:
             raise OwnershipError("legacy_wrapper_stop_unconfirmed") from exc
 
 
-def stop(config_path, *, disable=True):
+def stop(config_path, *, disable=True, expected_intent_sha256=..., before_intent_write=None):
     c = Connection.load(config_path)
-    intent = c.intent()
-    intent.update(stop_requested=True, updated_at=utc())
-    if disable:
-        intent["enabled"] = False
-    write_json(c.cloud_root / "intent.json", intent)
+    with intent_guard(c.cloud_root):
+        intent_path = c.cloud_root / "intent.json"
+        before = intent_path.read_bytes() if intent_path.exists() else None
+        if expected_intent_sha256 is not ...:
+            actual = hashlib.sha256(before).hexdigest() if before is not None else None
+            if actual != expected_intent_sha256:
+                raise OwnershipError("intent_changed_before_stop")
+        intent = c.intent()
+        intent.update(stop_requested=True, updated_at=utc())
+        if disable:
+            intent["enabled"] = False
+        intent_sha256 = hashlib.sha256(json_bytes(intent)).hexdigest()
+        if before_intent_write is not None:
+            before_intent_write(intent_sha256)  # Journal before a crash can leave the write unaccounted for.
+        write_json(intent_path, intent)
     try:
         with file_lock(c.lock, timeout=45):
             # New owners released this lock cooperatively. Legacy wrappers have no
@@ -649,13 +708,30 @@ def stop(config_path, *, disable=True):
             controller = Controller(c)
             controller.note("stopping")
             controller.reconcile()
-            return controller.note("stopped")
+            return {**controller.note("stopped"), "intent_sha256": intent_sha256}
     except BusyError as exc:
-        raise OwnershipError("supervisor_stop_unconfirmed") from exc
+        failure = OwnershipError("supervisor_stop_unconfirmed")
+        failure.intent_sha256 = intent_sha256
+        raise failure from exc
+    except Exception as exc:
+        exc.intent_sha256 = intent_sha256
+        raise
 
 
 def status(config_path):
     c = Connection.load(config_path)
+    try:
+        pending = pending_transaction(c.state_root)
+    except AdmissionError:
+        return {"state": "unknown", "ready": False, "healthy": False, "reason": "lifecycle_fence_invalid"}
+    if pending:
+        return {
+            "state": "maintenance",
+            "ready": False,
+            "healthy": False,
+            "reason": "lifecycle_recovery_required",
+            "receipt_id": pending["receipt_id"],
+        }
     value = read(
         c.cloud_root / "supervisor-state.json", {"state": "absent", "ready": False, "healthy": False}
     )

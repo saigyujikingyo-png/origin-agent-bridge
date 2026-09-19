@@ -37,6 +37,10 @@ The installer preserves other MCP/host settings, old runtime versions and resear
 & "$env:USERPROFILE\.origin-agent\app\0.2.12\server\origin-agent.exe" rollback-install <receipt_id>
 ```
 
+If an interrupted upgrade reports `lifecycle_recovery_required:<receipt_id>`, repeat the rollback command with that exact receipt. The durable transaction record prevents a new installation or connector start from entering a partly restored configuration. Do not delete the transaction record or replace it with another receipt. Recovery checks recorded file/task identity and preserves conflicting user edits for inspection.
+
+Rollback restores old task definitions **disabled** while restoring the engine and files. Only after the rollback receipt commits does it restore the previous startup preference, with a fresh admission check and scheduler readback; it does not explicitly start a task. A concurrent stop or startup disable takes precedence. If preference restoration fails or reports pending activation, repeat the same rollback command: it resumes that recorded step without rerunning Origin or repeating a completed shutdown. A pending activation blocks a new upgrade until this recovery finishes. Restored startup settings are not proof of a live cloud connection. Older launchers restored from a previous release do not acquire the new lifecycle safeguards; keep their historical limitations in mind when choosing rollback.
+
 Native diagnostics:
 
 ```powershell
@@ -83,6 +87,8 @@ If your private tunnel is configured and a suitably restricted key is stored at 
 ```
 
 This maintains a current-user Windows login task for each configured account. Names begin with `Origin Companion Private Tunnel`; existing owned registrations retain their names. Tasks run with normal user permissions in hidden windows while the user is logged in, independently of Codex. The wrapper reads the active installation pointer. The controller checks readiness and continued health with deadlines, reconciles owned processes before retrying, and stops on ambiguous ownership. Task Scheduler has at most three one-minute restarts. This is logon startup, not pre-login boot execution; sleep, logoff and reboot recovery require separate acceptance. An unlocked desktop is still required for GUI interaction.
+
+`-StartNow` records permission and requests a scheduler start after configuration commits. Its `start_requested` result does not establish readiness; use the status and host checks below. The advanced `tunnel disable-startup --config <account-runtime-config.json>` command records a startup-only preference without stopping an already running connector. An explicit `-StartNow` enables startup again; ordinary reinstall and rollback preserve a user disable.
 
 The personal profile lives at `%USERPROFILE%\.origin-agent\cloud\profiles`; additional accounts use `cloud\accounts\<account>\profiles`. Each account has a generated `runtime-config.json` and the same release-owned launcher. Existing identities, environment key references and DPAPI files are reused. The background adapter decrypts the key for the current user only; it is not written to arguments, the repository or shared packages. A missing encrypted key is a setup prerequisite, with no hidden background input prompt. Do not copy someone else's account configuration.
 
