@@ -74,6 +74,7 @@ if args[0] in ("run", "serve", "supervise", "controller"):
                     poll=0.05,
                     cleanup_timeout=3,
                     retries=(),
+                    recovery_delays=(),
                 ),
                 command=[sys.executable, __file__, "--root", str(root)],
             )
@@ -116,7 +117,12 @@ if action == "connect":
     if settings.get("before_spawn"):
         raise SystemExit(2)
     child = launch(["run", "--profile-dir", get("--profile-dir"), "--profile", get("--profile")])
-    write(folder / "registry.json", {"pid": child.pid, "started": time.time()})
+    registry = {"pid": child.pid, "started": time.time()}
+    if os.name == "nt":
+        process = psutil.Process(child.pid)
+        registry["pid_start_time"] = str(round(process.create_time() * 1_000_000_000))
+        registry["pid_executable"] = process.exe()
+    write(folder / "registry.json", registry)
     if settings.get("connect_hang"):
         time.sleep(180)
     if settings.get("after_spawn"):
@@ -152,6 +158,9 @@ elif action == "status":
         "profile_dir": profile_dir,
         "started_at": datetime.fromtimestamp(registry.get("started", 0), UTC).isoformat(),
     }
+    if os.name == "nt":
+        meta["pid_start_time"] = registry.get("pid_start_time")
+        meta["pid_executable"] = registry.get("pid_executable")
     if settings.get("missing_registry"):
         meta = {}
     print(

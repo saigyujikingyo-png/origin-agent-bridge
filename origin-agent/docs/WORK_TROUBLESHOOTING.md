@@ -1,5 +1,13 @@
 # Troubleshooting ChatGPT Work
 
+## Connection reliability in 0.2.13 (candidate)
+
+After the initial account connection and login-startup setup, select or mention Origin Companion and request work. The computer must be on, logged in and online. An ordinary request does not require a checkout, terminal, or manual reconnect.
+
+This candidate isolates each account's vendor state and bundles verified tunnel-client 0.0.15. Temporary status/network failures preserve a proven live connector. If the connector exits, supervision reconciles its exact process identities and retries; longer outages use capped recovery intervals instead of exhausting three retries permanently. A manual stop remains stopped. Authentication or uncertain ownership requires inspection instead of repeated launches.
+
+Read `tunnel status --config <account-runtime-config.json>` locally if the host cannot reach the plugin. The output distinguishes freshness, supervisor/daemon liveness, local MCP readiness, the primary failure, any cleanup failure, and the next retry time. Local readiness does not establish that the host selected the correct account. Complete recovery with an actual host `origin_status` call. Failed or uncertain scientific jobs are never automatically replayed by connection recovery.
+
 ## Confirm the execution computer
 
 In 0.2.8, `origin_status.device.computer_name` identifies the computer running MCP. Compare it with the user's intended device before submitting work; switch connections if it differs. This field does not start Origin, validate licensing or certify a native build. It assists routing, not cryptographic device authentication. Each computer needs its own licensed target Origin, runtime and connection; another computer's success is not this device's acceptance.

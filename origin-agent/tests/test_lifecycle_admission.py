@@ -36,7 +36,8 @@ def scope(tmp_path):
     write_json(
         config,
         {
-            "schema_version": 1,
+            "schema_version": 2,
+            "client_state_dir": str(cloud / "tunnel-state"),
             "alias": "test-admission",
             "profile": "test-admission",
             "state_root": str(state),
@@ -254,12 +255,17 @@ def test_config_rebind_cannot_enter_another_fenced_state_root(scope, monkeypatch
     write_json(cloud / "intent.json", {"enabled": False, "stop_requested": True})
     before = (cloud / "intent.json").read_bytes()
     rebound = json.loads(config.read_text())
-    rebound.update(state_root=str(second), cloud_root=str(cloud), profile_dir=str(cloud / "profiles"))
+    rebound.update(
+        state_root=str(second),
+        cloud_root=str(cloud),
+        profile_dir=str(cloud / "profiles"),
+        client_state_dir=str(cloud / "tunnel-state"),
+    )
     original_admitted = admitted
 
     @contextmanager
-    def rebind_after_lock(root):
-        with original_admitted(root):
+    def rebind_after_lock(root, **kwargs):
+        with original_admitted(root, **kwargs):
             write_json(config, rebound)
             yield
 

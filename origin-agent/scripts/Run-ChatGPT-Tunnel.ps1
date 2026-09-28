@@ -13,7 +13,7 @@ try {
     if (-not [IO.Path]::IsPathRooted($ConfigPath)) { throw 'The private connector configuration path must be absolute.' }
     $ConfigPath = [IO.Path]::GetFullPath($ConfigPath)
     $config = Get-Content -Raw -Encoding UTF8 -LiteralPath $ConfigPath | ConvertFrom-Json
-    if ($config.schema_version -ne 1 -or -not [IO.Path]::IsPathRooted($config.state_root) -or
+    if ($config.schema_version -notin @(1,2) -or -not [IO.Path]::IsPathRooted($config.state_root) -or
         -not [IO.Path]::IsPathRooted($config.secret_file)) { throw 'The private connector configuration is invalid.' }
     $install = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $config.state_root 'install.json') | ConvertFrom-Json
     if (-not [IO.Path]::IsPathRooted($install.executable) -or

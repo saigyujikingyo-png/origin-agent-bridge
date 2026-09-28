@@ -57,20 +57,20 @@ def check_activation_pending(state_root, *, receipt_id=None):
 
 
 @contextmanager
-def _locked(state_root):
+def _locked(state_root, *, timeout=0):
     root, lock, _ = paths(state_root)
     with ExitStack() as held:
         try:
-            held.enter_context(file_lock(lock, timeout=0))
+            held.enter_context(file_lock(lock, timeout=timeout))
         except BusyError as exc:
             raise AdmissionError("lifecycle_transaction_busy") from exc
         yield root
 
 
 @contextmanager
-def admitted(state_root):
+def admitted(state_root, *, timeout=0):
     """Short, non-reentrant gate. Acquire a runtime scope lock before leaving it."""
-    with _locked(state_root) as root:
+    with _locked(state_root, timeout=timeout) as root:
         pending = pending_transaction(root)
         if pending:
             raise AdmissionError(f"lifecycle_recovery_required:{pending['receipt_id']}")

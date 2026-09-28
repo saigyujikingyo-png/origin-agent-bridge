@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][string]$TunnelId,
-      [string]$TunnelClient = 'tunnel-client', [switch]$Run, [string]$StateRoot = '')
+      [string]$TunnelClient = '', [switch]$Run, [string]$StateRoot = '')
 $ErrorActionPreference = 'Stop'
 Import-Module ($PSHOME + '\Modules\Microsoft.PowerShell.Management\Microsoft.PowerShell.Management.psd1')
 Import-Module ($PSHOME + '\Modules\Microsoft.PowerShell.Utility\Microsoft.PowerShell.Utility.psd1')
@@ -33,6 +33,7 @@ try {
         return
     }
     if (-not $env:CONTROL_PLANE_API_KEY) { throw 'Set CONTROL_PLANE_API_KEY locally; do not put it in chat or source files.' }
+    if (-not $TunnelClient) { $TunnelClient = Join-Path $install.root 'tunnel-client\v0.0.15\tunnel-client.exe' }
     $resolvedClient = (Get-Command -Name $TunnelClient -CommandType Application -ErrorAction Stop).Source
     & $install.executable tunnel initialize --tunnel-id $TunnelId --tunnel-client $resolvedClient
     if ($LASTEXITCODE -ne 0) { throw 'Private connector initialization failed; existing account profiles were preserved.' }

@@ -102,6 +102,16 @@ def setup(tmp_path, monkeypatch):
     (bundle / "server").mkdir(parents=True)
     (bundle / "server/origin-agent.exe").write_bytes(b"new engine")
     (bundle / "manifest.json").write_text(json.dumps({"version": __version__}))
+    import hashlib
+
+    from origin_agent import tunnel_dependency
+
+    client = bundle / "tunnel-client/v0.0.15/tunnel-client.exe"
+    client.parent.mkdir(parents=True)
+    client.write_bytes(b"pinned candidate fixture")
+    monkeypatch.setattr(
+        tunnel_dependency, "EXECUTABLE_SHA256", hashlib.sha256(client.read_bytes()).hexdigest()
+    )
     for name in ("Run-ChatGPT-Tunnel.ps1", "Stop-ChatGPT-Tunnel.ps1"):
         (bundle / name).write_text("# release-owned " + name)
     state.mkdir(parents=True)
@@ -350,7 +360,7 @@ def test_receipt_never_copies_profile_identifier_or_key_data(setup):
             content = file.read_bytes()
             assert b"tunnel_aaaaaaaa" not in content
             assert secret.read_bytes() not in content
-    assert json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))["schema_version"] == 1
+    assert json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))["schema_version"] == 2
 
 
 def test_disabled_startup_adapter_only_disables_exact_scope(setup):

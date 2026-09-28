@@ -335,13 +335,16 @@ def discover(state_root):
             root / "runtime-key.dpapi" if root != cloud.resolve() else state_root / "secrets/tunnel-key.dpapi"
         )
         secret = _inside(saved.get("secret_file", secret), state_root)
-        client = Path(
-            saved.get("tunnel_client", state_root / "tunnel-client/v0.0.14/tunnel-client.exe")
-        ).resolve()
+        install = read_json(state_root / "install.json") if (state_root / "install.json").is_file() else {}
+        bundled = Path(install.get("root", state_root)) / "tunnel-client/v0.0.15/tunnel-client.exe"
+        default_client = (
+            bundled if bundled.is_file() else state_root / "tunnel-client/v0.0.14/tunnel-client.exe"
+        )
+        client = Path(saved.get("tunnel_client", default_client)).resolve()
         if not secret.is_file() or not client.is_file():
             raise ValueError("The existing encrypted runtime key or tunnel client is missing")
         config = {
-            "schema_version": 1,
+            "schema_version": saved.get("schema_version", 1),
             "alias": saved.get("alias", alias),
             "profile": alias,
             "profile_dir": str(directory),
@@ -355,6 +358,13 @@ def discover(state_root):
         for key in ("profile", "profile_dir", "cloud_root", "state_root"):
             if key in saved and saved[key] != config[key]:
                 raise ValueError("Existing private tunnel configuration has conflicting scope")
+        if config["schema_version"] == 2:
+            from .tunnel_lifecycle import Connection
+
+            validated = Connection.load(existing)
+            config["client_state_dir"] = str(validated.client_state_dir)
+        elif config["schema_version"] != 1:
+            raise ValueError("Unsupported private tunnel configuration version")
         result.append(config)
     if len({c["alias"] for c in result}) != len(result):
         raise ValueError("Ambiguous private tunnel aliases across account directories")
@@ -500,7 +510,17 @@ def migrate(changes, bundle, state_root, *, enable_new=False):
     configs = discover(state_root)
     if not configs:
         return []
+    from .tunnel_dependency import bundled_client
+
     state_root, bundle = Path(state_root).resolve(), Path(bundle).resolve()
+    client = bundled_client(bundle)
+    previous_configs = [dict(config) for config in configs]
+    for config in configs:
+        config.update(
+            schema_version=2,
+            tunnel_client=str(client),
+            client_state_dir=str(Path(config["cloud_root"]) / "tunnel-state"),
+        )
     if not (state_root / "install.json").is_file():
         raise RuntimeError("An installed engine pointer is required before private tunnel migration")
     for name in SCRIPTS:
@@ -546,7 +566,7 @@ def migrate(changes, bundle, state_root, *, enable_new=False):
         snapshot = _intent_snapshot(changes, Path(config["cloud_root"]) / "intent.json")
         snapshots.append(snapshot)
         candidate = changes.root / f"tunnel-config-{index}.json"
-        atomic_bytes(candidate, encoded(config))
+        atomic_bytes(candidate, encoded(previous_configs[index]))
         try:
             previous = snapshot[2]["after"]
             stopped = api.stop(
@@ -1010,6 +1030,7 @@ def _initialize_profile(state_root, tunnel_id, tunnel_client):
         state_root=state_root,
         secret_file=state_root / "secrets/tunnel-key.dpapi",
         tunnel_client=client,
+        client_state_dir=cloud / "tunnel-state",
     )
     if not connection.engine.is_file():
         raise ValueError("Install Origin Companion before initializing a private connector")
@@ -1043,6 +1064,8 @@ def _initialize_profile(state_root, tunnel_id, tunnel_client):
         stage_root.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="profile-", dir=stage_root) as stage:
             stage = _inside(stage, stage_root)
+            environment = os.environ.copy()
+            environment["TUNNEL_CLIENT_STATE_DIR"] = str(connection.client_state_dir)
             result = subprocess.run(
                 [
                     str(client),
@@ -1061,6 +1084,7 @@ def _initialize_profile(state_root, tunnel_id, tunnel_client):
                 capture_output=True,
                 timeout=30,
                 check=False,
+                env=environment,
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
             if result.returncode:

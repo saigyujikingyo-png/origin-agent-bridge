@@ -1,7 +1,7 @@
 # Origin runtime lifecycle
 
 Record version: 1.0. Shared rules: 2026-09-19.1, lifecycle contract 1.0.
-Implementation candidate: 0.2.12, the runtime-lifecycle change after source 513ea6f.
+Implementation candidate: 0.2.13, connection reliability after source b717e598.
 **Not yet a released or installed acceptance certificate.**
 
 ## Component ownership
@@ -31,22 +31,27 @@ the OS independently of the vendor alias registry, validates the alias metadata,
 and either adopts the same healthy/starting owner or reconciles proven old owners.
 Every connect/status command has a 20-second timeout. Initial readiness polls the
 same owner for at most 90 seconds; continued health is checked every 15 seconds.
-The success observation expires after 40 seconds and is invalidated on probe failure.
+The success observation expires after 40 seconds and is invalidated on probe failure.\nAll states additionally report observation freshness and supervisor/daemon liveness;\nprimary and cleanup errors remain separate and sanitized.
 The public diagnostic also checks its supervisor identity. A cached observation is
 not a fresh remote call or proof of app/account binding.
 
-States include absent, spawning, starting, ready, unhealthy, stopping, stopped,
+States include absent, spawning, starting, ready, degraded, recovering, unhealthy, stopping, stopped,
 failed, stale and unknown. State files contain observation time, expiry, canonical
 scope and process identities. Legacy background-status readers receive the same
 invalidated state instead of an old permanent success flag.
 
-Failures use bounded delays of 5, 15 and 30 seconds. Five minutes of observed health
-resets this budget. Authentication failure stops the sequence. Each retry first
-reconciles the attempt, including daemons missing from registry metadata. An
-ownership conflict or unconfirmed cleanup stops recovery without spawning again.
-Task Scheduler may restart a failed supervisor at most three times at one-minute
-intervals. A prolonged outage can exhaust both budgets; explicit start is the
-recovery route after the underlying problem is resolved.
+Failed connection attempts use bounded delays of 5, 15 and 30 seconds. Transient
+network/probe failures continue with delays of 30, 60, 120 and up to 300 seconds,
+with jitter, within the same supervisor. Five minutes of observed health resets
+the budget. A status timeout does not replace a proven live owner: its official
+client retains its own reconnect loop. Persistent local frontend unhealthiness
+uses the bounded readiness window before reconciliation. Authentication failure
+stops recovery. Registry conflicts or unknown ownership preserve processes and
+block new connects. Every actual replacement reconciles the previous attempt.
+
+Task Scheduler may restart a crashed supervisor at most three one-minute intervals.
+It is not another network watchdog. Explicit manual stop and installation fences
+always interrupt recovery; a connection retry never replays a scientific job.
 
 ## Process fencing and explicit stop
 
@@ -58,7 +63,7 @@ An orphan without this proof is preserved and blocks a new attempt. PID-only,
 basename-only and stale-parent-PID cleanup are forbidden.
 
 During cleanup, proven connector producers are briefly suspended before their
-children are enumerated, closing the spawn-during-termination race. Only the proven
+children are enumerated, closing the spawn-during-termination race. Windows uses\nthe successful synchronous native suspend call; its thread-wait status heuristic\ncan misreport a suspended Go runtime. POSIX still waits for SIGSTOP observation. Only the proven
 daemon and its `serve` frontend chain are terminated. Native applications, accepted
 job supervisors and unrelated hosts are neither suspended nor killed. A refused
 cleanup resumes any preserved producer. All destructive actions recheck identity.

@@ -35,13 +35,40 @@ def world(tmp_path, monkeypatch):
     # for the vendor-daemon fixture, retaining this environment's installed libraries.
     monkeypatch.setenv("PYTHONPATH", os.pathsep.join(sys.path))
     yield tmp_path
-    # Fixture-only cleanup checks creation identity. Never affects installed state.
-    for path in (tmp_path / "pids").glob("*.json"):
-        value = json.loads(path.read_text())
+    # Freeze exact fixture producers before enumerating children. PID publication
+    # can lag process launch; never let a failed assertion leak a late frontend.
+    scoped = []
+    for process in psutil.process_iter(["cmdline"]):
         try:
-            process = psutil.Process(value["pid"])
-            if abs(process.create_time() - value["created"]) < 0.001:
-                process.terminate()
+            argv = process.info["cmdline"] or []
+            if str(FIXTURE) not in argv or "--root" not in argv:
+                continue
+            if Path(argv[argv.index("--root") + 1]).resolve() != tmp_path.resolve():
+                continue
+            if Path(process.exe()).resolve() != Path(PYTHON):
+                continue
+            scoped.append((process, process.create_time()))
+            if "run" in argv or "controller" in argv:
+                process.suspend()
+        except psutil.NoSuchProcess:
+            continue
+    # With producers frozen, one more enumeration captures their final children.
+    for process in psutil.process_iter(["cmdline"]):
+        try:
+            argv = process.info["cmdline"] or []
+            if (
+                str(FIXTURE) in argv
+                and "--root" in argv
+                and Path(argv[argv.index("--root") + 1]).resolve() == tmp_path.resolve()
+                and Path(process.exe()).resolve() == Path(PYTHON)
+            ):
+                scoped.append((process, process.create_time()))
+        except psutil.NoSuchProcess:
+            pass
+    for process, created in scoped:
+        try:
+            if process.is_running() and process.create_time() == created:
+                process.kill()
                 process.wait(4)
         except psutil.NoSuchProcess:
             pass
@@ -65,7 +92,8 @@ def setup(world, settings=None, name=None):
     write_json(
         config,
         {
-            "schema_version": 1,
+            "schema_version": 2,
+            "client_state_dir": str(cloud / "tunnel-state"),
             "alias": name,
             "profile": name,
             "profile_dir": str(profiles),
@@ -83,7 +111,13 @@ def setup(world, settings=None, name=None):
     controller = Controller(
         c,
         policy=Policy(
-            command_timeout=3, ready_timeout=4, poll=0.05, health_interval=0.1, cleanup_timeout=3, retries=()
+            command_timeout=3,
+            ready_timeout=4,
+            poll=0.05,
+            health_interval=0.1,
+            cleanup_timeout=3,
+            retries=(),
+            recovery_delays=(),
         ),
         command=[PYTHON, str(FIXTURE), "--root", str(world)],
     )
@@ -266,9 +300,10 @@ def test_saved_lineage_reconciles_orphan_without_harming_job(world):
 def test_missing_registry_after_spawn_does_not_hide_processes(world):
     controller, _ = setup(world, {"missing_registry": True})
     controller.policy = replace(controller.policy, ready_timeout=1)
-    with pytest.raises(LifecycleError, match="readiness_timeout"):
+    with pytest.raises(OwnershipError, match="runtime_registry_identity_conflict"):
         controller.supervise()
-    assert count(world, controller.c.alias) == 1 and controller.scan() == ([], [])
+    assert count(world, controller.c.alias) == 1
+    assert len(controller.scan()[0]) == 1
 
 
 def test_reused_pid_token_cannot_terminate_live_process(world):
@@ -463,3 +498,244 @@ def test_legacy_wrapper_without_child_is_frozen_before_exit(world):
     quiesce_legacy_wrapper(owner)
     wrapper.wait(3)
     assert not owner.live()
+
+
+def test_expired_failure_reports_dead_supervision_without_discarding_cause(world):
+    controller, config = setup(world)
+    value = controller.note(
+        "unknown",
+        reason="reconciliation_failed",
+        primary_error={"code": "command_timeout", "phase": "status"},
+        cleanup_error={"code": "producer_quiesce_timeout", "phase": "reconcile"},
+    )
+    value["valid_until"] = 1
+    value["supervisor"]["created"] -= 100
+    write_json(controller.c.cloud_root / "supervisor-state.json", value)
+    observed = status(config)
+    assert observed["observation_fresh"] is False
+    assert observed["supervisor_alive"] is False
+    assert observed["primary_error"]["code"] == "command_timeout"
+    assert observed["cleanup_error"]["code"] == "producer_quiesce_timeout"
+
+
+def test_live_owner_survives_transient_probe_failure_and_recovers(world, monkeypatch):
+    from origin_agent.tunnel_lifecycle import StopRequested
+
+    controller, config = setup(world)
+    daemon = controller.ensure_ready()
+    controller.policy = replace(controller.policy, recovery_delays=(0.01,), jitter=0)
+    original_probe = controller.probe
+    original_note = controller.note
+    sequence = []
+    failures = 0
+
+    def probe(timeout=None):
+        nonlocal failures
+        if failures < 2:
+            failures += 1
+            controller.phase = "status"
+            raise LifecycleError("command_timeout")
+        return original_probe(timeout)
+
+    def note(state, **kwargs):
+        sequence.append(state)
+        value = original_note(state, **kwargs)
+        if state == "degraded":
+            assert daemon.live()
+            assert count(world, controller.c.alias) == 1
+        if state == "ready":
+            assert failures == 2 and daemon.live()
+            raise StopRequested("stop_requested")
+        return value
+
+    monkeypatch.setattr(controller, "probe", probe)
+    monkeypatch.setattr(controller, "note", note)
+    assert controller.supervise()["state"] == "stopped"
+    assert sequence[:3] == ["degraded", "degraded", "ready"]
+    assert count(world, controller.c.alias) == 1
+    assert not status(config)["ready"]
+
+
+def test_network_outage_outlives_fast_retry_budget_and_recovers(world, monkeypatch):
+    from origin_agent.tunnel_lifecycle import StopRequested
+
+    controller, _ = setup(world)
+    controller.policy = replace(controller.policy, recovery_delays=(0.01,), jitter=0)
+    original_probe, original_note = controller.probe, controller.note
+    failures = 0
+
+    def probe(timeout=None):
+        nonlocal failures
+        if failures < 3:
+            failures += 1
+            controller.phase = "status"
+            raise LifecycleError("network_unavailable")
+        return original_probe(timeout)
+
+    def note(state, **kwargs):
+        result = original_note(state, **kwargs)
+        if state == "ready":
+            assert failures == 3
+            raise StopRequested("stop_requested")
+        return result
+
+    monkeypatch.setattr(controller, "probe", probe)
+    monkeypatch.setattr(controller, "note", note)
+    assert controller.supervise()["state"] == "stopped"
+    assert count(world, controller.c.alias) == 1
+
+
+def test_cleanup_failure_preserves_both_allowlisted_causes(world, monkeypatch):
+    controller, config = setup(world)
+
+    def fail_probe(timeout=None):
+        controller.phase = "status"
+        raise LifecycleError("network_unavailable")
+
+    def refuse():
+        raise OwnershipError("producer_quiesce_timeout")
+
+    monkeypatch.setattr(controller, "probe", fail_probe)
+    monkeypatch.setattr(controller, "reconcile", refuse)
+    with pytest.raises(OwnershipError, match="producer_quiesce_timeout"):
+        controller.supervise()
+    result = status(config)
+    assert result["primary_error"] == {"code": "network_unavailable", "phase": "status"}
+    assert result["cleanup_error"] == {"code": "producer_quiesce_timeout", "phase": "reconcile"}
+
+
+def test_diagnostics_never_publish_arbitrary_exception_text(world, monkeypatch):
+    controller, config = setup(world)
+
+    def fail():
+        raise RuntimeError("sk-fixture-sensitive-material https://example.invalid/?secret=value")
+
+    monkeypatch.setattr(controller, "ensure_ready", fail)
+    with pytest.raises(LifecycleError, match="supervisor_error"):
+        controller.supervise()
+    for name in ("supervisor-state.json", "background-status.json", "connection-events.json"):
+        text = (controller.c.cloud_root / name).read_text()
+        assert "sensitive" not in text and "secret=" not in text
+    assert status(config)["primary_error"]["code"] == "supervisor_error"
+
+
+def test_child_state_root_overrides_inherited_global_registry(world, monkeypatch):
+    controller, _ = setup(world)
+    foreign = world / "foreign-registry"
+    foreign.mkdir()
+    sentinel = foreign / "processes.yaml"
+    sentinel.write_bytes(b"unrelated old client registry")
+    monkeypatch.setenv("TUNNEL_CLIENT_STATE_DIR", str(foreign))
+    daemon = controller.ensure_ready()
+    environment = psutil.Process(daemon.pid).environ()
+    assert Path(environment["TUNNEL_CLIENT_STATE_DIR"]) == controller.c.client_state_dir
+    assert sentinel.read_bytes() == b"unrelated old client registry"
+    assert len(controller.scan()[0]) == 1
+
+
+def test_mismatched_registry_preserves_owner_and_blocks_second_connect(world):
+    controller, _ = setup(world)
+    daemon = controller.ensure_ready()
+    registry = world / controller.c.alias / "registry.json"
+    value = json.loads(registry.read_text())
+    value["pid"] = 2147483647
+    write_json(registry, value)
+    with pytest.raises(OwnershipError, match="runtime_registry_identity_conflict"):
+        controller.supervise()
+    assert daemon.live()
+    assert count(world, controller.c.alias) == 1
+
+
+def test_v2_config_rejects_shared_or_redirected_state_root(world):
+    controller, config = setup(world)
+    value = json.loads(config.read_text())
+    value["client_state_dir"] = str(world / "shared-vendor")
+    write_json(config, value)
+    with pytest.raises(LifecycleError, match="invalid_client_state_directory"):
+        Connection.load(config)
+
+
+def test_legacy_config_cannot_silently_restart_shared_vendor_state(world):
+    controller, config = setup(world)
+    value = json.loads(config.read_text())
+    value["schema_version"] = 1
+    value.pop("client_state_dir")
+    write_json(config, value)
+    with pytest.raises(LifecycleError, match="connection_migration_required"):
+        run(config)
+    diagnostic = json.loads((controller.c.cloud_root / "startup-diagnostic.json").read_text())
+    assert diagnostic["reason"] == "connection_migration_required"
+    assert count(world, controller.c.alias) == 0
+
+
+@pytest.mark.skipif(os.name != "nt", reason="official Windows FILETIME identity contract")
+def test_vendor_creation_identity_allows_slow_registration_and_rejects_pid_reuse(world):
+    controller, _ = setup(world)
+    controller.ensure_ready()
+    daemons, children = controller.scan()
+    observed = controller.probe()
+    meta = observed["process"]
+    meta["started_at"] = "2099-01-01T00:00:00Z"
+    meta["pid_start_time"] = str(round(daemons[0].created * 1_000_000_000))
+    meta["pid_executable"] = daemons[0].exe
+    assert controller.verified_ready(observed, daemons, children)
+    meta["pid_start_time"] = str(round((daemons[0].created - 10) * 1_000_000_000))
+    with pytest.raises(OwnershipError, match="runtime_start_identity_conflict"):
+        controller.verified_ready(observed, daemons, children)
+
+
+def test_confirmed_daemon_exit_recovers_without_waiting_readiness_deadline(world, monkeypatch):
+    from origin_agent.tunnel_lifecycle import StopRequested
+
+    controller, _ = setup(world)
+    controller.policy = replace(controller.policy, ready_timeout=60, retries=(0.01,))
+    original_note = controller.note
+    ready_count = 0
+
+    def note(state, **kwargs):
+        nonlocal ready_count
+        value = original_note(state, **kwargs)
+        if state == "ready":
+            ready_count += 1
+            if ready_count == 1:
+                controller.terminate(kwargs["daemon"])
+            elif ready_count == 2:
+                raise StopRequested("stop_requested")
+        return value
+
+    monkeypatch.setattr(controller, "note", note)
+    began = time.monotonic()
+    assert controller.supervise()["state"] == "stopped"
+    assert time.monotonic() - began < 12
+    assert count(world, controller.c.alias) == 2
+
+
+@pytest.mark.skipif(os.name != "nt", reason="pinned Windows client identity contract")
+def test_migrated_connection_requires_vendor_os_identity(world):
+    controller, _ = setup(world)
+    controller.ensure_ready()
+    daemons, children = controller.scan()
+    observed = controller.probe()
+    observed["process"].pop("pid_start_time")
+    with pytest.raises(LifecycleError, match="runtime_start_identity_missing"):
+        controller.verified_ready(observed, daemons, children)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows vendor identity projection")
+def test_status_uses_scoped_persisted_identity_when_cli_projection_omits_it(world):
+    controller, _ = setup(world)
+    controller.ensure_ready()
+    observed = controller.probe()
+    record = dict(observed["process"], alias=controller.c.alias)
+    write_json(controller.c.client_state_dir / "processes.yaml", {controller.c.alias: record})
+    observed["process"].pop("pid_start_time")
+    observed["process"].pop("pid_executable")
+    write_json(
+        world / controller.c.alias / "settings.json", {"status_override": {"stdout": json.dumps(observed)}}
+    )
+    merged = controller.probe()
+    assert controller.verified_ready(merged, *controller.scan())
+    record["pid"] += 1
+    write_json(controller.c.client_state_dir / "processes.yaml", {controller.c.alias: record})
+    with pytest.raises(OwnershipError, match="runtime_registry_identity_conflict"):
+        controller.probe()
