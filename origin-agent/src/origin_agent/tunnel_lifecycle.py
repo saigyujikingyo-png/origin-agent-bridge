@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import random
 import re
 import subprocess
 import sys
@@ -17,6 +18,7 @@ import psutil
 
 from .lifecycle_admission import AdmissionError, admitted, intent_guard, pending_transaction
 from .storage import BusyError, file_lock, json_bytes, write_json
+from .tunnel_health import HealthOwnershipError, read_remote, unknown
 
 
 class LifecycleError(RuntimeError):
@@ -29,6 +31,81 @@ class OwnershipError(LifecycleError):
 
 class StopRequested(LifecycleError):
     pass
+
+
+ERROR_CODES = frozenset(
+    (
+        "absolute_connection_paths_required",
+        "ambiguous_command_arguments",
+        "authentication_required",
+        "control_plane_stalled",
+        "remote_health_endpoint_conflict",
+        "remote_health_identity_conflict",
+        "runtime_key_unavailable",
+        "candidate_process_inaccessible",
+        "cleanup_incomplete",
+        "command_failed",
+        "command_timeout",
+        "connection_migration_required",
+        "connection_outside_state_root",
+        "connection_scope_changed",
+        "daemon_executable_or_user_conflict",
+        "daemon_ownership_changed",
+        "daemon_state_directory_conflict",
+        "duplicate_scoped_daemons",
+        "engine_changed_restart_required",
+        "frontend_ownership_changed",
+        "incomplete_runtime_status",
+        "intent_changed_before_stop",
+        "invalid_client_state_directory",
+        "invalid_command_output",
+        "invalid_connection_name",
+        "invalid_existing_tunnel_identity",
+        "legacy_wrapper_child_in_flight",
+        "legacy_wrapper_stop_unconfirmed",
+        "lifecycle_error",
+        "lifecycle_fence_invalid_recovery_required",
+        "lifecycle_intent_busy",
+        "lifecycle_recovery_required",
+        "lifecycle_transaction_busy",
+        "network_unavailable",
+        "owned_process_did_not_stop",
+        "ownership_scope_conflict",
+        "preserved_process_resume_unconfirmed",
+        "process_identity_inaccessible",
+        "producer_quiesce_timeout",
+        "profile_directory_conflict",
+        "profile_directory_outside_connection",
+        "readiness_timeout",
+        "runtime_alias_conflict",
+        "runtime_executable_missing",
+        "runtime_key_reference_required",
+        "runtime_process_scope_conflict",
+        "runtime_registration_missing",
+        "runtime_registry_identity_conflict",
+        "runtime_registry_unreadable",
+        "runtime_start_identity_conflict",
+        "runtime_start_identity_missing",
+        "runtime_unhealthy",
+        "runtime_absent",
+        "status_output_too_large",
+        "supervisor_error",
+        "unproven_orphan_frontend",
+        "unsupported_connection_config",
+    )
+)
+
+
+def error_code(exc):
+    """Only allowlisted lifecycle codes survive into durable diagnostics."""
+    if isinstance(exc, (LifecycleError, AdmissionError)):
+        candidate = str(exc).split(":", 1)[0]
+        return candidate if candidate in ERROR_CODES else "lifecycle_error"
+    if isinstance(exc, psutil.AccessDenied):
+        return "process_access_denied"
+    if isinstance(exc, psutil.TimeoutExpired):
+        return "process_wait_timeout"
+    return "supervisor_error"
 
 
 def canonical(path):
@@ -62,11 +139,12 @@ class Connection:
     state_root: Path
     secret_file: Path
     tunnel_client: Path
+    client_state_dir: Path | None = None
 
     @classmethod
     def load(cls, path):
         value = read(path)
-        if value.get("schema_version") != 1:
+        if value.get("schema_version") not in (1, 2):
             raise LifecycleError("unsupported_connection_config")
         for name in ("alias", "profile"):
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,100}", value[name]):
@@ -80,6 +158,17 @@ class Connection:
             raise LifecycleError("profile_directory_outside_connection")
         if not paths["cloud_root"].is_relative_to(paths["state_root"] / "cloud"):
             raise LifecycleError("connection_outside_state_root")
+        if value["schema_version"] == 2:
+            selected = Path(value.get("client_state_dir", ""))
+            expected = paths["cloud_root"] / "tunnel-state"
+            if (
+                not selected.is_absolute()
+                or selected != expected
+                or selected.resolve() != expected
+                or not expected.resolve().is_relative_to(paths["cloud_root"])
+            ):
+                raise LifecycleError("invalid_client_state_directory")
+            paths["client_state_dir"] = selected
         return cls(alias=value["alias"], profile=value["profile"], **paths)
 
     @cached_property
@@ -157,10 +246,15 @@ class Policy:
     stale_after: float = 40
     cleanup_timeout: float = 8
     retries: tuple = (5, 15, 30)
+    recovery_delays: tuple = (30, 60, 120, 300)
+    jitter: float = 0.1
+    resume_gap: float = 45
+    resume_grace: float = 45
+    stall_grace: float = 30
 
 
 class Controller:
-    def __init__(self, connection, *, policy=None, command=None):
+    def __init__(self, connection, *, policy=None, command=None, remote_probe=None):
         self.c = connection
         self.policy = policy or Policy()
         self.command = command or [str(connection.tunnel_client)]
@@ -172,6 +266,74 @@ class Controller:
             raise OwnershipError("ownership_scope_conflict")
         self.known = [Identity(**item) for item in saved.get("processes", [])]
         self.attempt = saved.get("attempt")
+        self.phase = "startup"
+        self.last_probe = None
+        self.connecting = False
+        self.remote_probe = remote_probe or read_remote
+        self.remote_health = unknown()
+        self.last_health_tick = time.monotonic()
+        self.remote_grace_until = self.last_health_tick + self.policy.resume_grace
+        self.remote_stall_since = None
+
+    def credential_revision(self):
+        try:
+            if self.c.secret_file.stat().st_size > 65536:
+                raise OSError
+            return hashlib.sha256(self.c.secret_file.read_bytes()).hexdigest()
+        except OSError as exc:
+            raise LifecycleError("runtime_key_unavailable") from exc
+
+    def authentication_blocked(self):
+        block = read(self.c.cloud_root / "authentication-blocked.json")
+        return bool(
+            block
+            and block.get("scope") == self.c.scope
+            and block.get("credential_revision") == self.credential_revision()
+        )
+
+    def block_authentication(self, credential_revision):
+        write_json(
+            self.c.cloud_root / "authentication-blocked.json",
+            {
+                "scope": self.c.scope,
+                "credential_revision": credential_revision,
+                "observed_at": utc(),
+                "reason": "authentication_required",
+            },
+        )
+
+    def observe_connection(self, daemon):
+        now = time.monotonic()
+        if now - self.last_health_tick > self.policy.resume_gap:
+            self.remote_grace_until = now + self.policy.resume_grace
+            self.remote_stall_since = None
+        self.last_health_tick = now
+        self.phase = "control_plane"
+        try:
+            self.remote_health = self.remote_probe(self.c, daemon)
+        except HealthOwnershipError as exc:
+            raise OwnershipError(str(exc)) from exc
+        state = self.remote_health["state"]
+        if state == "authentication_required":
+            raise LifecycleError("authentication_required")
+        if state == "online":
+            self.remote_stall_since = None
+            (self.c.cloud_root / "authentication-blocked.json").unlink(missing_ok=True)
+            return self.note("ready", ready=True, healthy=True, daemon=daemon)
+        if state == "stalled" and self.remote_health.get("idle"):
+            if self.remote_stall_since is None:
+                self.remote_stall_since = now
+            if now >= self.remote_grace_until and now - self.remote_stall_since >= self.policy.stall_grace:
+                raise LifecycleError("control_plane_stalled")
+        else:
+            self.remote_stall_since = None
+        return self.note(
+            "recovering" if state == "recovering" else "degraded",
+            daemon=daemon,
+            local_ready=True,
+            reason=self.remote_health.get("reason"),
+            retry_in=self.policy.health_interval,
+        )
 
     def save(self):
         value = {"scope": self.c.scope, "attempt": self.attempt, "processes": [asdict(p) for p in self.known]}
@@ -179,10 +341,24 @@ class Controller:
         if any(before.get(key) != item for key, item in value.items()):
             write_json(self.ledger_path, {**value, "observed_at": utc()})
 
-    def note(self, phase, *, reason=None, ready=False, healthy=False, daemon=None):
+    def note(
+        self,
+        phase,
+        *,
+        reason=None,
+        ready=False,
+        healthy=False,
+        daemon=None,
+        primary_error=None,
+        cleanup_error=None,
+        retry_in=None,
+        local_ready=None,
+    ):
         now = time.time()
+        if not ready and self.remote_health["state"] == "online":
+            self.remote_health = unknown()
         value = {
-            "schema_version": 1,
+            "schema_version": 2,
             "scope": self.c.scope,
             "state": phase,
             "observed_at": utc(),
@@ -193,7 +369,25 @@ class Controller:
             "healthy": healthy,
             "supervisor": asdict(self.owner),
             "daemon": asdict(daemon) if daemon else None,
+            "primary_error": primary_error,
+            "cleanup_error": cleanup_error,
+            "next_retry_at": now + retry_in if retry_in is not None else None,
+            "local_mcp_ready": ready if local_ready is None else local_ready,
+            # Control-plane polling is evidence of that layer, not a host tool call.
+            "remote_reachability": self.remote_health["state"],
+            "control_plane": self.remote_health,
+            "recovery_action": "update_connection_credential"
+            if reason == "authentication_required"
+            else None,
         }
+        history_path = self.c.cloud_root / "connection-events.json"
+        history = read(history_path, [])
+        event = {k: value[k] for k in ("state", "reason", "primary_error", "cleanup_error")}
+        if not history or any(history[-1].get(k) != v for k, v in event.items()):
+            event.update(
+                observed_at=value["observed_at"], sequence=history[-1]["sequence"] + 1 if history else 1
+            )
+            write_json(history_path, (history + [event])[-64:])
         write_json(self.c.cloud_root / "supervisor-state.json", value)
         # Invalidate the old launcher's success receipt for readers of the legacy path too.
         write_json(self.c.cloud_root / "background-status.json", value)
@@ -223,6 +417,10 @@ class Controller:
             raise OwnershipError("profile_directory_conflict")
         if canonical(process.exe()) != canonical(self.c.tunnel_client) or process.username() != self.user:
             raise OwnershipError("daemon_executable_or_user_conflict")
+        if self.c.client_state_dir is not None:
+            selected = process.environ().get("TUNNEL_CLIENT_STATE_DIR")
+            if not selected or canonical(selected) != canonical(self.c.client_state_dir):
+                raise OwnershipError("daemon_state_directory_conflict")
         return True
 
     def scan(self):
@@ -231,7 +429,10 @@ class Controller:
         possible_frontends = []
         for p in psutil.process_iter(["name"]):
             # Exclude other applications before accessing command lines or protected processes.
-            if p.info["name"].lower() not in {self.c.tunnel_client.name.lower(), self.c.engine.name.lower()}:
+            if (p.info.get("name") or "").lower() not in {
+                self.c.tunnel_client.name.lower(),
+                self.c.engine.name.lower(),
+            }:
                 continue
             try:
                 if p.username() != self.user:
@@ -289,6 +490,8 @@ class Controller:
     def command_json(self, args, *, timeout=None, observe=False, stopping=False):
         """No shell, hard deadline, no raw diagnostics returned or written to receipts."""
         environment = os.environ.copy()
+        if self.c.client_state_dir is not None:
+            environment["TUNNEL_CLIENT_STATE_DIR"] = str(self.c.client_state_dir)
         if args[:2] != ["runtimes", "connect"]:
             environment.pop("CONTROL_PLANE_API_KEY", None)
         proc = subprocess.Popen(
@@ -327,6 +530,19 @@ class Controller:
                 lower = err.lower()
                 if any(x in lower for x in (b"unauthorized", b"forbidden", b"invalid api key")):
                     raise LifecycleError("authentication_required")
+                if any(
+                    x in lower
+                    for x in (
+                        b"no such host",
+                        b"dial tcp",
+                        b"i/o timeout",
+                        b"network is unreachable",
+                        b"connection reset",
+                        b"connection refused",
+                        b"temporary failure in name resolution",
+                    )
+                ):
+                    raise LifecycleError("network_unavailable")
                 raise LifecycleError("command_failed")
             if len(out) > 2 * 1024 * 1024:
                 raise LifecycleError("status_output_too_large")
@@ -345,6 +561,7 @@ class Controller:
             proc.communicate(timeout=self.policy.cleanup_timeout)
 
     def probe(self, timeout=None):
+        self.phase = "status"
         value = self.command_json(["runtimes", "status", self.c.alias, "--json"], timeout=timeout)
         if value.get("alias_missing") is True:
             return value
@@ -355,6 +572,34 @@ class Controller:
                 raise LifecycleError("incomplete_runtime_status")
             if canonical(actual) != canonical(expected) if name == "profile_dir" else actual != expected:
                 raise OwnershipError("runtime_alias_conflict")
+        meta = value.get("process") or {}
+        if (
+            self.c.client_state_dir is not None
+            and meta.get("pid")
+            and (not meta.get("pid_start_time") or not meta.get("pid_executable"))
+        ):
+            # v0.0.15 persists OS identity but omits it from status.process.
+            # Read only this isolated registry and cross-check the CLI snapshot.
+            registry = self.c.client_state_dir / "processes.yaml"
+            try:
+                if registry.resolve() != registry or registry.stat().st_size > 2 * 1024 * 1024:
+                    raise ValueError
+                record = read(registry)[self.c.alias]
+                if (
+                    record.get("pid") != meta["pid"]
+                    or record.get("alias") != self.c.alias
+                    or record.get("profile_name") != self.c.profile
+                    or canonical(record.get("profile_dir", ".")) != canonical(self.c.profile_dir)
+                ):
+                    raise OwnershipError("runtime_registry_identity_conflict")
+                value["process"] = {
+                    **meta,
+                    "pid_start_time": record.get("pid_start_time"),
+                    "pid_executable": record.get("pid_executable"),
+                }
+            except (OSError, KeyError, ValueError, TypeError) as exc:
+                raise OwnershipError("runtime_registry_unreadable") from exc
+        self.last_probe = value
         return value
 
     def verified_ready(self, value, daemons, frontends):
@@ -363,15 +608,31 @@ class Controller:
         daemon = daemons[0]
         meta = value.get("process") or {}
         # PID must be independently observed with a full command/profile/exe/user identity.
-        if meta.get("pid") != daemon.pid or not daemon.live():
+        if meta.get("pid") != daemon.pid:
+            raise OwnershipError("runtime_registry_identity_conflict")
+        if not daemon.live():
             return False
-        try:
-            recorded_start = datetime.fromisoformat(meta["started_at"].replace("Z", "+00:00")).timestamp()
-        except (KeyError, ValueError, TypeError) as exc:
-            raise LifecycleError("runtime_start_identity_missing") from exc
-        # The official CLI records start time rounded to whole seconds.
-        if abs(recorded_start - daemon.created) > 1.5:
-            raise OwnershipError("runtime_start_identity_conflict")
+        if os.name == "nt" and self.c.client_state_dir is not None:
+            if not meta.get("pid_start_time") or not meta.get("pid_executable"):
+                raise LifecycleError("runtime_start_identity_missing")
+        if os.name == "nt" and meta.get("pid_start_time") is not None:
+            try:
+                # v0.0.15 Windows captures FILETIME as Unix nanoseconds, alongside
+                # the executable, from the same OS handle. started_at is merely
+                # the later registration time and varies with MCP startup delay.
+                recorded_start = int(meta["pid_start_time"]) / 1_000_000_000
+                executable = canonical(meta["pid_executable"])
+            except (KeyError, ValueError, TypeError, OSError) as exc:
+                raise LifecycleError("runtime_start_identity_missing") from exc
+            if abs(recorded_start - daemon.created) >= 0.001 or executable != daemon.exe:
+                raise OwnershipError("runtime_start_identity_conflict")
+        else:
+            try:
+                recorded_start = datetime.fromisoformat(meta["started_at"].replace("Z", "+00:00")).timestamp()
+            except (KeyError, ValueError, TypeError) as exc:
+                raise LifecycleError("runtime_start_identity_missing") from exc
+            if abs(recorded_start - daemon.created) > 1.5:
+                raise OwnershipError("runtime_start_identity_conflict")
         if meta.get("profile_name") != self.c.profile or canonical(meta.get("profile_dir", ".")) != canonical(
             self.c.profile_dir
         ):
@@ -448,12 +709,24 @@ class Controller:
                         try:
                             process.suspend()
                             frozen.append(identity)
-                            while identity.live() and process.status() != psutil.STATUS_STOPPED:
+                            # Windows NtSuspendProcess returns synchronously. Its thread-wait
+                            # heuristic can still report running for a suspended Go IO pool.
+                            # POSIX SIGSTOP is asynchronous and still needs state observation.
+                            while (
+                                os.name != "nt"
+                                and identity.live()
+                                and process.status() != psutil.STATUS_STOPPED
+                            ):
                                 if time.monotonic() >= deadline:
                                     raise OwnershipError("producer_quiesce_timeout")
                                 time.sleep(0.01)
                         except psutil.NoSuchProcess:
                             continue
+                        except psutil.AccessDenied:
+                            # Windows can deny suspension after a process starts exiting.
+                            # Absence must be proven; a live inaccessible owner still blocks.
+                            if identity.live():
+                                raise
                 self.scan()
             # Native workers, durable supervisors and unrelated hosts were never frozen.
             for role in ("daemon", "frontend"):
@@ -478,6 +751,18 @@ class Controller:
             raise OwnershipError("cleanup_incomplete")
         self.known = []
         self.save()
+
+    def reconcile_observed(self, primary_error=None):
+        try:
+            self.reconcile()
+        except Exception as exc:
+            self.note(
+                "unknown",
+                reason="reconciliation_failed",
+                primary_error=primary_error,
+                cleanup_error={"code": error_code(exc), "phase": "reconcile"},
+            )
+            raise
 
     def ready(self):
         deadline = time.monotonic() + self.policy.ready_timeout
@@ -511,6 +796,8 @@ class Controller:
         self.attempt = {"started_at": utc(), "supervisor": asdict(self.owner)}
         self.save()  # Durable intent precedes the first spawn-capable command.
         self.note("spawning")
+        self.phase = "connect"
+        self.connecting = True
         self.command_json(
             [
                 "runtimes",
@@ -531,12 +818,16 @@ class Controller:
             ],
             observe=True,
         )
-        return self.ready()
+        daemon = self.ready()
+        self.connecting = False
+        return daemon
 
     def ensure_ready(self):
         daemons, frontends = self.scan()
         value = self.probe()
         if value.get("alias_missing") is True:
+            if daemons:
+                raise OwnershipError("runtime_registration_missing")
             # No new remote identity is created: connect still requires the user's
             # existing validated tunnel ID. Reconcile OS owners before registration.
             self.reconcile()
@@ -551,41 +842,120 @@ class Controller:
 
     def supervise(self):
         failures = 0
+        credential_revision = None
         while True:
             try:
                 self.check_stop()
+                if self.authentication_blocked():
+                    self.remote_health = {
+                        **unknown(),
+                        "state": "authentication_required",
+                        "reason": "authentication_required",
+                    }
+                    return self.note("blocked", reason="authentication_required")
+                if credential_revision is None:
+                    credential_revision = self.credential_revision()
                 daemon = self.ensure_ready()
-                healthy_since = time.monotonic()
+                healthy_since = None
                 while True:
-                    self.note("ready", ready=True, healthy=True, daemon=daemon)
+                    self.observe_connection(daemon)
+                    if self.remote_health["state"] == "online":
+                        healthy_since = healthy_since or time.monotonic()
+                    else:
+                        healthy_since = None
                     self.pause(self.policy.health_interval)
                     daemons, frontends = self.scan()
+                    if not daemons:
+                        raise LifecycleError("runtime_absent")
                     value = self.probe()
                     if not self.verified_ready(value, daemons, frontends):
-                        raise LifecycleError("runtime_unhealthy")
-                    daemon = daemons[0]
-                    if time.monotonic() - healthy_since >= 300:
+                        daemon = self.ready()
+                    else:
+                        daemon = daemons[0]
+                    if healthy_since is not None and time.monotonic() - healthy_since >= 300:
                         failures = 0
             except StopRequested:
                 self.note("stopping")
-                self.reconcile()
+                self.reconcile_observed({"code": "stop_requested", "phase": "stop"})
                 return self.note("stopped")
             except OwnershipError as exc:
-                self.note("unknown", reason=str(exc))
+                self.note(
+                    "unknown",
+                    reason=error_code(exc),
+                    primary_error={"code": error_code(exc), "phase": self.phase},
+                )
                 raise  # Preserve ambiguous processes; never start another attempt.
             except Exception as exc:
-                reason = str(exc) if isinstance(exc, LifecycleError) else "supervisor_error"
-                self.note("unhealthy", reason=reason)
+                reason = error_code(exc)
+                primary = {"code": reason, "phase": self.phase}
+                transient = reason in {
+                    "command_timeout",
+                    "network_unavailable",
+                    "readiness_timeout",
+                    "runtime_unhealthy",
+                    "runtime_absent",
+                    "control_plane_stalled",
+                }
                 try:
-                    self.reconcile()
-                except Exception:
-                    self.note("unknown", reason="reconciliation_failed")
+                    daemons, _frontends = self.scan()
+                    # A probe failure is not authority to replace a proven live owner.
+                    # Keep the official client's own reconnection loop alive.
+                    if (
+                        reason in {"command_timeout", "network_unavailable"}
+                        and self.phase == "status"
+                        and len(daemons) == 1
+                        and not self.connecting
+                    ):
+                        if not self.policy.recovery_delays:
+                            self.note("degraded", reason=reason, daemon=daemons[0], primary_error=primary)
+                            raise LifecycleError(reason) from None
+                        delay = self.policy.recovery_delays[
+                            min(failures, len(self.policy.recovery_delays) - 1)
+                        ]
+                        delay *= random.uniform(1 - self.policy.jitter, 1 + self.policy.jitter)
+                        self.note(
+                            "degraded",
+                            reason=reason,
+                            daemon=daemons[0],
+                            primary_error=primary,
+                            retry_in=delay,
+                        )
+                        failures += 1
+                        try:
+                            self.pause(delay)
+                        except StopRequested:
+                            self.reconcile_observed({"code": "stop_requested", "phase": "stop"})
+                            return self.note("stopped")
+                        continue
+                except OwnershipError as conflict:
+                    self.note(
+                        "unknown",
+                        reason=error_code(conflict),
+                        primary_error=primary,
+                        cleanup_error={"code": error_code(conflict), "phase": "ownership_check"},
+                    )
                     raise
-                if reason == "authentication_required" or failures >= len(self.policy.retries):
-                    self.note("failed", reason=reason)
+                self.note("unhealthy", reason=reason, primary_error=primary)
+                self.reconcile_observed(primary)
+                if reason == "authentication_required":
+                    self.block_authentication(credential_revision)
+                    self.remote_health = {
+                        **self.remote_health,
+                        "state": "authentication_required",
+                        "reason": reason,
+                    }
+                    return self.note("blocked", reason=reason, primary_error=primary)
+                if failures < len(self.policy.retries):
+                    delay = self.policy.retries[failures]
+                elif transient and self.policy.recovery_delays:
+                    index = min(failures - len(self.policy.retries), len(self.policy.recovery_delays) - 1)
+                    delay = self.policy.recovery_delays[index]
+                    delay *= random.uniform(1 - self.policy.jitter, 1 + self.policy.jitter)
+                else:
+                    self.note("failed", reason=reason, primary_error=primary)
                     raise LifecycleError(reason) from None
-                delay = self.policy.retries[failures]
                 failures += 1
+                self.note("recovering", reason=reason, primary_error=primary, retry_in=delay)
                 try:
                     self.pause(delay)
                 except StopRequested:
@@ -609,19 +979,38 @@ def allow_start(config_path):
 def run(config_path):
     c = Connection.load(config_path)
     admission_root = c.state_root
-    with ExitStack() as runtime:
-        with admitted(admission_root):
-            c = Connection.load(config_path)
-            if c.state_root != admission_root:
-                raise OwnershipError("connection_scope_changed")
-            if getattr(sys, "frozen", False) and canonical(sys.executable) != canonical(c.engine):
-                raise LifecycleError("engine_changed_restart_required")
-            try:
-                runtime.enter_context(file_lock(c.lock, timeout=0))
-            except BusyError:
-                return {"state": "already_supervised", "scope": c.scope}
-            controller = Controller(c)
-        return controller.supervise()
+    controller = None
+    try:
+        with ExitStack() as runtime:
+            with admitted(admission_root, timeout=5):
+                reloaded = Connection.load(config_path)
+                if reloaded.state_root != admission_root or reloaded.scope != c.scope:
+                    raise OwnershipError("connection_scope_changed")
+                c = reloaded
+                if getattr(sys, "frozen", False) and canonical(sys.executable) != canonical(c.engine):
+                    raise LifecycleError("engine_changed_restart_required")
+                try:
+                    runtime.enter_context(file_lock(c.lock, timeout=0))
+                except BusyError:
+                    return {"state": "already_supervised", "scope": c.scope}
+                if c.client_state_dir is None:
+                    raise LifecycleError("connection_migration_required")
+                controller = Controller(c)
+            return controller.supervise()
+    except Exception as exc:
+        if controller is None:
+            write_json(
+                c.cloud_root / "startup-diagnostic.json",
+                {
+                    "schema_version": 1,
+                    "observed_at": utc(),
+                    "observed_epoch": time.time(),
+                    "reason": error_code(exc),
+                    "phase": "startup",
+                    "ready": False,
+                },
+            )
+        raise
 
 
 def quiesce_legacy_wrapper(owner):
@@ -707,7 +1096,7 @@ def stop(config_path, *, disable=True, expected_intent_sha256=..., before_intent
             stop_legacy_wrappers(c)
             controller = Controller(c)
             controller.note("stopping")
-            controller.reconcile()
+            controller.reconcile_observed({"code": "stop_requested", "phase": "stop"})
             return {**controller.note("stopped"), "intent_sha256": intent_sha256}
     except BusyError as exc:
         failure = OwnershipError("supervisor_stop_unconfirmed")
@@ -735,14 +1124,30 @@ def status(config_path):
     value = read(
         c.cloud_root / "supervisor-state.json", {"state": "absent", "ready": False, "healthy": False}
     )
-    owner = value.get("supervisor")
-    daemon = value.get("daemon")
-    if value.get("ready") and (
-        time.time() > value.get("valid_until", 0)
-        or not owner
-        or not Identity(**owner).live()
-        or not daemon
-        or not Identity(**daemon).live()
-    ):
-        return {**value, "state": "stale", "ready": False, "healthy": False}
+
+    def live_identity(item):
+        if not item:
+            return False
+        try:
+            return Identity(**item).live()
+        except (LifecycleError, TypeError, KeyError, ValueError, OSError):
+            return None
+
+    owner_live = live_identity(value.get("supervisor"))
+    daemon_live = live_identity(value.get("daemon"))
+    fresh = time.time() <= value.get("valid_until", 0)
+    value = {
+        **value,
+        "observation_fresh": fresh,
+        "supervisor_alive": owner_live,
+        "daemon_alive": daemon_live,
+        "recorded_state": value.get("state"),
+    }
+    if value.get("ready") and (not fresh or owner_live is not True or daemon_live is not True):
+        value.update(
+            state="stale", ready=False, healthy=False, local_mcp_ready=False, remote_reachability="unknown"
+        )
+    startup = read(c.cloud_root / "startup-diagnostic.json")
+    if startup and startup.get("observed_epoch", 0) > value.get("observed_epoch", 0):
+        value["last_startup_error"] = startup
     return value

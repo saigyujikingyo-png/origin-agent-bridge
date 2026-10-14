@@ -102,6 +102,16 @@ def setup(tmp_path, monkeypatch):
     (bundle / "server").mkdir(parents=True)
     (bundle / "server/origin-agent.exe").write_bytes(b"new engine")
     (bundle / "manifest.json").write_text(json.dumps({"version": __version__}))
+    import hashlib
+
+    from origin_agent import tunnel_dependency
+
+    client = bundle / "tunnel-client/v0.0.15/tunnel-client.exe"
+    client.parent.mkdir(parents=True)
+    client.write_bytes(b"pinned candidate fixture")
+    monkeypatch.setattr(
+        tunnel_dependency, "EXECUTABLE_SHA256", hashlib.sha256(client.read_bytes()).hexdigest()
+    )
     for name in ("Run-ChatGPT-Tunnel.ps1", "Stop-ChatGPT-Tunnel.ps1"):
         (bundle / name).write_text("# release-owned " + name)
     state.mkdir(parents=True)
@@ -350,7 +360,7 @@ def test_receipt_never_copies_profile_identifier_or_key_data(setup):
             content = file.read_bytes()
             assert b"tunnel_aaaaaaaa" not in content
             assert secret.read_bytes() not in content
-    assert json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))["schema_version"] == 1
+    assert json.loads((cloud / "runtime-config.json").read_text(encoding="utf-8"))["schema_version"] == 2
 
 
 def test_disabled_startup_adapter_only_disables_exact_scope(setup):
@@ -1038,3 +1048,99 @@ def test_stop_write_ahead_journal_survives_owner_death(setup, monkeypatch, opera
     assert tasks.read(task["name"])["enabled"]
     assert pending_transaction(state) is None
     assert tasks.starts == []
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Task Scheduler registration")
+def test_actual_scheduler_accepts_recovery_triggers_and_singleton_policy(tmp_path):
+    import xml.etree.ElementTree as ET
+
+    tasks = tunnel_install.WindowsTasks()
+    name = "Origin Companion Recovery Fixture-" + uuid.uuid4().hex
+    record = {
+        "name": name,
+        "path": "\\",
+        "user_sid": tasks.user_sid,
+        "enabled": False,
+        "actions": [
+            {
+                "execute": tasks.powershell,
+                "arguments": "-NoProfile -NonInteractive -Command exit 0",
+                "working_directory": str(tmp_path),
+            }
+        ],
+    }
+    record["xml"] = tunnel_install.task_xml(record)
+    try:
+        tasks.register(record)
+        installed = tasks.read(name)
+        tree = ET.fromstring(installed["xml"])
+        ns = {"t": tunnel_install.TASK_NS}
+        assert tree.findtext("t:Triggers/t:TimeTrigger/t:Repetition/t:Interval", namespaces=ns) == "PT5M"
+        event = tree.findtext("t:Triggers/t:EventTrigger/t:Subscription", namespaces=ns)
+        assert "EventID=507" in event and "NetworkProfile/Operational" in event
+        assert tree.findtext("t:Settings/t:MultipleInstancesPolicy", namespaces=ns) == "IgnoreNew"
+        assert installed["enabled"] is False
+    finally:
+        tasks.restore(name, "\\", None)
+    assert tasks.read(name) is None
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows Task Scheduler timer execution")
+def test_actual_periodic_trigger_restarts_after_a_successful_exit_without_logon(tmp_path):
+    import time
+    import xml.etree.ElementTree as ET
+    from datetime import UTC, datetime, timedelta
+
+    tasks = tunnel_install.WindowsTasks()
+    name = "Origin Companion Periodic Fixture-" + uuid.uuid4().hex
+    marker = tmp_path / "periodic-starts.txt"
+    script = tmp_path / "periodic-start.ps1"
+    target = str(marker).replace("'", "''")
+    script.write_text(
+        "[IO.File]::AppendAllText('"
+        + target
+        + "', [DateTime]::UtcNow.ToString('o') + [Environment]::NewLine)\nexit 0\n",
+        encoding="utf-8",
+    )
+    record = {
+        "name": name,
+        "path": "\\",
+        "user_sid": tasks.user_sid,
+        "enabled": True,
+        "actions": [
+            {
+                "execute": tasks.powershell,
+                "arguments": '-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "'
+                + str(script)
+                + '"',
+                "working_directory": str(tmp_path),
+            }
+        ],
+    }
+    tree = ET.fromstring(tunnel_install.task_xml(record))
+    ns = {"t": tunnel_install.TASK_NS}
+    triggers = tree.find("t:Triggers", ns)
+    for trigger in list(triggers):
+        if trigger.tag != "{" + tunnel_install.TASK_NS + "}TimeTrigger":
+            triggers.remove(trigger)
+    periodic = triggers.find("t:TimeTrigger", ns)
+    periodic.find("t:StartBoundary", ns).text = (datetime.now(UTC) + timedelta(seconds=15)).isoformat()
+    periodic.find("t:Repetition/t:Interval", ns).text = "PT1M"
+    settings = tree.find("t:Settings", ns)
+    settings.remove(settings.find("t:RestartOnFailure", ns))
+    record["xml"] = ET.tostring(tree, encoding="unicode")
+    try:
+        tasks.register(record)
+        deadline = time.monotonic() + 135
+        stamps = []
+        while time.monotonic() < deadline:
+            stamps = marker.read_text().splitlines() if marker.exists() else []
+            if len(stamps) >= 2:
+                break
+            time.sleep(0.5)
+        assert len(stamps) >= 2, "Timer did not restart the exited fixture without another login"
+        first, second = [datetime.fromisoformat(value.replace("Z", "+00:00")) for value in stamps[:2]]
+        assert (second - first).total_seconds() >= 45
+    finally:
+        tasks.restore(name, "\\", None)
+    assert tasks.read(name) is None

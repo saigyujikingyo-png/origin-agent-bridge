@@ -33,13 +33,54 @@ def write(path: Path, payload):
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def bundle_tunnel_client(bundle):
+    """Verify the fixed upstream archive and retain all of its notices."""
+    import urllib.request
+
+    from origin_agent.tunnel_dependency import (
+        ARCHIVE_NAME,
+        ARCHIVE_SHA256,
+        ARCHIVE_URL,
+        VERSION,
+        bundled_client,
+    )
+
+    archive = ROOT / "build" / "dependencies" / ARCHIVE_NAME
+    if not archive.exists():
+        archive.parent.mkdir(parents=True, exist_ok=True)
+        with urllib.request.urlopen(ARCHIVE_URL, timeout=60) as response:
+            payload = response.read(35 * 1024 * 1024)
+        import hashlib
+
+        if hashlib.sha256(payload).hexdigest() != ARCHIVE_SHA256:
+            raise RuntimeError("Official tunnel archive checksum mismatch")
+        archive.write_bytes(payload)
+    if sha256(archive) != ARCHIVE_SHA256:
+        raise RuntimeError("Cached official tunnel archive checksum mismatch")
+    destination = bundle / "tunnel-client" / f"v{VERSION}"
+    destination.mkdir(parents=True)
+    with zipfile.ZipFile(archive) as source:
+        for info in source.infolist():
+            target = destination / info.filename
+            if target.resolve() != target or not target.resolve().is_relative_to(destination.resolve()):
+                raise RuntimeError("Unsafe official tunnel archive entry")
+            if info.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+            else:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with source.open(info) as src, target.open("xb") as dst:
+                    shutil.copyfileobj(src, dst)
+    bundled_client(bundle)
+    return {"version": VERSION, "archive_sha256": ARCHIVE_SHA256, "source_url": ARCHIVE_URL}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip-freeze", action="store_true")
     args = parser.parse_args()
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    build_base = Path.home() / ".origin-agent/build"
+    build_base = (Path.home() / ".origin-agent/build").resolve()
     run_root = build_base / uuid.uuid4().hex
     run_root.mkdir(parents=True)
     record = ROOT / "build/freeze-location.json"
@@ -119,6 +160,7 @@ def main():
     bundle = run_root / f"origin-agent-{__version__}-windows-x64"
     bundle.mkdir()
     shutil.copytree(frozen, bundle / "server")
+    tunnel_dependency = bundle_tunnel_client(bundle)
     for directory in ("skills", "assets", "docs", "examples", ".codex-plugin", ".claude-plugin"):
         if (ROOT / directory).exists():
             shutil.copytree(ROOT / directory, bundle / directory)
@@ -130,6 +172,8 @@ def main():
         "Connect-ChatGPT.ps1",
         "Connect-OpenAI.ps1",
         "Connect-OpenAI.cmd",
+        "Repair-Connection.ps1",
+        "Repair-Connection.cmd",
         "Enable-ChatGPT-Tunnel-Startup.ps1",
         "Run-ChatGPT-Tunnel.ps1",
         "Stop-ChatGPT-Tunnel.ps1",
@@ -164,6 +208,7 @@ def main():
             "python": sys.version,
             "packages_in_build_environment": packages,
             "origin_application_included": False,
+            "official_tunnel_client": tunnel_dependency,
             "source_hashes": source_hashes,
         },
     )
