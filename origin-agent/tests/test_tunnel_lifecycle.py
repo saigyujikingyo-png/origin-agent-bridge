@@ -108,6 +108,7 @@ def setup(world, settings=None, name=None):
     write_json(world / "mapping.json", mapping)
     write_json(world / name / "settings.json", settings or {})
     c = Connection.load(config)
+    c.secret_file.write_bytes(b"encrypted-fixture-revision-one")
     controller = Controller(
         c,
         policy=Policy(
@@ -120,6 +121,7 @@ def setup(world, settings=None, name=None):
             recovery_delays=(),
         ),
         command=[PYTHON, str(FIXTURE), "--root", str(world)],
+        remote_probe=lambda *_args: {"state": "online", "reason": None, "idle": True},
     )
     return controller, config
 
@@ -192,8 +194,12 @@ def test_never_registered_alias_connects_once_using_existing_identity(world):
 )
 def test_status_failure_cannot_be_treated_as_alias_absence(world, override, error):
     controller, _ = setup(world, {"status_override": override}, name="test-absent")
-    with pytest.raises(LifecycleError, match=error):
-        controller.supervise()
+    if error == "authentication_required":
+        assert controller.supervise()["state"] == "blocked"
+        assert controller.authentication_blocked()
+    else:
+        with pytest.raises(LifecycleError, match=error):
+            controller.supervise()
     assert count(world, controller.c.alias) == 0
     assert controller.scan() == ([], [])
 
@@ -739,3 +745,116 @@ def test_status_uses_scoped_persisted_identity_when_cli_projection_omits_it(worl
     write_json(controller.c.client_state_dir / "processes.yaml", {controller.c.alias: record})
     with pytest.raises(OwnershipError, match="runtime_registry_identity_conflict"):
         controller.probe()
+
+
+def test_remote_auth_failure_stops_owned_chain_and_blocks_unchanged_credential(world):
+    controller, config = setup(world)
+    daemon = controller.ensure_ready()
+    controller.remote_probe = lambda *_: {
+        "state": "authentication_required",
+        "reason": "authentication_required",
+    }
+    result = controller.supervise()
+    assert result["state"] == "blocked" and not result["ready"]
+    assert result["recovery_action"] == "update_connection_credential"
+    assert not daemon.live() and controller.scan() == ([], [])
+    assert controller.authentication_blocked()
+    before = count(world, controller.c.alias)
+    assert controller.supervise()["state"] == "blocked"
+    assert count(world, controller.c.alias) == before
+    controller.c.secret_file.write_bytes(b"encrypted-fixture-revision-two")
+    assert not controller.authentication_blocked()
+    # Updating credentials does not override an explicit user stop.
+    write_json(controller.c.cloud_root / "intent.json", {"enabled": False, "stop_requested": True})
+    assert controller.supervise()["state"] == "stopped"
+    assert count(world, controller.c.alias) == before
+
+
+def test_remote_outage_keeps_owner_and_never_claims_ready(world):
+    controller, config = setup(world)
+    daemon = controller.ensure_ready()
+    before = count(world, controller.c.alias)
+    for state in ("recovering", "unknown", "recovering", "online"):
+        controller.remote_probe = lambda *_, state=state: {"state": state, "reason": None, "idle": True}
+        result = controller.observe_connection(daemon)
+        assert result["ready"] is (state == "online")
+        assert result["local_mcp_ready"]
+        assert daemon.live() and count(world, controller.c.alias) == before
+    assert status(config)["remote_reachability"] == "online"
+
+
+def test_resume_grace_preserves_owner_then_idle_stall_can_be_reconciled(world, monkeypatch):
+    import origin_agent.tunnel_lifecycle as module
+
+    controller, _ = setup(world)
+    daemon = controller.ensure_ready()
+    tick = [1000.0]
+    monkeypatch.setattr(module.time, "monotonic", lambda: tick[0])
+    controller.last_health_tick = 500
+    controller.remote_grace_until = 0
+    controller.policy = replace(controller.policy, resume_grace=10, stall_grace=2)
+    controller.remote_probe = lambda *_: {"state": "stalled", "reason": "control_plane_stalled", "idle": True}
+    assert controller.observe_connection(daemon)["state"] == "degraded"
+    tick[0] += 3
+    assert controller.observe_connection(daemon)["state"] == "degraded"
+    tick[0] += 8
+    with pytest.raises(LifecycleError, match="control_plane_stalled"):
+        controller.observe_connection(daemon)
+    assert daemon.live()  # The observation itself never terminates a process.
+    controller.remote_probe = lambda *_: {
+        "state": "stalled",
+        "reason": "control_plane_stalled",
+        "idle": False,
+    }
+    assert controller.observe_connection(daemon)["state"] == "degraded"
+
+
+def test_auth_failure_does_not_block_a_credential_updated_during_the_attempt(world):
+    controller, _ = setup(world)
+    original = controller.credential_revision()
+
+    def rejected_old_credential(*_):
+        controller.c.secret_file.write_bytes(b"updated-while-old-key-is-loaded")
+        return {"state": "authentication_required", "reason": "authentication_required"}
+
+    controller.remote_probe = rejected_old_credential
+    assert controller.supervise()["state"] == "blocked"
+    block = json.loads((controller.c.cloud_root / "authentication-blocked.json").read_text())
+    assert block["credential_revision"] == original
+    assert not controller.authentication_blocked()
+
+
+def test_confirmed_idle_stall_replaces_only_its_owner_and_stop_still_wins(world):
+    controller, _ = setup(world, name="stall-owner")
+    other, _ = setup(world, name="other-account")
+    first = controller.ensure_ready()
+    untouched = other.ensure_ready()
+    controller.policy = replace(controller.policy, resume_grace=0, stall_grace=0, retries=(0,))
+    controller.remote_grace_until = 0
+    replacements = []
+
+    def remote_health(_connection, daemon):
+        if daemon.pid == first.pid and daemon.created == first.created:
+            return {"state": "stalled", "reason": "control_plane_stalled", "idle": True}
+        replacements.append(daemon)
+        assert not first.live()
+        assert untouched.live() and count(world, other.c.alias) == 1
+        assert count(world, controller.c.alias) == 2
+        write_json(controller.c.cloud_root / "intent.json", {"enabled": False, "stop_requested": True})
+        return {"state": "online", "reason": None, "idle": True}
+
+    controller.remote_probe = remote_health
+    assert controller.supervise()["state"] == "stopped"
+    assert len(replacements) == 1 and not replacements[0].live()
+    assert untouched.live() and controller.scan() == ([], [])
+
+
+def test_local_probe_failure_invalidates_previous_remote_success(world):
+    controller, config = setup(world)
+    daemon = controller.ensure_ready()
+    assert controller.observe_connection(daemon)["remote_reachability"] == "online"
+    controller.note("degraded", reason="command_timeout", daemon=daemon)
+    observed = status(config)
+    assert not observed["ready"]
+    assert observed["remote_reachability"] == "unknown"
+    assert daemon.live()

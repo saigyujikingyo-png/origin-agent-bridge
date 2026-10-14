@@ -80,7 +80,7 @@ def main():
     args = parser.parse_args()
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    build_base = Path.home() / ".origin-agent/build"
+    build_base = (Path.home() / ".origin-agent/build").resolve()
     run_root = build_base / uuid.uuid4().hex
     run_root.mkdir(parents=True)
     record = ROOT / "build/freeze-location.json"
@@ -172,6 +172,8 @@ def main():
         "Connect-ChatGPT.ps1",
         "Connect-OpenAI.ps1",
         "Connect-OpenAI.cmd",
+        "Repair-Connection.ps1",
+        "Repair-Connection.cmd",
         "Enable-ChatGPT-Tunnel-Startup.ps1",
         "Run-ChatGPT-Tunnel.ps1",
         "Stop-ChatGPT-Tunnel.ps1",

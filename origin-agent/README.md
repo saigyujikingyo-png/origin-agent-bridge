@@ -39,6 +39,9 @@ Try a complete natural-language workflow using the [synthetic example](examples/
 
 ## Recent changes
 
+- **0.2.15 candidate:** Verified remote polling health, masked local credential repair, and resume/network/periodic startup recovery triggers. [Evidence and remaining OS-event gates](docs/CONNECTION_RECOVERY_0.2.15_ACCEPTANCE.md).
+- **0.2.13 candidate:** Isolated per-account vendor state and ownership-safe transient recovery. [Historical acceptance](docs/CONNECTION_RELIABILITY_0.2.13_ACCEPTANCE.md).
+
 - **0.2.12 candidate:** Bounded connection readiness/health, ownership-fenced recovery and multi-account launcher migration. [Lifecycle and acceptance boundaries](docs/RUNTIME_LIFECYCLE.md).
 - **0.2.11:** Strict output schemas, validated structured results, safe malformed-output recovery, and compatible media metadata. [Output contracts](docs/OUTPUT_CONTRACTS.md).
 - **0.2.10:** WorkBuddy feedback fixes: recover wrapped help requests, separate optional model recommendations, report unsupported inverse-calibration uncertainty in structured form, and save/recheck per-axis scientific notation. [Acceptance and limitations](https://github.com/saigyujikingyo-png/origin-agent-bridge/blob/codex/origin-companion-release/WORK_ACCEPTANCE_0.2.10.md).

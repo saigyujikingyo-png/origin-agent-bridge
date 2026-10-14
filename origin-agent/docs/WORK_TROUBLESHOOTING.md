@@ -1,10 +1,23 @@
 # Troubleshooting ChatGPT Work
 
-## Connection reliability in 0.2.13 (candidate)
+## Connection recovery in 0.2.15 (candidate)
 
 After the initial account connection and login-startup setup, select or mention Origin Companion and request work. The computer must be on, logged in and online. An ordinary request does not require a checkout, terminal, or manual reconnect.
 
 This candidate isolates each account's vendor state and bundles verified tunnel-client 0.0.15. Temporary status/network failures preserve a proven live connector. If the connector exits, supervision reconciles its exact process identities and retries; longer outages use capped recovery intervals instead of exhausting three retries permanently. A manual stop remains stopped. Authentication or uncertain ownership requires inspection instead of repeated launches.
+
+The same `Tunnel-client has not been seen for 300 seconds` message can also
+mean that a live local client is receiving authentication failures. The October
+2026 incident confirmed HTTP 401 even while the older local status said ready.
+Version 0.2.15 reads the exact client's passive control-plane health, reports
+`authentication_required`, and avoids launching repeatedly with the same rejected
+credential. Open the installed `Repair-Connection.cmd` for masked local credential
+entry; automatic retries cannot make an invalid credential valid.
+
+Resume/network events and independent five-minute repetition recover a missing
+supervisor. A short grace period allows existing connections to recover after a
+pause. Only a confirmed idle stall is reconciled; active network retries keep the
+same connection. These mechanisms do not replay scientific work.
 
 Read `tunnel status --config <account-runtime-config.json>` locally if the host cannot reach the plugin. The output distinguishes freshness, supervisor/daemon liveness, local MCP readiness, the primary failure, any cleanup failure, and the next retry time. Local readiness does not establish that the host selected the correct account. Complete recovery with an actual host `origin_status` call. Failed or uncertain scientific jobs are never automatically replayed by connection recovery.
 

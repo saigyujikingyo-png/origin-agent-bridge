@@ -2,6 +2,7 @@
 
 import json
 import os
+import socket
 import sys
 import threading
 import time
@@ -33,14 +34,35 @@ def real_world(tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_ADMIN_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     requests = []
+    behavior = {"mode": "online"}
 
     class Plane(BaseHTTPRequestHandler):
         def handle_request(self):
-            requests.append(self.command)
+            requests.append((self.command, self.path))
             length = int(self.headers.get("Content-Length", "0"))
             if length:
                 self.rfile.read(min(length, 1024 * 1024))
-            time.sleep(0.02)
+            time.sleep(0.05)
+            if "/poll" in self.path:
+                if behavior["mode"] == "offline":
+                    self.connection.shutdown(socket.SHUT_RDWR)
+                    self.connection.close()
+                    self.close_connection = True
+                    return
+                denied = behavior["mode"] == "unauthorized"
+                body = (
+                    b'{"error":{"code":"invalid_api_key","message":"fixture"}}'
+                    if denied
+                    else b'{"commands":[]}'
+                )
+                self.send_response(401 if denied else 200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                try:
+                    self.wfile.write(body)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
+                return
             self.send_response(404 if self.command == "GET" else 204)
             self.end_headers()
 
@@ -94,6 +116,7 @@ def real_world(tmp_path, monkeypatch):
             profile_dir / f"{name}.yaml",
             {"control_plane": {"tunnel_id": "tunnel_" + "a" * 32, "api_key": "env:CONTROL_PLANE_API_KEY"}},
         )
+        (cloud / "unused.dpapi").write_bytes(b"encrypted-fixture-revision")
         controller = Controller(
             Connection.load(config),
             policy=Policy(
@@ -115,6 +138,7 @@ def real_world(tmp_path, monkeypatch):
             return original(args, **kwargs)
 
         controller.command_json = invoke
+        controller.test_network = behavior
         controllers.append(controller)
         return controller
 
@@ -208,3 +232,69 @@ def test_pinned_client_refused_cleanup_resumes_its_owned_processes(real_world, m
     monkeypatch.setattr(controller, "terminate", original)
     controller.reconcile()
     assert not owner.live()
+
+
+def wait_observation(controller, expected, timeout=25):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        daemons = controller.scan()[0]
+        assert len(daemons) == 1
+        observation = controller.remote_probe(controller.c, daemons[0])
+        if observation["state"] == expected:
+            return observation
+        time.sleep(0.1)
+    pytest.fail(f"remote state did not become {expected}: {observation}")
+
+
+def test_real_client_remote_health_detects_auth_rejection_behind_local_ready(real_world):
+    make, _ = real_world
+    controller = make()
+    controller.test_network["mode"] = "unauthorized"
+    daemon = controller.ensure_ready()
+    wait_observation(controller, "authentication_required")
+    assert controller.verified_ready(controller.probe(), *controller.scan())
+    result = controller.supervise()
+    assert result["state"] == "blocked" and not result["ready"]
+    assert not daemon.live()
+    assert controller.authentication_blocked()
+
+
+def test_real_client_network_loss_and_return_need_no_new_daemon(real_world):
+    make, _ = real_world
+    controller = make()
+    daemon = controller.ensure_ready()
+    wait_observation(controller, "online")
+    controller.test_network["mode"] = "offline"
+    wait_observation(controller, "recovering")
+    result = controller.observe_connection(daemon)
+    assert not result["ready"] and result["local_mcp_ready"]
+    time.sleep(2)
+    controller.test_network["mode"] = "online"
+    wait_observation(controller, "online")
+    assert controller.observe_connection(daemon)["ready"]
+    assert controller.scan()[0][0].pid == daemon.pid
+    controller.reconcile()
+
+
+def test_real_client_pause_and_resume_refresh_remote_evidence(real_world):
+    make, _ = real_world
+    controller = make()
+    daemon = controller.ensure_ready()
+    before = wait_observation(controller, "online")
+    process = psutil.Process(daemon.pid)
+    assert daemon.live()
+    process.suspend()
+    try:
+        assert controller.remote_probe(controller.c, daemon, timeout=0.2)["state"] == "unknown"
+    finally:
+        if daemon.live():
+            process.resume()
+    deadline = time.monotonic() + 15
+    while True:
+        after = wait_observation(controller, "online")
+        if after["last_success_epoch"] > before["last_success_epoch"]:
+            break
+        assert time.monotonic() < deadline
+        time.sleep(0.1)
+    assert controller.scan()[0][0].pid == daemon.pid
+    controller.reconcile()

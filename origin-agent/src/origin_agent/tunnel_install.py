@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from .installation import atomic_bytes, contents, digest, encoded
@@ -48,6 +48,35 @@ def task_xml(record):
     trigger = node(triggers, "LogonTrigger")
     node(trigger, "Enabled", "true")
     node(trigger, "UserId", record["user_sid"])
+    periodic = node(triggers, "TimeTrigger")
+    repetition = node(periodic, "Repetition")
+    node(repetition, "Interval", "PT5M")
+    node(repetition, "StopAtDurationEnd", "false")
+    # Registration can happen long after login. A logon-bound repetition would
+    # leave the current session without a fallback until the next login.
+    previous_xml = record.get("xml")
+    previous_start = (
+        ET.fromstring(previous_xml).findtext(
+            f"{{{TASK_NS}}}Triggers/{{{TASK_NS}}}TimeTrigger/{{{TASK_NS}}}StartBoundary"
+        )
+        if previous_xml
+        else None
+    )
+    node(periodic, "StartBoundary", previous_start or (datetime.now(UTC) + timedelta(minutes=5)).isoformat())
+    node(periodic, "Enabled", "true")
+    event = node(triggers, "EventTrigger")
+    node(event, "Enabled", "true")
+    node(
+        event,
+        "Subscription",
+        "<QueryList><Query Id='0'>"
+        "<Select Path='System'>*[System[(Provider[@Name='Microsoft-Windows-Power-Troubleshooter'] "
+        "and EventID=1) or "
+        "(Provider[@Name='Microsoft-Windows-Kernel-Power'] and (EventID=107 or EventID=507))]]</Select>"
+        "<Select Path='Microsoft-Windows-NetworkProfile/Operational'>*[System[EventID=10000]]</Select>"
+        "</Query></QueryList>",
+    )
+    node(event, "Delay", "PT10S")
     principals = node(task, "Principals")
     principal = node(principals, "Principal")
     principal.set("id", "Owner")
@@ -541,7 +570,7 @@ def migrate(changes, bundle, state_root, *, enable_new=False):
             config["alias"], root, state_root, tasks, enabled=existing["enabled"] if existing else enable_new
         )
         if existing:
-            record.update(name=existing["name"], path=existing["path"])
+            record.update(name=existing["name"], path=existing["path"], xml=existing["xml"])
         elif tasks.read(record["name"], record["path"]) is not None:
             raise RuntimeError("An unrelated startup task occupies the generated name")
         config["task_name"] = record["name"]

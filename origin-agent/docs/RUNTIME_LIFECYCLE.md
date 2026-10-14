@@ -1,7 +1,7 @@
 # Origin runtime lifecycle
 
 Record version: 1.0. Shared rules: 2026-09-19.1, lifecycle contract 1.0.
-Implementation candidate: 0.2.13, connection reliability after source b717e598.
+Implementation candidate: 0.2.15, control-plane health and OS-event recovery.
 **Not yet a released or installed acceptance certificate.**
 
 ## Component ownership
@@ -31,11 +31,13 @@ the OS independently of the vendor alias registry, validates the alias metadata,
 and either adopts the same healthy/starting owner or reconciles proven old owners.
 Every connect/status command has a 20-second timeout. Initial readiness polls the
 same owner for at most 90 seconds; continued health is checked every 15 seconds.
-The success observation expires after 40 seconds and is invalidated on probe failure.\nAll states additionally report observation freshness and supervisor/daemon liveness;\nprimary and cleanup errors remain separate and sanitized.
+The success observation expires after 40 seconds and is invalidated on probe failure.
+All states additionally report observation freshness and supervisor/daemon liveness;
+primary and cleanup errors remain separate and sanitized.
 The public diagnostic also checks its supervisor identity. A cached observation is
 not a fresh remote call or proof of app/account binding.
 
-States include absent, spawning, starting, ready, degraded, recovering, unhealthy, stopping, stopped,
+States include absent, spawning, starting, ready, degraded, recovering, unhealthy, blocked, stopping, stopped,
 failed, stale and unknown. State files contain observation time, expiry, canonical
 scope and process identities. Legacy background-status readers receive the same
 invalidated state instead of an old permanent success flag.
@@ -50,8 +52,36 @@ stops recovery. Registry conflicts or unknown ownership preserve processes and
 block new connects. Every actual replacement reconciles the previous attempt.
 
 Task Scheduler may restart a crashed supervisor at most three one-minute intervals.
-It is not another network watchdog. Explicit manual stop and installation fences
+An independent timer repeats every five minutes, starting five minutes after registration, and resume/network-connected
+events request a start after ten seconds. IgnoreNew and the profile lock prevent
+duplicate owners. A healthy supervisor retains the client's network retry loop;
+these triggers recover a missing supervisor, not every transient network failure. Explicit manual stop and installation fences
 always interrupt recovery; a connection retry never replays a scientific job.
+
+## Remote health and authentication
+
+Version 0.2.15 reads the official client's passive `/health?details=true` snapshot
+from its private health file. Only a loopback listener owned by the exact daemon
+PID/creation time is accepted; redirects, proxies, credentials and oversized
+responses are rejected. Only allowlisted diagnostic fields are persisted.
+Local MCP readiness and recent successful control-plane polling are separate.
+`ready` requires both. A host `origin_status` call is a third, separate gate.
+
+An active network retry is preserved regardless of outage length. An idle
+control-plane stall must exceed its poll deadline allowance (at least 90 seconds)
+and a further 30-second confirmation before replacement. A supervisor observation
+gap over 45 seconds grants 45 seconds for wake recovery. Pending dispatcher,
+queue or delivery work prevents stall replacement; unknown observations never
+justify terminating a proven live connection.
+
+A current 401/403 blocks authentication recovery and stops only the owned
+connector chain. The encrypted credential revision is recorded privately, so
+repeated scheduler triggers do not keep submitting an unchanged rejected key.
+A changed credential can be retried without changing account/tunnel identity;
+manual stop still wins. A key updated during an old attempt is not marked rejected
+by that old attempt's failure. The packaged `Repair-Connection.cmd` provides a
+masked local entry window, atomic DPAPI replacement and an encrypted backup.
+It starts an enabled connection only; it does not override a disabled preference.
 
 ## Process fencing and explicit stop
 
@@ -63,7 +93,9 @@ An orphan without this proof is preserved and blocks a new attempt. PID-only,
 basename-only and stale-parent-PID cleanup are forbidden.
 
 During cleanup, proven connector producers are briefly suspended before their
-children are enumerated, closing the spawn-during-termination race. Windows uses\nthe successful synchronous native suspend call; its thread-wait status heuristic\ncan misreport a suspended Go runtime. POSIX still waits for SIGSTOP observation. Only the proven
+children are enumerated, closing the spawn-during-termination race. Windows uses
+the successful synchronous native suspend call; its thread-wait status heuristic
+can misreport a suspended Go runtime. POSIX still waits for SIGSTOP observation. Only the proven
 daemon and its `serve` frontend chain are terminated. Native applications, accepted
 job supervisors and unrelated hosts are neither suspended nor killed. A refused
 cleanup resumes any preserved producer. All destructive actions recheck identity.
@@ -143,9 +175,10 @@ termination, user logout, shutdown or power loss.
 | Stop and supervisor loss | Cross-process lock, abrupt supervisor death/adoption, cooperative stop and persistent manual-stop intent fixtures |
 | Installation transaction | Real filesystem and isolated-process tests: multi-account, disabled, competing starts/installs, crash fence, matching recovery, partial publication and rollback; real scheduler acceptance remains separate |
 | Native scientific regressions | Historical 0.2.11 evidence remains historical; no science change is intended by this patch |
-| Packaged/install/current-device | Pending independent governance review and installation of the candidate |
-| Remote app/account/catalog/call | Independent per-account governance acceptance; local health is insufficient |
-| Actual logon/reboot/sleep/network/logoff | Unverified for this candidate; requires a safe workstation window, never an automatic disruptive test |
+| Packaged/install/current-device | Record separately in the version-specific product acceptance report |
+| Remote app/account/catalog/call | Independent per-account host acceptance; local or control-plane health is insufficient |
+| Recovery fixtures | Real SHA-verified vendor client: TCP disconnect/recovery, process pause/resume and rejected credentials; temporary disabled Windows task registration/readback |
+| Actual logon/reboot/sleep/network/logoff | Remains a separate real workstation gate; process pause and scheduler XML acceptance do not certify OS event recovery |
 
 The September 2026 `0xC000013A` exits have no established termination source.
 Retry/readiness defects are independently confirmed; fixing them does not prove

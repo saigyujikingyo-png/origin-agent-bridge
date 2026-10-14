@@ -77,6 +77,7 @@ if args[0] in ("run", "serve", "supervise", "controller"):
                     recovery_delays=(),
                 ),
                 command=[sys.executable, __file__, "--root", str(root)],
+                remote_probe=lambda *_args: {"state": "online", "reason": None, "idle": True},
             )
             controller.supervise()
         raise SystemExit

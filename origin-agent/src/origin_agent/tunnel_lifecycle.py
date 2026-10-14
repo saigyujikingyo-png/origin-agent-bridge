@@ -18,6 +18,7 @@ import psutil
 
 from .lifecycle_admission import AdmissionError, admitted, intent_guard, pending_transaction
 from .storage import BusyError, file_lock, json_bytes, write_json
+from .tunnel_health import HealthOwnershipError, read_remote, unknown
 
 
 class LifecycleError(RuntimeError):
@@ -37,6 +38,10 @@ ERROR_CODES = frozenset(
         "absolute_connection_paths_required",
         "ambiguous_command_arguments",
         "authentication_required",
+        "control_plane_stalled",
+        "remote_health_endpoint_conflict",
+        "remote_health_identity_conflict",
+        "runtime_key_unavailable",
         "candidate_process_inaccessible",
         "cleanup_incomplete",
         "command_failed",
@@ -243,10 +248,13 @@ class Policy:
     retries: tuple = (5, 15, 30)
     recovery_delays: tuple = (30, 60, 120, 300)
     jitter: float = 0.1
+    resume_gap: float = 45
+    resume_grace: float = 45
+    stall_grace: float = 30
 
 
 class Controller:
-    def __init__(self, connection, *, policy=None, command=None):
+    def __init__(self, connection, *, policy=None, command=None, remote_probe=None):
         self.c = connection
         self.policy = policy or Policy()
         self.command = command or [str(connection.tunnel_client)]
@@ -261,6 +269,71 @@ class Controller:
         self.phase = "startup"
         self.last_probe = None
         self.connecting = False
+        self.remote_probe = remote_probe or read_remote
+        self.remote_health = unknown()
+        self.last_health_tick = time.monotonic()
+        self.remote_grace_until = self.last_health_tick + self.policy.resume_grace
+        self.remote_stall_since = None
+
+    def credential_revision(self):
+        try:
+            if self.c.secret_file.stat().st_size > 65536:
+                raise OSError
+            return hashlib.sha256(self.c.secret_file.read_bytes()).hexdigest()
+        except OSError as exc:
+            raise LifecycleError("runtime_key_unavailable") from exc
+
+    def authentication_blocked(self):
+        block = read(self.c.cloud_root / "authentication-blocked.json")
+        return bool(
+            block
+            and block.get("scope") == self.c.scope
+            and block.get("credential_revision") == self.credential_revision()
+        )
+
+    def block_authentication(self, credential_revision):
+        write_json(
+            self.c.cloud_root / "authentication-blocked.json",
+            {
+                "scope": self.c.scope,
+                "credential_revision": credential_revision,
+                "observed_at": utc(),
+                "reason": "authentication_required",
+            },
+        )
+
+    def observe_connection(self, daemon):
+        now = time.monotonic()
+        if now - self.last_health_tick > self.policy.resume_gap:
+            self.remote_grace_until = now + self.policy.resume_grace
+            self.remote_stall_since = None
+        self.last_health_tick = now
+        self.phase = "control_plane"
+        try:
+            self.remote_health = self.remote_probe(self.c, daemon)
+        except HealthOwnershipError as exc:
+            raise OwnershipError(str(exc)) from exc
+        state = self.remote_health["state"]
+        if state == "authentication_required":
+            raise LifecycleError("authentication_required")
+        if state == "online":
+            self.remote_stall_since = None
+            (self.c.cloud_root / "authentication-blocked.json").unlink(missing_ok=True)
+            return self.note("ready", ready=True, healthy=True, daemon=daemon)
+        if state == "stalled" and self.remote_health.get("idle"):
+            if self.remote_stall_since is None:
+                self.remote_stall_since = now
+            if now >= self.remote_grace_until and now - self.remote_stall_since >= self.policy.stall_grace:
+                raise LifecycleError("control_plane_stalled")
+        else:
+            self.remote_stall_since = None
+        return self.note(
+            "recovering" if state == "recovering" else "degraded",
+            daemon=daemon,
+            local_ready=True,
+            reason=self.remote_health.get("reason"),
+            retry_in=self.policy.health_interval,
+        )
 
     def save(self):
         value = {"scope": self.c.scope, "attempt": self.attempt, "processes": [asdict(p) for p in self.known]}
@@ -279,8 +352,11 @@ class Controller:
         primary_error=None,
         cleanup_error=None,
         retry_in=None,
+        local_ready=None,
     ):
         now = time.time()
+        if not ready and self.remote_health["state"] == "online":
+            self.remote_health = unknown()
         value = {
             "schema_version": 2,
             "scope": self.c.scope,
@@ -296,9 +372,13 @@ class Controller:
             "primary_error": primary_error,
             "cleanup_error": cleanup_error,
             "next_retry_at": now + retry_in if retry_in is not None else None,
-            "local_mcp_ready": ready,
-            # A local probe never certifies the selected remote host/account route.
-            "remote_reachability": "unknown",
+            "local_mcp_ready": ready if local_ready is None else local_ready,
+            # Control-plane polling is evidence of that layer, not a host tool call.
+            "remote_reachability": self.remote_health["state"],
+            "control_plane": self.remote_health,
+            "recovery_action": "update_connection_credential"
+            if reason == "authentication_required"
+            else None,
         }
         history_path = self.c.cloud_root / "connection-events.json"
         history = read(history_path, [])
@@ -762,13 +842,27 @@ class Controller:
 
     def supervise(self):
         failures = 0
+        credential_revision = None
         while True:
             try:
                 self.check_stop()
+                if self.authentication_blocked():
+                    self.remote_health = {
+                        **unknown(),
+                        "state": "authentication_required",
+                        "reason": "authentication_required",
+                    }
+                    return self.note("blocked", reason="authentication_required")
+                if credential_revision is None:
+                    credential_revision = self.credential_revision()
                 daemon = self.ensure_ready()
-                healthy_since = time.monotonic()
+                healthy_since = None
                 while True:
-                    self.note("ready", ready=True, healthy=True, daemon=daemon)
+                    self.observe_connection(daemon)
+                    if self.remote_health["state"] == "online":
+                        healthy_since = healthy_since or time.monotonic()
+                    else:
+                        healthy_since = None
                     self.pause(self.policy.health_interval)
                     daemons, frontends = self.scan()
                     if not daemons:
@@ -778,7 +872,7 @@ class Controller:
                         daemon = self.ready()
                     else:
                         daemon = daemons[0]
-                    if time.monotonic() - healthy_since >= 300:
+                    if healthy_since is not None and time.monotonic() - healthy_since >= 300:
                         failures = 0
             except StopRequested:
                 self.note("stopping")
@@ -800,6 +894,7 @@ class Controller:
                     "readiness_timeout",
                     "runtime_unhealthy",
                     "runtime_absent",
+                    "control_plane_stalled",
                 }
                 try:
                     daemons, _frontends = self.scan()
@@ -843,8 +938,13 @@ class Controller:
                 self.note("unhealthy", reason=reason, primary_error=primary)
                 self.reconcile_observed(primary)
                 if reason == "authentication_required":
-                    self.note("failed", reason=reason, primary_error=primary)
-                    raise LifecycleError(reason) from None
+                    self.block_authentication(credential_revision)
+                    self.remote_health = {
+                        **self.remote_health,
+                        "state": "authentication_required",
+                        "reason": reason,
+                    }
+                    return self.note("blocked", reason=reason, primary_error=primary)
                 if failures < len(self.policy.retries):
                     delay = self.policy.retries[failures]
                 elif transient and self.policy.recovery_delays:
@@ -1044,7 +1144,9 @@ def status(config_path):
         "recorded_state": value.get("state"),
     }
     if value.get("ready") and (not fresh or owner_live is not True or daemon_live is not True):
-        value.update(state="stale", ready=False, healthy=False, local_mcp_ready=False)
+        value.update(
+            state="stale", ready=False, healthy=False, local_mcp_ready=False, remote_reachability="unknown"
+        )
     startup = read(c.cloud_root / "startup-diagnostic.json")
     if startup and startup.get("observed_epoch", 0) > value.get("observed_epoch", 0):
         value["last_startup_error"] = startup
