@@ -39,8 +39,12 @@ submits or replays a scientific job.
 | Windows scheduler | Production event/repetition/IgnoreNew XML registered and read back; a separate real timer fixture automatically ran twice after successful exit, without logon or manual start, then was removed | Timer execution used a one-minute interval; real OS resume/reboot/network events remain separate |
 | Credential window | Password masking and non-writing validation verified with Windows PowerShell 5.1 | User must supply a valid key locally; automatic retries cannot fix rejection |
 | Historical wake evidence | Pre-upgrade school-client logs show successful polling after an actual Modern Standby resume on this date | Historical 0.2.13 observation, not 0.2.15 or selected-host acceptance |
-| Installed | Controlled 0.2.15 upgrade passed the synthetic native read-back gate. Both account identities, encrypted credentials, enabled/stop intent and all 23 original mini-project file hashes were preserved. Both tasks have an independent next scheduled run | Both saved keys currently return `invalid_api_key`; selected-host acceptance remains blocked |
-| Actual reboot/logon/sleep/WAN restoration | Pending a safe workstation event and post-event selected-host call | No automatic disruptive workstation test |
+| Installed | Controlled 0.2.15 upgrade passed synthetic native read-back and preserved both account identities, credentials, startup/stop intent and all 23 original mini-project file hashes. Both production periodic tasks subsequently ran automatically | Initial authentication block is superseded for the personal route by the evidence below; the other credential remains invalid |
+| Selected personal host | Actual `origin_status` returned 0.2.15 after the user saved a valid credential, after daemon recovery, after hibernation and twice after reboot/login | Selected device and personal route only; no scientific workflow was submitted |
+| Installed daemon loss | An idle, identity-verified personal daemon was terminated once; the existing supervisor restored a single connection in 52.79 seconds and the host call succeeded | No manual start or reconnect; credential and startup/stop intent preserved |
+| Actual hibernation/resume | User-authorized S4 hibernation is corroborated by Windows power events; the same daemon recovered and the actual host call succeeded after wake | One actual hibernation cycle; not every sleep mode or outage duration |
+| Actual reboot/login | A new Windows boot was verified; the personal supervisor and single daemon started before this chat performed diagnostics, followed by two successful host calls | No manual connection start; task history was disabled, so the exact firing trigger is not claimed |
+| Independent WAN restoration and long-duration operation | Pending | Isolated TCP fixtures and one real hibernation cycle do not establish this gate |
 
 ## Dependency and remaining gates
 
@@ -51,9 +55,10 @@ changing the pinned dependency is not required for this scoped patch.
 The one-plugin goal requires a powered, logged-in online computer, a valid personal
 connection and the licensed Origin runtime. The repair removes routine manual
 reconnect steps for recoverable connection failures; it cannot bypass authentication.
-A fresh successful selected-host `origin_status` call, actual reboot/login and
-sleep/wake recovery, and long-duration behavior must be recorded before claiming
-those gates passed. The earlier unexplained `0xC000013A` exit and external local
+Fresh selected-personal-host calls, an actual reboot/login and one actual S4
+hibernation/resume cycle passed, as detailed below. Independent WAN restoration,
+long-duration operation, other sleep modes and the other account remain separate
+gates. The earlier unexplained `0xC000013A` exit and external local
 Work project-sync issue remain unresolved/out of scope respectively. Scientific
 and artifact-delivery acceptance remains separate.
 
@@ -86,9 +91,46 @@ The school's earlier successful polling does not establish current credential
 validity. This is not attributed to a user key change or to the update. Both
 connections require valid credentials for fresh host acceptance.
 
-The final installed startup completed with a normal blocked-authentication state
+The initial installed startup completed with a normal blocked-authentication state
 for each unchanged rejected credential, with no remaining connector or frontend.
 This is expected credential gating, not successful connectivity. A local credential
 repair window was opened for the personal route. The user reported needing to
-obtain a valid key, so no final selected-host call or disruptive OS event is claimed.
+obtain a valid key at that checkpoint. The later personal-route acceptance below
+supersedes that initial block without changing the other account.
 The required runtime permissions are [Tunnels Read + Use](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels).
+
+
+## Personal-route acceptance after credential repair
+
+On 2026-10-14 the user saved a valid personal credential through the local masked
+window. The encrypted personal credential changed as requested; both connection
+identities remained the same, and the other account retained its unchanged rejected
+credential. The selected host returned version 0.2.15 on the intended Windows device.
+No manual account re-creation or plugin reconnection was performed.
+
+An installed-process recovery check first confirmed zero queued/running scientific
+jobs, closed persistent sessions, fresh remote polling and one idle owned daemon.
+Only that identity-verified daemon was terminated. The existing supervisor restored
+one daemon/frontend chain in 52.79 seconds; an actual host call then succeeded.
+The credential and startup/stop intent remained unchanged by this check.
+
+The user then confirmed a safe workstation checkpoint and authorized hibernation.
+Windows recorded sleep at 16:58:44 UTC and wake at 17:01:19 UTC, with TargetState and
+EffectiveState both 5 and nonzero hibernation write/read durations. The existing
+daemon survived, resumed successful remote polling and answered the actual host
+call without manual reconnection. This is actual S4 hibernation evidence, distinct
+from the earlier process-pause fixture and historical Modern Standby observations.
+
+After separate explicit reboot authorization, Windows' last boot time changed to
+17:06:05 UTC. The personal supervisor was created at 17:06:38 UTC and its daemon at
+17:06:47 UTC, before the first post-login diagnostic at approximately 17:10 UTC.
+The installed task was enabled and running; current remote polling was fresh and
+online, with one daemon and one frontend. Two actual `origin_status` calls returned
+0.2.15. No manual start, reconnect, credential rewrite or repair command was used
+after login. Task Scheduler operational history was disabled, so this demonstrates
+automatic startup without attributing it to a specific scheduler trigger.
+
+All 23 original mini-project file hashes still match. The other account remains
+blocked on its unchanged invalid credential with no daemon or frontend. Independent
+WAN outage/restoration and long-duration acceptance remain pending. These checks
+submit no scientific job and do not certify arbitrary native operations or all hosts.
