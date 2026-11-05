@@ -1,0 +1,268 @@
+{
+  "0.2.8": {
+    "commit": "05864b7a8b570a0718817baaa6d1e0f0b7c93d2d",
+    "source_hashes": {
+      "src/origin_agent/__init__.py": [
+        "01ce9cc26a1a8916c85a5f8486f59bce71b25346ddd6f0696cd1b1da3df001bd",
+        "193982c49c09cc62d644ebc1dd9693b6834d132c6612341d6f87c8b321f886e8"
+      ],
+      "src/origin_agent/__main__.py": [
+        "102942c02cdbea1e98069b7486b9c6e21d2694d84d78fca0ff104d352566d68b",
+        "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a"
+      ],
+      "src/origin_agent/agent_profiles.py": [
+        "0f321cb5773bc36ff3108001c172fdacc3a9ef6b9ce0bc44b54974154f71cc8d",
+        "28e24474fb65c3dafb08ccd2652e913763a6f95df9ca091d269a8991c582e9bc"
+      ],
+      "src/origin_agent/capabilities.py": [
+        "8bba29b39bae9f92b947266c1cb3b202d98b7727ee0cb79df97b3762de61a6a4",
+        "d860b9394ba44a16a3f9a8cbb1c1faebf5294c9296b5168b1e01dbfadb6c462d"
+      ],
+      "src/origin_agent/cli.py": [
+        "1f2436834c6081c5b620b23c51bc750f3bc19d2e0e76e112f82bca3dc0489692",
+        "ffa9a5e529606d9ffb3cf5fc93e29aec3705d9b37e69f77c17660617c78524e8"
+      ],
+      "src/origin_agent/datasets.py": [
+        "8d9097357b43d5811cd4978ab6b8481879ef1749755ed9bdf225005c154dbbdc",
+        "8e3680428d413f72267e8b93cd23debdec4461db08505a60bc8f5c52527e7e29"
+      ],
+      "src/origin_agent/discovery.py": [
+        "415460d4113a36aa0513a198f1f95e6ff7ac70dd9acaef0b5c44602137eb8c87",
+        "482e615ca32d11d5c855d52ceb285efdb4274985c54d156d437ef8d7fb891e4f"
+      ],
+      "src/origin_agent/graph_text.py": [
+        "4587e1549934e4603ff9057bd9b527f7f74f82a8d7226866122a343c035ce973",
+        "ef148833b6a4696efd755b3d8f152caafaabd85de4a03cb13392df78e08c2132"
+      ],
+      "src/origin_agent/gui.py": [
+        "6ec021710a9ea244b61069925256c54301f0ba3bb4fffdd5a3ab93bdaaa25906",
+        "915ed168a348ac7f7c446c91f8aebb174845168ceec1f07e24538c467e505505"
+      ],
+      "src/origin_agent/gui_accessibility.py": [
+        "7790f0b07888300bd5726adea1981b1c701ee61c6e3db355d5489933ee0d9bf9",
+        "e2384e7b3fb46e5963a17f26a9bb9e3571bea17b1be805a8a03d5e73a29bd3b2"
+      ],
+      "src/origin_agent/gui_input.py": [
+        "ad4ff4cbe3850c8e0520c53c516541e0526108cfcb91e9a0a07141ee4f963c48",
+        "f5f7a493f35b2d5446814472c7b891f2ad5a91ab5b4c1e47c1f0fa559171f521"
+      ],
+      "src/origin_agent/gui_native.py": [
+        "32aa79329b3571ab0f93626dda2f060d94797f64f2782a609102e75487f7f98d",
+        "38fe4da6d8d9a1acf956d318923e2c9760fd7b91e981eb598e0361ba580a46cf"
+      ],
+      "src/origin_agent/gui_session.py": [
+        "a3b7c6e3eb19b42929ac3bcc95657584157cb17d4cbb13f568bc9383ab5337c7",
+        "c30257724e86e184ea4e4c95400c49411153d27ce5c1c9adfd99cef13e94d9e1"
+      ],
+      "src/origin_agent/installation.py": [
+        "2492eac4d67dd798b740b7914b2e3167e6b063071d5c06ac698bc80f4fedf6bf",
+        "37c7655cc3d61e1d0f78900341001ecdade522c72add0eac919c115cb6299227"
+      ],
+      "src/origin_agent/jobs.py": [
+        "a91f4670638c7a1f803a1c108460ce916d19e8f197081a9e7da9fa5cec86b76b",
+        "fa988cc866d254166fbf6ed43a5869d5f519e097220bc76d05194c09b7506042"
+      ],
+      "src/origin_agent/models.py": [
+        "c18b54cbaea30c1edae28329e2248d926fa63fa4766b6ceebd9b721dd580cba0",
+        "f1516e7411d2f0115ab52f82f1c32f482a4bbd33cd998d520aaf000195858163"
+      ],
+      "src/origin_agent/native.py": [
+        "88e0af00a435d76f2a852aa4e35055222989abe284676efde83d07776821e3a5",
+        "e91b05a983d72a74d0bd298a014e22a509066fd302a20a5a044f6bc22e802393"
+      ],
+      "src/origin_agent/origin_runtime.py": [
+        "1594c40dee8173354ed043807f966b3fcf30529337cea776dbb423e126bfcba6",
+        "d130d64db59d256d2ea68d6bfc1b744f909f306da214415b1b2a3e678a8a739e"
+      ],
+      "src/origin_agent/planning.py": [
+        "4d478e5782d7bcf8f3a5f6e2592ae337cabf806b0d4ef404d5206c95377a0496",
+        "dce8e7ba080d36d4b9f542d108640b5e2b87897a59cf023f4c051d0a9c60601f"
+      ],
+      "src/origin_agent/program_native.py": [
+        "052838d1d74c6693cd27a2dc3b864d8f671ef46e04fb539d0fe21f63b59ea7b7",
+        "7fe6f56232d858546c10301567d7ea6780789719c4dbaf0fe9aff2b1258aa244"
+      ],
+      "src/origin_agent/programs.py": [
+        "05d24758a4ab42abaf2c89080f0efae44f5f321cad466407a07d09ec6b7dc753",
+        "f890a7efa4662ea9e02cca980ba478e4221652a0fba94db32b88d04204d25e02"
+      ],
+      "src/origin_agent/server.py": [
+        "951eab79332863a39935b97e569f078d021d07f9e6ad53124bc67473b6c46d5c",
+        "de29b32011015a4adce136ef5de082bd914ab13070a39606fa94b82f5c9f69ce"
+      ],
+      "src/origin_agent/session_native.py": [
+        "2c73e9de134d5df7f3d4be08486cdda308ef231bd5397ddf96519a32785df191",
+        "9d1918c73be0568252ee22c24f6304cb3a215eb18b85ba5ee69c2976d0168bbf"
+      ],
+      "src/origin_agent/session_worker.py": [
+        "7b3edf82330ece98f5a59179f2971742cc50812a9478ec093b0e624bee63c5db",
+        "f2fa790c7d6b57ceb852992f8bac5a33e4ebdd0a30cbb7bf6cdd097fdd9304bf"
+      ],
+      "src/origin_agent/sessions.py": [
+        "2ddb4f11d4532e1796ab4dd6044e978c48c565c5a8720a7947283f74b22680fe",
+        "61c7d2385627c1b9dc38b406c05aeb733b2f9fbd6ff27f0f278fa105befd0360"
+      ],
+      "src/origin_agent/storage.py": [
+        "021638602cf45e93cc47a617984aefeb21723cf4b193e56cbd086a5da82db75c",
+        "9025f44acfd4711e4bfcea4895b324d85f37c138afacf55f38475b823966c724"
+      ],
+      "src/origin_agent/target.py": [
+        "776c910d1c0a8585802e59dd45664cdeb568fef64489fde06665e43ad6812bbc",
+        "a0a0bd5072108c0db2edccb3a6842dfb6462cc071df9260cb46a49a4de5eb058"
+      ]
+    }
+  },
+  "0.2.15": {
+    "commit": "c86b2878176f5ba3aa3767782e50ee1b1afa674b",
+    "source_hashes": {
+      "src/origin_agent/__init__.py": [
+        "5b7801aacc6e424277dc0273d30a877ca4174d72bab2064ae4316d55062a4305",
+        "f7bf971ed6f481e57b6f4fd08e8696bcdf1bdf35667a0cd5e646bd42150ccd86"
+      ],
+      "src/origin_agent/__main__.py": [
+        "102942c02cdbea1e98069b7486b9c6e21d2694d84d78fca0ff104d352566d68b",
+        "3129adff95e0f38b87ab34cddfc27082c7892bcaec267ff5d40f160fdf55b44a"
+      ],
+      "src/origin_agent/agent_profiles.py": [
+        "0145d993634574139fc82689d8fec2beaa99b9bebcf637ebba9cbc5fc3ca0398",
+        "23398177aeb2dd7d50168a367497f3f20dfe117624137d45bf3e5908c609df48"
+      ],
+      "src/origin_agent/capabilities.py": [
+        "8bba29b39bae9f92b947266c1cb3b202d98b7727ee0cb79df97b3762de61a6a4",
+        "d860b9394ba44a16a3f9a8cbb1c1faebf5294c9296b5168b1e01dbfadb6c462d"
+      ],
+      "src/origin_agent/cli.py": [
+        "96cd968aa7c19fa20f5d5119cd6bf3c23ff6a6706fc283b7d43c05fd0e68a1de",
+        "d7c0fd0e2ebdd322a6f17e67f7fd6bc17cc1e5dd2f3efe8e51f77209c962017c"
+      ],
+      "src/origin_agent/datasets.py": [
+        "8d9097357b43d5811cd4978ab6b8481879ef1749755ed9bdf225005c154dbbdc",
+        "8e3680428d413f72267e8b93cd23debdec4461db08505a60bc8f5c52527e7e29"
+      ],
+      "src/origin_agent/discovery.py": [
+        "415460d4113a36aa0513a198f1f95e6ff7ac70dd9acaef0b5c44602137eb8c87",
+        "482e615ca32d11d5c855d52ceb285efdb4274985c54d156d437ef8d7fb891e4f"
+      ],
+      "src/origin_agent/graph_text.py": [
+        "4587e1549934e4603ff9057bd9b527f7f74f82a8d7226866122a343c035ce973",
+        "ef148833b6a4696efd755b3d8f152caafaabd85de4a03cb13392df78e08c2132"
+      ],
+      "src/origin_agent/graph_ticks.py": [
+        "12a1e61ac99f1343e0553f8475b066ea8449944e7aa3dcad53fc944f18e1692f",
+        "59ec87cd1771d4b62b355b873596186a646c858202e436d540f8cbc4f7f09901"
+      ],
+      "src/origin_agent/gui.py": [
+        "6ec021710a9ea244b61069925256c54301f0ba3bb4fffdd5a3ab93bdaaa25906",
+        "915ed168a348ac7f7c446c91f8aebb174845168ceec1f07e24538c467e505505"
+      ],
+      "src/origin_agent/gui_accessibility.py": [
+        "7790f0b07888300bd5726adea1981b1c701ee61c6e3db355d5489933ee0d9bf9",
+        "e2384e7b3fb46e5963a17f26a9bb9e3571bea17b1be805a8a03d5e73a29bd3b2"
+      ],
+      "src/origin_agent/gui_input.py": [
+        "ad4ff4cbe3850c8e0520c53c516541e0526108cfcb91e9a0a07141ee4f963c48",
+        "f5f7a493f35b2d5446814472c7b891f2ad5a91ab5b4c1e47c1f0fa559171f521"
+      ],
+      "src/origin_agent/gui_native.py": [
+        "32aa79329b3571ab0f93626dda2f060d94797f64f2782a609102e75487f7f98d",
+        "38fe4da6d8d9a1acf956d318923e2c9760fd7b91e981eb598e0361ba580a46cf"
+      ],
+      "src/origin_agent/gui_session.py": [
+        "a3b7c6e3eb19b42929ac3bcc95657584157cb17d4cbb13f568bc9383ab5337c7",
+        "c30257724e86e184ea4e4c95400c49411153d27ce5c1c9adfd99cef13e94d9e1"
+      ],
+      "src/origin_agent/installation.py": [
+        "75803b70c9fed0eb6d8053ef036ad51f071e17f91051fed684e4afff26231fa2",
+        "af79956bd69306298b105f56189d436adc7e09f08e6cce3ea4948abccea977a1"
+      ],
+      "src/origin_agent/jobs.py": [
+        "a91f4670638c7a1f803a1c108460ce916d19e8f197081a9e7da9fa5cec86b76b",
+        "fa988cc866d254166fbf6ed43a5869d5f519e097220bc76d05194c09b7506042"
+      ],
+      "src/origin_agent/lifecycle_admission.py": [
+        "4b162c6150284d25ab1b1b3ff520133da49a973d39ec17b668632c3374715fbb",
+        "7a2b6e78d351f64abd1ef939b385a52fd3a462696650b35f91c4a39086a4b3d6"
+      ],
+      "src/origin_agent/models.py": [
+        "2a2b6aa04d2962dd1a4d5ebca34b8fc4bfcd91a654c06b90ca7c641110b7612f",
+        "312604ed44ffc138b54c43a702190d3d459ac87bf759295b9cba9054d57bc980"
+      ],
+      "src/origin_agent/native.py": [
+        "9b3c21bc74e6578d09a362e932dacbb5b1ea6e4053b0cb676411ddfb9084469d",
+        "a530757ef8da42eb8fd9678fb83d1ca625e6d0448d8bf7222d99f64174636a27"
+      ],
+      "src/origin_agent/openai_connection.py": [
+        "0d61eefc9599ad29aa5793fec503ebca6b4db395f6e625b5bf00e88e68639574",
+        "cd0be77121c8445b68651c9609dd02dbb427a33be4f79b659dce2cb6041db2d4"
+      ],
+      "src/origin_agent/origin_runtime.py": [
+        "1594c40dee8173354ed043807f966b3fcf30529337cea776dbb423e126bfcba6",
+        "d130d64db59d256d2ea68d6bfc1b744f909f306da214415b1b2a3e678a8a739e"
+      ],
+      "src/origin_agent/output_contracts.py": [
+        "3ff35479c246549e06e9b847e2f399968bdfc9d80b242033a814c1d82d821fa6",
+        "43acd767e0fac09ecab8fab20525b7acb0465c625a2cb1c97012c3ed16fe0601"
+      ],
+      "src/origin_agent/output_types.py": [
+        "5936fc1bdb1e39f2798779bf59d98891c92b034618ebf0db95e9edf02f9ff2e6",
+        "9e4be956fd47eb201a44d2b8b521f203243839ad72a951344101ddd3fd0303db"
+      ],
+      "src/origin_agent/planning.py": [
+        "4d478e5782d7bcf8f3a5f6e2592ae337cabf806b0d4ef404d5206c95377a0496",
+        "dce8e7ba080d36d4b9f542d108640b5e2b87897a59cf023f4c051d0a9c60601f"
+      ],
+      "src/origin_agent/product.py": [
+        "7e2ece6a5d6f8fa2808c028b2ec76e15e1441c6ceb64c6af50fb0a6c03c9d920",
+        "faa3235db260f484e88f1bbb2b01f778c1ad7990cbd91b3266026493ac37f757"
+      ],
+      "src/origin_agent/program_native.py": [
+        "052838d1d74c6693cd27a2dc3b864d8f671ef46e04fb539d0fe21f63b59ea7b7",
+        "7fe6f56232d858546c10301567d7ea6780789719c4dbaf0fe9aff2b1258aa244"
+      ],
+      "src/origin_agent/programs.py": [
+        "05d24758a4ab42abaf2c89080f0efae44f5f321cad466407a07d09ec6b7dc753",
+        "f890a7efa4662ea9e02cca980ba478e4221652a0fba94db32b88d04204d25e02"
+      ],
+      "src/origin_agent/server.py": [
+        "49f6eeb471908e3aeb99304d7deea5c47995be88c1172818be4876b450226363",
+        "9a5c8a39396b3d4d8362d1d3112d51c5737bd12ef629e1b86f2a1a6002abeb82"
+      ],
+      "src/origin_agent/session_native.py": [
+        "2c73e9de134d5df7f3d4be08486cdda308ef231bd5397ddf96519a32785df191",
+        "9d1918c73be0568252ee22c24f6304cb3a215eb18b85ba5ee69c2976d0168bbf"
+      ],
+      "src/origin_agent/session_worker.py": [
+        "7b3edf82330ece98f5a59179f2971742cc50812a9478ec093b0e624bee63c5db",
+        "f2fa790c7d6b57ceb852992f8bac5a33e4ebdd0a30cbb7bf6cdd097fdd9304bf"
+      ],
+      "src/origin_agent/sessions.py": [
+        "2ddb4f11d4532e1796ab4dd6044e978c48c565c5a8720a7947283f74b22680fe",
+        "61c7d2385627c1b9dc38b406c05aeb733b2f9fbd6ff27f0f278fa105befd0360"
+      ],
+      "src/origin_agent/storage.py": [
+        "021638602cf45e93cc47a617984aefeb21723cf4b193e56cbd086a5da82db75c",
+        "9025f44acfd4711e4bfcea4895b324d85f37c138afacf55f38475b823966c724"
+      ],
+      "src/origin_agent/target.py": [
+        "776c910d1c0a8585802e59dd45664cdeb568fef64489fde06665e43ad6812bbc",
+        "a0a0bd5072108c0db2edccb3a6842dfb6462cc071df9260cb46a49a4de5eb058"
+      ],
+      "src/origin_agent/tunnel_dependency.py": [
+        "8842840fe9607908fad1475e5df931ad015cc4ea1f0c169eac58572188d504e6",
+        "a225f5716c382d400493641c7a23a76a415a6de7c7128b58cf06c92eb4d99599"
+      ],
+      "src/origin_agent/tunnel_health.py": [
+        "5328d4c97f25ed827bbe9cdbe03971f968f6480d2a0ab01d343cba6fb994acac",
+        "a1eefa6035226a3487ad6405b3a50c867a1a1fbe67f924024968d8d968fe72f6"
+      ],
+      "src/origin_agent/tunnel_install.py": [
+        "6f1945f24f22fc8b7e788cff60d5cd2b0c65e8726bdbda7a71517735746ac561",
+        "ae7f609b7fc11b7611f4f87bc1c7b0d5d25f0c524a78b2273a51683b59c83216"
+      ],
+      "src/origin_agent/tunnel_lifecycle.py": [
+        "252786fe578021dd6df22d23484055adbb3672aca12e5ba9cb55e99704b38523",
+        "e7641c086f8fe5d1ec564c8e2eacf915e6be598f9b20597b59457b05d396af0a"
+      ]
+    }
+  }
+}
