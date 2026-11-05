@@ -119,10 +119,12 @@ if action == "connect":
         raise SystemExit(2)
     child = launch(["run", "--profile-dir", get("--profile-dir"), "--profile", get("--profile")])
     registry = {"pid": child.pid, "started": time.time()}
-    if os.name == "nt":
-        process = psutil.Process(child.pid)
-        registry["pid_start_time"] = str(round(process.create_time() * 1_000_000_000))
-        registry["pid_executable"] = process.exe()
+    # Provide complete process identity on every CI platform. Omitting these fields
+    # requests the vendor processes.yaml fallback, which this synthetic fixture
+    # only creates in tests that explicitly exercise that fallback.
+    process = psutil.Process(child.pid)
+    registry["pid_start_time"] = str(round(process.create_time() * 1_000_000_000))
+    registry["pid_executable"] = process.exe()
     write(folder / "registry.json", registry)
     if settings.get("connect_hang"):
         time.sleep(180)
@@ -159,9 +161,8 @@ elif action == "status":
         "profile_dir": profile_dir,
         "started_at": datetime.fromtimestamp(registry.get("started", 0), UTC).isoformat(),
     }
-    if os.name == "nt":
-        meta["pid_start_time"] = registry.get("pid_start_time")
-        meta["pid_executable"] = registry.get("pid_executable")
+    meta["pid_start_time"] = registry.get("pid_start_time")
+    meta["pid_executable"] = registry.get("pid_executable")
     if settings.get("missing_registry"):
         meta = {}
     print(
